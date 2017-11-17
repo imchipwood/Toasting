@@ -1,0 +1,9 @@
+Install python spidev
+https://www.raspberrypi.org/forums/viewtopic.php?t=56669
+
+Install other required packages available thru pip
+sudo python -m pip install -r requirements.txt
+
+The latest version of wxpython available thru pip is 3.0.something, we need 4.0.0b2.
+Install following these directions, but don't bother with the python 3.x crap, just use 2.7
+https://wiki.wxpython.org/BuildWxPythonOnRaspberryPi
