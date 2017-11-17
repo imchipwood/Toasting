@@ -1,0 +1,47 @@
+{
+  "units": "celcius",
+  "pins": {
+    "SPI_CS": 8,
+    "relay": 4
+  },
+  "tuning": {
+    "pid": {
+      "kP": 1.0,
+      "kI": 0.0,
+      "kD": 0.0,
+      "min": "",
+      "max": ""
+    },
+    "timerPeriod": 0.5
+  },
+  "states": {
+    "preheat": {
+      "target": 150,
+      "duration": 180
+    },
+    "preheat_soak": {
+      "target": 150,
+      "duration": 60
+    },
+    "soak": {
+      "target": 200,
+      "duration": 90
+    },
+    "reflow_up": {
+      "target": 235,
+      "duration": 45
+    },
+    "reflow_soak": {
+      "target": 235,
+      "duration": 30
+    },
+    "reflow_down": {
+      "target": 200,
+      "duration": 45
+    },
+    "cool": {
+      "target": 0,
+      "duration": 240
+    }
+  }
+}
