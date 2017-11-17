@@ -19,7 +19,7 @@ class Sensor(object):
 		self.state = False
 		self._pin = pin
 		self.positive = enable
-		self.negative = GPIO.HIGH if enable == GPIO.HIGH else GPIO.LOW
+		self.negative = GPIO.LOW if enable == GPIO.HIGH else GPIO.HIGH
 		# self.init()
 
 	@property
@@ -36,6 +36,7 @@ class Sensor(object):
 		self.logger.debug("initing pin {}".format(self.pin))
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(self.pin, GPIO.OUT)
+		self.disable()
 
 	def enable(self):
 		GPIO.output(self.pin, self.positive)
