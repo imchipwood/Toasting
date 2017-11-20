@@ -18,7 +18,7 @@ class Sensor(object):
 		self.logger = getLogger('Sensor', debugLevel)
 		self.debugLevel = debugLevel
 		self.state = False
-		self._pin = pin
+		self._pin = int(pin)
 		self.positive = enable
 		self.negative = GPIO.LOW if enable == GPIO.HIGH else GPIO.HIGH
 		# self.init()
