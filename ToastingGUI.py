@@ -47,13 +47,13 @@ class ToastingGUI(ToastingBase):
 
 		# Get initial configuration from testconfig.json
 		baseConfigPath = os.path.join(os.path.dirname(__file__), "config", "testconfig.json")
-		baseConfig = self.getConfigFromJsonFile(baseConfigPath)
-		pins = baseConfig['pins']
-		tuning = baseConfig['tuning']
+		self.config = self.getConfigFromJsonFile(baseConfigPath)
+		pins = self.config['pins']
+		tuning = self.config['tuning']
 
 		# Create a state machine with an empty configuration dict
 		self.toaster = ToastStateMachine(
-			stateConfiguration=baseConfig['states'],
+			stateConfiguration=self.config['states'],
 			timerPeriod=tuning['timerPeriod'],
 			csPin=pins['SPI_CS'],
 			relayPin=pins['relay'],
@@ -63,7 +63,8 @@ class ToastingGUI(ToastingBase):
 		)
 		self.timerPeriod = tuning['timerPeriod']
 
-		self.stateConfiguration = baseConfig['states']
+		# set this after creating toaster
+		self.stateConfiguration = self.config['states']
 
 		# state machine update
 		self.testing = False
@@ -92,7 +93,7 @@ class ToastingGUI(ToastingBase):
 		# Start the timer (period stored in seconds, Start() takes period in mS)
 		self.timer.Start(self.timerPeriod * 1000)
 
-		self.updateConfiguration()
+		self.updateGuiFromJsonConfig(self.config)
 
 	def bindEvents(self):
 		"""Bind all events not bound in base GUI class"""
@@ -406,7 +407,7 @@ class ToastingGUI(ToastingBase):
 
 		# Store updated config & redraw stuff
 		self.stateConfiguration = newConfiguration
-		self.updateConfiguration()
+		self.updateConfigurationGrid()
 
 	def convertTemp(self, temp):
 		"""Convert a temp to the currently set units
@@ -677,8 +678,16 @@ class ToastingGUI(ToastingBase):
 			config['states'] = self.convertConfigGridToStateConfig()
 			json.dump(config, oup, indent=4)
 			self.updateStatus("Config saved to {}".format(filePath))
+			
+	def loadConfigFromFile(self, filePath):
 
-	def loadConfig(self):
+		self.config = self.getConfigFromJsonFile(filePath)
+		self.stateConfiguration = self.config['states']
+
+		# Update the GUI
+		self.updateGuiFromJsonConfig(self.config)
+
+	def loadConfigDialog(self):
 		"""Show user a load file dialog and update configuration accordingly"""
 		dialog = wx.FileDialog(
 			parent=self,
@@ -692,10 +701,10 @@ class ToastingGUI(ToastingBase):
 		if dialog.ShowModal() == wx.ID_CANCEL:
 			return
 
-		# Extract file path from dialog and load config
-		self.stateConfiguration = self.readJsonConfig(dialog.GetPath())
+		# Extract file path from dialog and load it
+		self.loadConfigFromFile(dialog.GetPath())
 
-	def updateConfiguration(self):
+	def updateConfigurationGrid(self):
 		"""Update the grid and visualization with new configuration"""
 		# Update config grid
 		self.setupConfigurationGrid(self.stateConfiguration)
@@ -705,28 +714,39 @@ class ToastingGUI(ToastingBase):
 		self.redrawConfigurationVisualization(self.configurationVisualizer)
 		self.updateStatus("Configuration Updated")
 
-	def readJsonConfig(self, configPath):
-		"""Parse a JSON config file
+	def getStateConfigurationFromJsonFile(self, configPath):
+		"""Parse a JSON config file and return the states specifically
 
 		@param configPath: path to configuration json file
 		@type configPath: str
 		@return: OrderedDict
 		"""
 		config = self.getConfigFromJsonFile(configPath)
-		return self.updateGuiFromJsonConfig(config)
+		return config['states']
 
 	def updateGuiFromJsonConfig(self, config):
-		self.toaster.units = config['units']
+		"""Call any time a new JSON config is read
 
+		@param config: full toast config
+		@type config: dict
+		"""
+		# Configuration grid
+		self.updateConfigurationGrid()
+
+		# Units
+		self.toaster.units = config['units']
+		self.celciusRadioButton.SetValue(self.toaster.units == 'celcius')
+		self.fahrenheitRadioButton.SetValue(self.toaster.units == 'fahrenheit')
+
+		# Tuning
 		tuning = config['tuning']
 		self.updatePIDFromConfigDict(tuning['pid'])
 		self.timerPeriod = tuning['timerPeriod']
 
+		# Pin #s
 		pins = config['pins']
 		self.toaster.relay.pin = pins['relay']
 		self.toaster.thermocouple.pin = pins['SPI_CS']
-
-		return config['states']
 
 	def updatePIDFromConfigDict(self, pidConfig):
 		"""Update the PID controller tuning
@@ -976,7 +996,7 @@ class ToastingGUI(ToastingBase):
 		@param event: wx.EVT_BUTTON
 		"""
 		event.Skip()
-		self.loadConfig()
+		self.loadConfigDialog()
 
 	def saveConfigMenuItemOnMenuSelection(self, event):
 		"""Event handler for save config menu item
@@ -992,7 +1012,7 @@ class ToastingGUI(ToastingBase):
 		@param event: wx.EVT_MENU
 		"""
 		event.Skip()
-		self.loadConfig()
+		self.loadConfigDialog()
 
 	def onClose(self, event):
 		"""Event handler for exit
