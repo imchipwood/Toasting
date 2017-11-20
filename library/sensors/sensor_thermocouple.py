@@ -127,6 +127,7 @@ class Thermocouple(Sensor):
 			self.logger.exception(e.message)
 
 	def read(self):
+		self.logger.debug("tcread")
 		self.enable()
 		val = [0, 0, 0, 0]
 		try:
