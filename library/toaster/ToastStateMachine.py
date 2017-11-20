@@ -137,11 +137,12 @@ class ToastStateMachine(object):
 
 	def tick(self, testing=False):
 		"""Call every tick of clock/timer to increment timestamp"""
+		self.logger.debug("tick")
 		# read the thermocouple
 		try:
 			self.recentTCErrors.pop(0)
-			self.thermocouple.read()
-			# self.logger.debug("temp: {}".format(self.temperature))
+			temp = self.thermocouple.read()
+			self.logger.debug("temp: {}".format(temp))
 			self.recentTCErrors.append(None)
 		except Exception as e:
 			self.recentTCErrors.append(e)
