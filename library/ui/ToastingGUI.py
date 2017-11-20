@@ -807,14 +807,14 @@ class ToastingGUI(ToastingBase):
 		self.toaster.tick(self.testing)
 
 		# check errors
-		recentErrorCount = self.toaster.getRecentErrorCount()
-		if recentErrorCount >= 5:
-			self.toaster.stop()
-
-			caption = "Too Many Thermocouple Errors"
-			errorMessage = "There have been {} errors recently. Please check the Thermocouple connection"
-			errorMessage += "\n and the thermocouple itself for issues."
-			self.errorMessage(errorMessage, caption)
+		# recentErrorCount = self.toaster.getRecentErrorCount()
+		# if recentErrorCount >= 5:
+		# 	self.toaster.stop()
+		#
+		# 	caption = "Too Many Thermocouple Errors"
+		# 	errorMessage = "There have been {} errors recently. Please check the Thermocouple connection"
+		# 	errorMessage += "\n and the thermocouple itself for issues."
+		# 	self.errorMessage(errorMessage, caption)
 
 		# Fire test tick if we're testing the relay
 		if self.testing:

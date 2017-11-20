@@ -45,7 +45,7 @@ class ToastStateMachine(object):
 		self.runningStates = ['Running', 'Paused', 'Stopped']
 		self.running = 'Stopped'
 
-		self.maxTCErrorHistory = 1000
+		self.maxTCErrorHistory = 10
 		self.recentTCErrors = [None] * self.maxTCErrorHistory
 
 		kP = pidTuning['kP']
@@ -141,6 +141,7 @@ class ToastStateMachine(object):
 		try:
 			self.recentTCErrors.pop(0)
 			self.thermocouple.read()
+			self.logger.debug("temp: {}".format(self.temperature))
 			self.recentTCErrors.append(None)
 		except Exception as e:
 			self.recentTCErrors.append(e)
