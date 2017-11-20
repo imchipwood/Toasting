@@ -795,6 +795,7 @@ class ToastingGUI(ToastingBase):
 		
 		@param event: wx.EVT_TIMER
 		"""
+		self.logger.debug("timer tick")
 		event.Skip()
 
 		# handle progress gauge
@@ -804,6 +805,7 @@ class ToastingGUI(ToastingBase):
 			self.progressGauge.SetValue(100)
 
 		# tell toaster to read thermocouple, etc.
+		self.logger.debug("toaster tick")
 		self.toaster.tick(self.testing)
 
 		# check errors
