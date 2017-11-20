@@ -9,13 +9,14 @@ try:
 	import RPi.GPIO as GPIO
 except:
 	# Other
-	import library.sensors.MockGPIO as GPIO
+	import library.sensors.mock_gpio as GPIO
+
 try:
 	# RPi
 	import spidev
 except:
 	# Other
-	import library.sensors.MockSpidev as spidev
+	import library.sensors.mock_spiDev as spidev
 
 VALID_UNITS = ['celcius', 'fahrenheit']
 
@@ -54,8 +55,6 @@ class Thermocouple(Sensor):
 
 		self.logger = getLogger('Thermocouple', debugLevel)
 
-		self._units = 'celcius'
-
 		# Temperature is always stored in fahrenheit
 		self._temp = 0.0
 		self._lastTemp = self.temperature
@@ -63,6 +62,8 @@ class Thermocouple(Sensor):
 
 		self.spi = spidev.SpiDev()
 		self.init()
+
+	# region Properties
 
 	@property
 	def csPin(self):
@@ -74,17 +75,11 @@ class Thermocouple(Sensor):
 
 	@property
 	def temperature(self):
-		# if self.units == 'celcius':
 		return self._temp
-		# else:
-		# 	return self._temp * 9.0 / 5.0 + 32.0
 
 	@property
 	def refTemperature(self):
-		# if self.units == 'celcius':
 		return self._refTemp
-		# else:
-		# 	return self._refTemp * 9.0 / 5.0 + 32.0
 
 	@property
 	def units(self):
@@ -95,6 +90,8 @@ class Thermocouple(Sensor):
 		if units not in VALID_UNITS:
 			raise UnitError('Allowable units are {}'.format(", ".join(VALID_UNITS)))
 		self._units = units
+
+	# endregion Properties
 
 	def init(self):
 		# setup CS pin
@@ -127,13 +124,14 @@ class Thermocouple(Sensor):
 			self.logger.exception(e.message)
 
 	def read(self):
-		self.logger.debug("tcread")
+		"""Perform an SPI read of the MAX31855 Thermocouple
+
+		@return: float temperature
+		"""
 		self.enable()
 		val = [0, 0, 0, 0]
 		try:
-			self.logger.debug('spi xfer')
 			val = self.spi.xfer(val)			# get four bytes as an array of four integers
-			self.logger.debug("spi: {}".format(" ".join([str(bin(x)) for x in val])))
 		except:
 			self.logger.exception("exception during SPI read")
 			raise
@@ -189,5 +187,4 @@ class Thermocouple(Sensor):
 		# we got through without exceptions, set lasttemp to temp read last time
 		self._lastTemp = self.temperature
 		self._temp = tcelcius
-		self.logger.debug("temp: {}".format(self.temperature))
 		return self.temperature

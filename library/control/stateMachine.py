@@ -4,8 +4,8 @@ import logging
 from library.other.setupLogging import getLogger
 from library.sensors.sensor_relay import Relay
 from library.sensors.sensor_thermocouple import Thermocouple
-from library.toaster.pid import PID
-from library.ui.ConfigurationVisualizer import CONFIG_KEY_TARGET, CONFIG_KEY_DURATION
+from library.control.pid import PID
+from library.ui.visualizer_configuration import CONFIG_KEY_TARGET, CONFIG_KEY_DURATION
 
 
 class ToastStateMachine(object):
@@ -69,6 +69,8 @@ class ToastStateMachine(object):
 
 		self.data = []
 
+	# region Properties
+
 	@property
 	def stateConfiguration(self):
 		return self._stateConfiguration
@@ -103,16 +105,20 @@ class ToastStateMachine(object):
 	def relayState(self):
 		return self.relay.state
 
-	@property
-	def units(self):
-		return self.thermocouple.units
+	# endregion Properties
 
-	@units.setter
-	def units(self, units):
-		self.thermocouple.units = units
+	def cleanup(self):
+		"""Clean up all GPIO"""
+		self.relay.disable()
+		self.thermocouple.cleanup()
+		self.relay.cleanup()
+
+	# region StateMachine
 
 	def start(self):
+		"""Begin the state machine"""
 		self.running = 'Running'
+		# reset all the state variables
 		self.timestamp = 0.0
 		self.lastControlLoopTimestamp = 0.0
 		self.stateIndex = 0
@@ -121,28 +127,33 @@ class ToastStateMachine(object):
 		self.data = []
 
 	def stop(self):
+		"""Stop the state machine"""
 		self.running = 'Stopped'
 		self.stateIndex = 0
 		self.updateState()
 		self.lastTarget = 0.0
 
 	def resume(self):
+		"""Resume a paused state machine"""
 		self.running = 'Running'
 
 	def pause(self):
+		"""Pause a currently running state machine"""
 		self.running = 'Paused'
 
 	def getRecentErrorCount(self):
+		"""Count # of recent errors
+
+		@return: int
+		"""
 		return len([error for error in self.recentTCErrors if error is not None])
 
 	def tick(self, testing=False):
 		"""Call every tick of clock/timer to increment timestamp"""
-		self.logger.debug("tick")
 		# read the thermocouple
 		try:
 			self.recentTCErrors.pop(0)
 			temp = self.thermocouple.read()
-			self.logger.debug("temp: {}".format(temp))
 			self.recentTCErrors.append(None)
 		except Exception as e:
 			self.recentTCErrors.append(e)
@@ -163,7 +174,6 @@ class ToastStateMachine(object):
 			self.nextState()
 
 		# Control loop @ 1Hz
-		pidOut = None
 		if self.lastControlLoopTimestamp - self.timestamp >= 1:
 			self.lastControlLoopTimestamp = self.timestamp
 
@@ -184,19 +194,22 @@ class ToastStateMachine(object):
 
 	def nextState(self):
 		"""Move state machine to next state"""
+		# Increment state index
 		self.stateIndex += 1
 
-		# Have we reached the end of the state machine?
+		# Check if state machine has reached the end
 		if self.stateIndex == len(self.states):
 			self.running = 'Complete'
 			if self.stateMachineCompleteCallback:
 				self.stateMachineCompleteCallback()
 			return
 
+		# Update state variables if we're still running
 		if self.running == 'Running':
 			self.updateState()
 
 	def updateState(self):
+		"""Update the current state variables"""
 		self.currentState = self.states[self.stateIndex]
 
 		self.lastTarget = self.target
@@ -205,10 +218,14 @@ class ToastStateMachine(object):
 		self.currentStateEnd += self.currentStateDuration
 
 		# Soaking stages simply maintain a steady temperature for a certain duration
-		# Heating/Cooling stages hav
+		# Heating/Cooling stages have no duration
 		self.soaking = self.target == self.lastTarget
 
+	# endregion StateMachine
+	# region Data
+
 	def updateData(self):
+		"""Update data tracking"""
 		# Build data dict
 		data = {
 			'Timestamp': self.timestamp,
@@ -222,6 +239,12 @@ class ToastStateMachine(object):
 		self.data.append(data)
 
 	def dumpDataToCsv(self, csvPath):
+		"""Dump data to a CSV file
+
+		@param csvPath: path to CSV file to dump data to
+		@type csvPath: str
+		@return: bool - True if successful, False otherwise
+		"""
 		if not self.data:
 			return False
 
@@ -234,7 +257,4 @@ class ToastStateMachine(object):
 
 		return True
 
-	def cleanup(self):
-		self.relay.disable()
-		self.thermocouple.cleanup()
-		self.relay.cleanup()
+	# endregion Data

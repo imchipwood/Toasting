@@ -1,6 +1,5 @@
 import logging
 
-# from setupLogging import getLogger
 from library.other.setupLogging import getLogger
 
 try:
@@ -8,7 +7,7 @@ try:
 	import RPi.GPIO as GPIO
 except:
 	# Other
-	import library.sensors.MockGPIO as GPIO
+	import library.sensors.mock_gpio as GPIO
 
 
 class Sensor(object):
@@ -21,7 +20,6 @@ class Sensor(object):
 		self._pin = int(pin)
 		self.positive = enable
 		self.negative = GPIO.LOW if enable == GPIO.HIGH else GPIO.HIGH
-		# self.init()
 
 	@property
 	def pin(self):

@@ -1,4 +1,3 @@
-import csv
 import json
 import logging
 import os
@@ -13,9 +12,9 @@ import wx
 import wx.grid
 
 from library.ui.ToastingGUIBase import ToastingBase
-from library.ui.ConfigurationVisualizer import ConfigurationVisualizer, CONFIG_KEY_DURATION, CONFIG_KEY_TARGET
-from library.ui.LiveVisualizer import LiveVisualizer
-from library.toaster.ToastStateMachine import ToastStateMachine
+from library.ui.visualizer_configuration import ConfigurationVisualizer, CONFIG_KEY_DURATION, CONFIG_KEY_TARGET
+from library.ui.visualizer_liveGraph import LiveVisualizer
+from library.control.stateMachine import ToastStateMachine
 from library.other import decorators
 from library.other.setupLogging import getLogger
 from definitions import CONFIG_DIR, DATA_DIR
@@ -51,6 +50,7 @@ class ToastingGUI(ToastingBase):
 		self.config = self.getConfigFromJsonFile(baseConfigPath)
 		pins = self.config['pins']
 		tuning = self.config['tuning']
+		self.units = self.config['units']
 
 		# Create a state machine with an empty configuration dict
 		self.toaster = ToastStateMachine(
@@ -64,7 +64,7 @@ class ToastingGUI(ToastingBase):
 		)
 		self.timerPeriod = tuning['timerPeriod']
 
-		# set this after creating toaster
+		# set this after creating control
 		self.stateConfiguration = self.config['states']
 
 		# state machine update
@@ -229,12 +229,18 @@ class ToastingGUI(ToastingBase):
 	@property
 	def temperature(self):
 		"""Getter for current temperature"""
-		return self.toaster.temperature
+		if self.config['units'] == 'celcius':
+			return self.toaster.temperature
+		else:
+			return self.convertTemp(self.toaster.temperature)
 
 	@property
 	def refTemperature(self):
 		"""Getter for current reference temperature"""
-		return self.toaster.refTemperature
+		if self.config['units'] == 'celcius':
+			return self.toaster.refTemperature
+		else:
+			return self.convertTemp(self.toaster.refTemperature)
 
 	@property
 	def stateConfiguration(self):
@@ -417,7 +423,7 @@ class ToastingGUI(ToastingBase):
 		@type temp: float
 		@return: float
 		"""
-		if self.toaster.units == 'celcius':
+		if self.units == 'celcius':
 			# convert fahrenheit to celcius
 			return (temp - 32.0) * 5.0 / 9.0
 		else:
@@ -642,7 +648,7 @@ class ToastingGUI(ToastingBase):
 		filePath = dialog.GetPath()
 		with open(filePath, 'w') as oup:
 			config = OrderedDict()
-			config['units'] = self.toaster.units
+			config['units'] = self.units
 			config['pins'] = {}
 			config['pins']['SPI_CS'] = self.toaster.thermocouple.csPin
 			config['pins']['relay'] = self.toaster.relay.pin
@@ -708,9 +714,9 @@ class ToastingGUI(ToastingBase):
 		self.updateConfigurationGrid()
 
 		# Units
-		self.toaster.units = config['units']
-		self.celciusRadioButton.SetValue(self.toaster.units == 'celcius')
-		self.fahrenheitRadioButton.SetValue(self.toaster.units == 'fahrenheit')
+		self.units = config['units']
+		self.celciusRadioButton.SetValue(self.units == 'celcius')
+		self.fahrenheitRadioButton.SetValue(self.units == 'fahrenheit')
 
 		# Tuning
 		tuning = config['tuning']
@@ -795,7 +801,6 @@ class ToastingGUI(ToastingBase):
 		
 		@param event: wx.EVT_TIMER
 		"""
-		self.logger.debug("timer tick")
 		event.Skip()
 
 		# handle progress gauge
@@ -804,19 +809,18 @@ class ToastingGUI(ToastingBase):
 		else:
 			self.progressGauge.SetValue(100)
 
-		# tell toaster to read thermocouple, etc.
-		self.logger.debug("toaster tick")
+		# tell control to read thermocouple, etc.
 		self.toaster.tick(self.testing)
 
 		# check errors
-		# recentErrorCount = self.toaster.getRecentErrorCount()
-		# if recentErrorCount >= 5:
-		# 	self.toaster.stop()
-		#
-		# 	caption = "Too Many Thermocouple Errors"
-		# 	errorMessage = "There have been {} errors recently. Please check the Thermocouple connection"
-		# 	errorMessage += "\n and the thermocouple itself for issues."
-		# 	self.errorMessage(errorMessage, caption)
+		recentErrorCount = self.toaster.getRecentErrorCount()
+		if recentErrorCount >= 5:
+			self.toaster.stop()
+
+			caption = "Too Many Thermocouple Errors"
+			errorMessage = "There have been {} errors recently. Please check the Thermocouple connection"
+			errorMessage += "\n and the thermocouple itself for issues."
+			self.errorMessage(errorMessage, caption)
 
 		# Fire test tick if we're testing the relay
 		if self.testing:
@@ -935,17 +939,17 @@ class ToastingGUI(ToastingBase):
 		"""
 		# self.logger.debug("temperatureOnRadioButton")
 		radioBox = event.GetEventObject()
-		if radioBox == self.celciusRadioButton and self.toaster.units == 'celcius':
+		if radioBox == self.celciusRadioButton and self.units == 'celcius':
 			return
-		elif radioBox == self.fahrenheitRadioButton and self.toaster.units == 'fahrenheit':
+		elif radioBox == self.fahrenheitRadioButton and self.units == 'fahrenheit':
 			return
 
 		if radioBox == self.celciusRadioButton:
 			self.fahrenheitRadioButton.SetValue(False)
-			self.toaster.units = 'celcius'
+			self.units = 'celcius'
 		elif radioBox == self.fahrenheitRadioButton:
 			self.celciusRadioButton.SetValue(False)
-			self.toaster.units = 'fahrenheit'
+			self.units = 'fahrenheit'
 
 		self.temperatureUnitsChange()
 		self.updateTemperatureStatus()
