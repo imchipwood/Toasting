@@ -1,10 +1,10 @@
 import logging
 
-from library.ConfigurationVisualizer import CONFIG_KEY_TARGET, CONFIG_KEY_DURATION
-from library.pid import PID
-from library.setupLogging import getLogger
-from library.sensor_thermocouple import Thermocouple
-from library.sensor_relay import Relay
+from library.other.setupLogging import getLogger
+from library.sensors.sensor_relay import Relay
+from library.sensors.sensor_thermocouple import Thermocouple
+from library.toaster.pid import PID
+from library.ui.ConfigurationVisualizer import CONFIG_KEY_TARGET, CONFIG_KEY_DURATION
 
 
 class ToastStateMachine(object):

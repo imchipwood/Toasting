@@ -1,13 +1,14 @@
 import logging
+
 # from setupLogging import getLogger
-from library.setupLogging import getLogger
+from library.other.setupLogging import getLogger
 
 try:
 	# RPi
 	import RPi.GPIO as GPIO
 except:
 	# Other
-	import library.MockGPIO as GPIO
+	import library.sensors.MockGPIO as GPIO
 
 
 class Sensor(object):

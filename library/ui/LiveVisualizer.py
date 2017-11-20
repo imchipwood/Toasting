@@ -1,5 +1,5 @@
 # from ConfigurationVisualizer import ConfigurationVisualizer, CONFIG_KEY_TARGET
-from library.ConfigurationVisualizer import ConfigurationVisualizer, CONFIG_KEY_TARGET
+from library.ui.ConfigurationVisualizer import ConfigurationVisualizer, CONFIG_KEY_TARGET
 
 # this code was pretty helpful in getting live update working without redrawing entire graph
 # https://github.com/eliben/code-for-blog/blob/master/2008/wx_mpl_dynamic_graph.py

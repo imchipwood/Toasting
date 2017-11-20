@@ -1,14 +1,15 @@
-import os
 import json
+import os
 from collections import OrderedDict
 
 import matplotlib
+
 matplotlib.use("WXAgg")
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 
 import wx
 
-from ToastingGUIBase import GraphTestFrame
+from library.ui.ToastingGUIBase import GraphTestFrame
 from ConfigurationVisualizer import ConfigurationVisualizer, CONFIG_KEY_TARGET, CONFIG_KEY_DURATION
 from LiveVisualizer import LiveVisualizer
 
@@ -143,7 +144,6 @@ class LiveGraphTestPanel(ConfigurationGraphTestPanel):
 
 
 if __name__ == "__main__":
-	from copy import deepcopy
 	app = wx.App()
 
 	# Open a fake config

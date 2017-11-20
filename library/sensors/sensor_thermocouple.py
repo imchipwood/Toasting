@@ -1,7 +1,7 @@
 import logging
-from library.setupLogging import getLogger
 
-from library.sensor_relay import Sensor
+from library.other.setupLogging import getLogger
+from library.sensors.sensor_relay import Sensor
 
 # import proper GPIO/spidev libraries depending on system
 try:
@@ -9,13 +9,13 @@ try:
 	import RPi.GPIO as GPIO
 except:
 	# Other
-	import library.MockGPIO as GPIO
+	import library.sensors.MockGPIO as GPIO
 try:
 	# RPi
 	import spidev
 except:
 	# Other
-	import library.MockSpidev as spidev
+	import library.sensors.MockSpidev as spidev
 
 VALID_UNITS = ['celcius', 'fahrenheit']
 

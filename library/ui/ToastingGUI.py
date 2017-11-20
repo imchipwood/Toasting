@@ -1,8 +1,8 @@
 import csv
-import os
 import json
-from collections import OrderedDict
 import logging
+import os
+from collections import OrderedDict
 
 import matplotlib
 
@@ -12,12 +12,13 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 import wx
 import wx.grid
 
-from ToastingGUIBase import ToastingBase
-from library.ConfigurationVisualizer import ConfigurationVisualizer, CONFIG_KEY_DURATION, CONFIG_KEY_TARGET
-from library.LiveVisualizer import LiveVisualizer
-from library.ToastStateMachine import ToastStateMachine
-from library import decorators
-from library.setupLogging import getLogger
+from library.ui.ToastingGUIBase import ToastingBase
+from library.ui.ConfigurationVisualizer import ConfigurationVisualizer, CONFIG_KEY_DURATION, CONFIG_KEY_TARGET
+from library.ui.LiveVisualizer import LiveVisualizer
+from library.toaster.ToastStateMachine import ToastStateMachine
+from library.other import decorators
+from library.other.setupLogging import getLogger
+from definitions import CONFIG_DIR, DATA_DIR
 
 MODEL_NAME = "Toasting"
 
@@ -46,7 +47,7 @@ class ToastingGUI(ToastingBase):
 		self.liveCanvas = None
 
 		# Get initial configuration from testconfig.json
-		baseConfigPath = os.path.join(os.path.dirname(__file__), "config", "testconfig.json")
+		baseConfigPath = os.path.join(CONFIG_DIR, "testconfig.json")
 		self.config = self.getConfigFromJsonFile(baseConfigPath)
 		pins = self.config['pins']
 		tuning = self.config['tuning']
@@ -553,7 +554,7 @@ class ToastingGUI(ToastingBase):
 		dialog = wx.FileDialog(
 			parent=self,
 			message="Save Data To CSV",
-			defaultDir=os.path.join(os.path.dirname(__file__), "data"),
+			defaultDir=DATA_DIR,
 			defaultFile="toast_data.csv",
 			style=wx.FD_SAVE
 		)
@@ -655,7 +656,7 @@ class ToastingGUI(ToastingBase):
 		dialog = wx.FileDialog(
 			parent=self,
 			message="Save Config to JSON File",
-			defaultDir=os.path.join(os.path.dirname(__file__), "config"),
+			defaultDir=CONFIG_DIR,
 			defaultFile="toast_config.json",
 			style=wx.FD_SAVE
 		)
@@ -692,7 +693,7 @@ class ToastingGUI(ToastingBase):
 		dialog = wx.FileDialog(
 			parent=self,
 			message="Load JSON Config File",
-			defaultDir=os.path.join(os.path.dirname(__file__), "config"),
+			defaultDir=CONFIG_DIR,
 			defaultFile="toast_config.json",
 			style=wx.FD_OPEN
 		)
