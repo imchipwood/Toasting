@@ -131,6 +131,7 @@ class Thermocouple(Sensor):
 		val = [0, 0, 0, 0]
 		try:
 			val = self.spi.xfer(val)			# get four bytes as an array of four integers
+			self.logger.debug("spi: {}".format(" ".join([str(bin(x)) for x in val])))
 		except:
 			self.logger.exception("exception during SPI read")
 			raise
