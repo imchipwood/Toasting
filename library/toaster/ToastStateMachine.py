@@ -1,3 +1,4 @@
+import csv
 import logging
 
 from library.other.setupLogging import getLogger
@@ -27,10 +28,10 @@ class ToastStateMachine(object):
 		self.stateIndex = 0
 
 		self.timestamp = 0.0
+		self.lastControlLoopTimestamp = 0.0
 		self.timerPeriod = timerPeriod
 
 		self.currentState = None
-		self.currentTarget = 0.0
 		self.lastTarget = 0.0
 		self.currentStateDuration = 0.0
 		self.currentStateEnd = 0.0
@@ -44,7 +45,7 @@ class ToastStateMachine(object):
 		self.runningStates = ['Running', 'Paused', 'Stopped']
 		self.running = 'Stopped'
 
-		self.maxTCErrorHistory = 10
+		self.maxTCErrorHistory = 1000
 		self.recentTCErrors = [None] * self.maxTCErrorHistory
 
 		kP = pidTuning['kP']
@@ -63,8 +64,10 @@ class ToastStateMachine(object):
 			d=kD,
 			minLimit=minLimit,
 			maxLimit=maxLimit,
-			target=self.currentTarget
+			target=0.0
 		)
+
+		self.data = []
 
 	@property
 	def stateConfiguration(self):
@@ -81,12 +84,24 @@ class ToastStateMachine(object):
 			pass
 
 	@property
+	def target(self):
+		return self.pid.target
+
+	@target.setter
+	def target(self, newTarget):
+		self.pid.target = newTarget
+
+	@property
 	def temperature(self):
 		return self.thermocouple.temperature
 
 	@property
 	def refTemperature(self):
 		return self.thermocouple.refTemperature
+
+	@property
+	def relayState(self):
+		return self.relay.state
 
 	@property
 	def units(self):
@@ -99,9 +114,11 @@ class ToastStateMachine(object):
 	def start(self):
 		self.running = 'Running'
 		self.timestamp = 0.0
+		self.lastControlLoopTimestamp = 0.0
 		self.stateIndex = 0
 		self.updateState()
 		self.lastTarget = 0.0
+		self.data = []
 
 	def stop(self):
 		self.running = 'Stopped'
@@ -139,17 +156,20 @@ class ToastStateMachine(object):
 		self.timestamp += self.timerPeriod
 
 		# Ready to move to next state?
-		if self.soaking and self.timestamp >= self.currentStateEnd or self.temperature == self.currentTarget:
+		if self.soaking and self.timestamp >= self.currentStateEnd or self.temperature == self.target:
 			# State is done - go to next state
 			self.nextState()
 
-		# Calculate PID output
-		pidOut = self.pid.compute(self.timestamp, self.temperature)
-		# self.logger.debug("pidout: {}".format(pidOut))
+		# Control loop @ 1Hz
+		pidOut = None
+		if self.lastControlLoopTimestamp - self.timestamp >= 1:
+			self.lastControlLoopTimestamp = self.timestamp
 
-		# Control relay @ 1Hz
-		if self.timestamp % 1 == 0:
-			if pidOut > 0.0:
+			# Calculate PID output
+			self.pid.compute(self.timestamp, self.temperature)
+			self.logger.debug("pidout: {}".format(self.pid.output))
+
+			if self.pid.output > 0.0:
 				if not self.relay.state:
 					self.logger.debug("enabling relay")
 					self.relay.enable()
@@ -157,6 +177,8 @@ class ToastStateMachine(object):
 				if self.relay.state:
 					self.logger.debug("disabling relay")
 					self.relay.disable()
+
+		self.updateData()
 
 	def nextState(self):
 		"""Move state machine to next state"""
@@ -175,17 +197,40 @@ class ToastStateMachine(object):
 	def updateState(self):
 		self.currentState = self.states[self.stateIndex]
 
-		self.lastTarget = self.currentTarget
-		self.currentTarget = self._stateConfiguration[self.currentState][CONFIG_KEY_TARGET]
+		self.lastTarget = self.target
+		self.target = self._stateConfiguration[self.currentState][CONFIG_KEY_TARGET]
 		self.currentStateDuration = self._stateConfiguration[self.currentState][CONFIG_KEY_DURATION]
 		self.currentStateEnd += self.currentStateDuration
 
 		# Soaking stages simply maintain a steady temperature for a certain duration
 		# Heating/Cooling stages hav
-		self.soaking = self.currentTarget == self.lastTarget
+		self.soaking = self.target == self.lastTarget
 
-		# update target for PID
-		self.pid.target = self.currentTarget
+	def updateData(self):
+		# Build data dict
+		data = {
+			'Timestamp': self.timestamp,
+			'Temperature': self.temperature,
+			'Target Temperature': self.target,
+			'State': self.currentState,
+			'PID Output': self.pid.output,
+			'PID Error': self.pid.error,
+			'PID IError': self.pid.ierror,
+		}
+		self.data.append(data)
+
+	def dumpDataToCsv(self, csvPath):
+		if not self.data:
+			return False
+
+		# write to file
+		header = ['Timestamp', 'Temperature', 'Target Temperature', 'State', 'PID Output', 'PID Error', 'PID IError']
+		with open(csvPath, 'w', newline="") as ouf:
+			writer = csv.DictWriter(ouf, fieldnames=header)
+			writer.writeheader()
+			writer.writerows(self.data)
+
+		return True
 
 	def cleanup(self):
 		self.relay.disable()

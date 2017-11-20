@@ -305,7 +305,7 @@ class ToastingGUI(ToastingBase):
 
 		# Save data button
 		try:
-			if self.toaster.running not in ['Stopped', 'Complete'] or self.liveVisualizer.liveData == []:
+			if self.toaster.running not in ['Stopped', 'Complete'] or self.toaster.data == []:
 				self.saveDataButton.Enable(False)
 			else:
 				self.saveDataButton.Enable(enable)
@@ -367,7 +367,7 @@ class ToastingGUI(ToastingBase):
 		self.liveVisualizer.addDataPoint(
 			self.toaster.timestamp,
 			self.temperature,
-			self.toaster.currentTarget,
+			self.toaster.target,
 			self.toaster.currentState
 		)
 		self.liveCanvas.draw()
@@ -443,7 +443,7 @@ class ToastingGUI(ToastingBase):
 		# state
 		if self.toaster.running in ['Running', 'Paused']:
 			stateColor = self.liveVisualizer.getColor(
-				self.toaster.currentTarget,
+				self.toaster.target,
 				self.toaster.lastTarget
 			)
 			if stateColor == 'red':
@@ -471,7 +471,7 @@ class ToastingGUI(ToastingBase):
 
 		# relay state
 		self.statusGrid.SetCellAlignment(wx.ALIGN_CENTER, 0, 0)
-		self.statusGrid.SetCellValue(0, 0, "{}".format(self.toaster.relay.state))
+		self.statusGrid.SetCellValue(0, 0, "{}".format(self.toaster.relayState))
 		self.setStatusGridCellColour(statusName="relay", red=100, green=250, blue=100)
 		self.statusGrid.SetColSize(0, baseColumnWidth)
 
@@ -541,7 +541,7 @@ class ToastingGUI(ToastingBase):
 
 	def updateRelayStatus(self):
 		"""Update relay status grid cell based on current relay state"""
-		state = self.toaster.relay.state
+		state = self.toaster.relayState
 		self.setStatusGridCellValue('relay', 'ON' if state else 'OFF')
 		if state:
 			red, green, blue = 255, 100, 100
@@ -563,37 +563,10 @@ class ToastingGUI(ToastingBase):
 			return
 
 		csvPath = dialog.GetPath()
-
-		data = self.liveVisualizer.liveData
-		if data == []:
-			dialog = wx.MessageDialog(
-				parent=self,
-				message="No data to save",
-				caption="No data",
-				style=wx.ICON_WARNING
-			)
-			if dialog.ShowModal() == wx.CANCEL:
-				return
-
-		# convert data to list of dicts
-		dataList = []
-		for dataPoint in data:
-			timestamp, temperature, targetTemperature, stateName = dataPoint
-			dataDict = {
-				'Timestamp': timestamp,
-				'Temperature': temperature,
-				'Target Temperature': targetTemperature,
-				'State': stateName
-			}
-			dataList.append(dataDict)
-
-		# write to file
-		header = ['Timestamp', 'Temperature', 'Target Temperature', 'State']
-		with open(csvPath, 'w', newline="") as ouf:
-			writer = csv.DictWriter(ouf, fieldnames=header)
-			writer.writeheader()
-			writer.writerows(dataList)
+		if self.toaster.dumpDataToCsv(csvPath):
 			self.updateStatus("CSV stored @ {}".format(csvPath))
+		else:
+			self.updateStatus("No data to dump")
 
 	def infoMessage(self, message, caption=None):
 		dialog = wx.MessageDialog(
@@ -679,7 +652,7 @@ class ToastingGUI(ToastingBase):
 			config['states'] = self.convertConfigGridToStateConfig()
 			json.dump(config, oup, indent=4)
 			self.updateStatus("Config saved to {}".format(filePath))
-			
+
 	def loadConfigFromFile(self, filePath):
 
 		self.config = self.getConfigFromJsonFile(filePath)
@@ -799,7 +772,7 @@ class ToastingGUI(ToastingBase):
 		# enable/disable relay at 1Hz
 		if self.testTimer % 1 == 0:
 			# self.logger.debug("testTimer 1Hz tick")
-			if self.toaster.relay.state:
+			if self.toaster.relayState:
 				self.toaster.relay.disable()
 			else:
 				self.toaster.relay.enable()

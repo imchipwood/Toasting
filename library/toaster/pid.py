@@ -56,10 +56,6 @@ class PID(object):
 	def state(self):
 		return self._currentState
 
-	@state.setter
-	def state(self, state):
-		self._currentState = float(state)
-
 	@property
 	def target(self):
 		return self._targetState
@@ -81,6 +77,14 @@ class PID(object):
 			val = self.min
 		self._output = val
 
+	@property
+	def error(self):
+		return self._error
+
+	@property
+	def ierror(self):
+		return self._iError
+
 	# endregion StateProperties
 	# region OtherProperties
 
@@ -98,6 +102,7 @@ class PID(object):
 
 	@min.setter
 	def min(self, minVal):
+		"""Min Setter - force less than max"""
 		if self.max:
 			assert self.min < self.max
 		if minVal is not None:
@@ -111,6 +116,7 @@ class PID(object):
 
 	@max.setter
 	def max(self, maxVal):
+		"""Max Setter - force greater than min"""
 		if self.min:
 			assert self.min < self.max
 		if maxVal is not None:
@@ -119,6 +125,7 @@ class PID(object):
 			self._max = maxVal
 
 	def getConfig(self):
+		"""Return current PID settings as dict"""
 		config = OrderedDict()
 		config['kP'] = self.kP
 		config['kI'] = self.kI
@@ -141,16 +148,16 @@ class PID(object):
 		@return: float
 		"""
 		if not self.target:
-			raise StandardError("No target state set, cannot compute PID output")
+			raise Exception("No target state set, cannot compute PID output")
 
 		self._deltaTime = currenttime - self._lastTime
 		if currentstate:
-			self.state = currentstate
+			self._currentState = currentstate
 
 		# proportional error from target
 		self._error = self.target - self.state
 		# integral of error from target
-		self._iError += self._error * self._deltaTime
+		self._iError += self.error * self._deltaTime
 		# derivative of error from target
 		if self._deltaTime > 0:
 			# multiply seconds by freq in hz to ....? not sure what's going on right here
@@ -161,10 +168,10 @@ class PID(object):
 			derror = self.state - self._lastError
 
 		# apply gains to error values
-		self._output = self.kP * self._error + self.kI * self._iError - self.kD * derror
+		self._output = self.kP * self.error + self.kI * self.ierror - self.kD * derror
 
 		self._lastTime = currenttime
-		self._lastError = self._error
+		self._lastError = self.error
 
 		return self.output
 
