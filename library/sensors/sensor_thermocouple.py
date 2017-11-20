@@ -105,6 +105,7 @@ class Thermocouple(Sensor):
 		super(Thermocouple, self).init()
 
 		# Setup SPI
+		self.logger.debug("SPI Setup")
 		# CPOL = 0 -> clock default low, thus CPHA = 0 -> capture on rising edge
 		self.spi.open(0, 0)
 		# set SCLK frequency to 4MHz (MAX31855 has a max of 5MHz)
