@@ -79,10 +79,6 @@ class Thermocouple(Sensor):
 		# else:
 		# 	return self._temp * 9.0 / 5.0 + 32.0
 
-	@temperature.setter
-	def temperature(self, temp):
-		self._temp = float(temp)
-
 	@property
 	def refTemperature(self):
 		# if self.units == 'celcius':
@@ -190,4 +186,5 @@ class Thermocouple(Sensor):
 		# we got through without exceptions, set lasttemp to temp read last time
 		self._lastTemp = self.temperature
 		self._temp = tcelcius
+		self.logger.debug("temp: {}".format(self.temperature))
 		return self.temperature

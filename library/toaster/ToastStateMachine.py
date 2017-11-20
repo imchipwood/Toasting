@@ -141,7 +141,7 @@ class ToastStateMachine(object):
 		try:
 			self.recentTCErrors.pop(0)
 			self.thermocouple.read()
-			self.logger.debug("temp: {}".format(self.temperature))
+			# self.logger.debug("temp: {}".format(self.temperature))
 			self.recentTCErrors.append(None)
 		except Exception as e:
 			self.recentTCErrors.append(e)
