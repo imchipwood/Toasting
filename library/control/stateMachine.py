@@ -136,6 +136,8 @@ class ToastStateMachine(object):
 		"""Stop the state machine"""
 		self.running = 'Stopped'
 		self.stateIndex = 0
+		self.timestamp = 0.0
+		self.lastControlLoopTimestamp = 0.0
 		self.updateState()
 		self.lastTarget = 0.0
 
@@ -244,13 +246,14 @@ class ToastStateMachine(object):
 		self.soaking = self.target == self.lastTarget
 		self.currentStateEnd = self.timestamp + self.currentStateDuration
 
-		self.logger.info(
-			"New state, target, end timestamp: {:7.2f}, {:7.2f}, {}".format(
-				self.currentState,
-				self.target,
-				"{:4.0f}".format(self.currentStateEnd) if self.soaking else " n/a"
+		if self.stateIndex != 0:
+			self.logger.info(
+				"New state, target, end timestamp: {:7.2f}, {:7.2f}, {}".format(
+					self.currentState,
+					self.target,
+					"{:4.0f}".format(self.currentStateEnd) if self.soaking else " n/a"
+				)
 			)
-		)
 
 	# endregion StateMachine
 	# region Data
