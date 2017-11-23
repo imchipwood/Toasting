@@ -30,7 +30,6 @@ class ToastingGUI(ToastingBase):
 	# region Init
 
 	def __init__(self, parent):
-		noLog = wx.LogNull()
 		ToastingBase.__init__(self, parent)
 
 		self.logger = getLogger('ToastingGUI', DEBUG_LEVEL)
@@ -83,7 +82,6 @@ class ToastingGUI(ToastingBase):
 
 		# Send the ready signal
 		self.ready()
-		del noLog
 
 	def initializeGuiObjects(self):
 		"""Initialize the base GUI objects"""
