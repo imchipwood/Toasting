@@ -190,14 +190,15 @@ class ToastStateMachine(object):
 					self.logger.debug("disabling relay")
 					self.relay.disable()
 
+		# Print data to console for debug purposes
+		self.debugPrint()
+
 		self.updateData()
 
 	def nextState(self):
 		"""Move state machine to next state"""
 		# Increment state index
 		self.stateIndex += 1
-
-		self.debugPrint()
 
 		# Check if state machine has reached the end
 		if self.stateIndex == len(self.states):
