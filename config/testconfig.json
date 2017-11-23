@@ -11,7 +11,7 @@
       "kD": 7.0,
       "min": "",
       "max": "",
-      "maxierror": 375.0
+      "windupGuard": 20.0
     },
     "timerPeriod": 0.5
   },

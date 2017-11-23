@@ -4,11 +4,8 @@ import logging
 from library.other.setupLogging import getLogger
 
 
-MAX_IERROR = 500.0
-
-
 class PID(object):
-	def __init__(self, p, i, d, minLimit=None, maxLimit=None, target=None, maxIError=None):
+	def __init__(self, p, i, d, minLimit=None, maxLimit=None, target=None, windupGuard=20.0):
 		super(PID, self).__init__()
 
 		self.logger = getLogger("PID", logging.DEBUG)
@@ -17,7 +14,7 @@ class PID(object):
 		self._kI = float(i)
 		self._kD = float(d)
 
-		self._windupGuard = 20.0
+		self._windupGuard = windupGuard
 
 		self._currentState = 0.0
 		self._targetState = target
@@ -34,7 +31,6 @@ class PID(object):
 
 		self._min = minLimit
 		self._max = maxLimit
-		self._maxIError = maxIError
 
 	# region PIDProperties
 
@@ -67,16 +63,11 @@ class PID(object):
 		return self._windupGuard
 
 	@windupGuard.setter
-	def winduupGuard(self, windupGuard):
-		self._windupGuard = float(windupGuard)
-
-	@property
-	def maxIError(self):
-		return self._maxIError
-
-	@maxIError.setter
-	def maxIError(self, maxierror):
-		self._maxIError = abs(maxierror)
+	def windupGuard(self, windupGuard):
+		if windupGuard is not None:
+			self._windupGuard = float(windupGuard)
+		else:
+			self._windupGuard = None
 
 	# endregion PIDProperties
 	# region StateProperties
@@ -165,7 +156,7 @@ class PID(object):
 		config['kD'] = self.kD
 		config['min'] = "" if self.min is None else self.min
 		config['max'] = "" if self.max is None else self.max
-		config['maxierror'] = "" if self._maxIError is None else self._maxIError
+		config['windupGuard'] = "" if self.windupGuard is None else self.windupGuard
 		return config
 
 	# endregion OtherProperties
@@ -197,10 +188,11 @@ class PID(object):
 		self._iError += self.error * self._deltaTime
 
 		# windup guard for integrated error
-		if self.ierror < -self.windupGuard:
-			self._iError = -self.windupGuard
-		if self.ierror > self.windupGuard:
-			self._iError = self.windupGuard
+		if self.windupGuard:
+			if self.ierror < -self.windupGuard:
+				self._iError = -self.windupGuard
+			if self.ierror > self.windupGuard:
+				self._iError = self.windupGuard
 
 		# derivative of error from target
 		if newState:
@@ -209,13 +201,6 @@ class PID(object):
 		else:
 			# derivative is slope of error over time
 			self._dError = (self.error - self._lastError) / self._deltaTime
-
-		# Clamp integrated error
-		if self._maxIError:
-			if self.ierror > self.maxIError:
-				self._iError = self.maxIError
-			if self.ierror < -self.maxIError:
-				self._iError = -self.maxIError
 
 		# apply gains to error values
 		self._output = self.kP * self.error + self.kI * self.ierror - self.kD * self.derror
