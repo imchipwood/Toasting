@@ -529,6 +529,8 @@ class ToastingGUI(ToastingBase):
 
 			# Set column label (step name)
 			self.configurationGrid.SetColLabelValue(colNum, stepName)
+			self.configurationGrid.AutoSizeColLabelSize(colNum)
+			self.configurationGrid.AutoSizeRowLabelSize(colNum)
 			self.configurationGrid.SetColMinimalWidth(colNum, 150)
 
 			# Insert config values
