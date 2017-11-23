@@ -45,27 +45,13 @@ class ToastingGUI(ToastingBase):
 		self.liveVisualizer = None
 		self.liveCanvas = None
 
-		# Get initial configuration from testconfig.json
+		# Create the state machine
 		baseConfigPath = os.path.join(CONFIG_DIR, "testconfig.json")
-		self.config = self.getConfigFromJsonFile(baseConfigPath)
-		pins = self.config['pins']
-		tuning = self.config['tuning']
-		self._units = self.config['units']
-
-		# Create a state machine with an empty configuration dict
 		self.toaster = ToastStateMachine(
-			stateConfiguration=self.config['states'],
-			timerPeriod=tuning['timerPeriod'],
-			csPin=pins['SPI_CS'],
-			relayPin=pins['relay'],
+			jsonConfigPath=baseConfigPath,
 			stateMachineCompleteCallback=self.toastingComplete,
-			pidTuning=tuning['pid'],
 			debugLevel=DEBUG_LEVEL
 		)
-		self.timerPeriod = tuning['timerPeriod']
-
-		# set this after creating control
-		self.stateConfiguration = self.config['states']
 
 		# state machine update
 		self.testing = False
@@ -115,12 +101,8 @@ class ToastingGUI(ToastingBase):
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 
 	@decorators.BusyReady(MODEL_NAME)
-	def setupConfigurationGrid(self, configDict):
-		"""Set up the configuration grid with
-
-		@param configDict: dict of config steps
-		@type configDict: dict
-		"""
+	def setupConfigurationGrid(self):
+		"""Set up the configuration grid based on current state config"""
 		# clear out all columns and rows
 		if self.configurationGrid.GetNumberCols():
 			self.configurationGrid.DeleteCols(0, self.configurationGrid.GetNumberCols())
@@ -132,14 +114,14 @@ class ToastingGUI(ToastingBase):
 		self.configurationGrid.SetRowLabelValue(1, "Step Duration")
 
 		# Set up the columns and insert the values from the config dict
-		for colNum, stepName in enumerate(configDict.keys()):
+		for colNum, stepName in enumerate(self.stateConfiguration.keys()):
 			# Add a column
 			self.configurationGrid.AppendCols(1)
 			# Set column label (step name)
 			self.configurationGrid.SetColLabelValue(colNum, stepName)
 			# Insert config values
-			targetTemp = str(configDict[stepName][CONFIG_KEY_TARGET])
-			stepDuration = str(configDict[stepName][CONFIG_KEY_DURATION])
+			targetTemp = str(self.stateConfiguration[stepName][CONFIG_KEY_TARGET])
+			stepDuration = str(self.stateConfiguration[stepName][CONFIG_KEY_DURATION])
 			self.configurationGrid.SetCellValue(col=colNum, row=0, s=targetTemp)
 			self.configurationGrid.SetCellValue(col=colNum, row=1, s=stepDuration)
 
@@ -250,7 +232,7 @@ class ToastingGUI(ToastingBase):
 	@property
 	def units(self):
 		"""Getter for current temperature units"""
-		return self.config['units']
+		return self.toaster.units
 
 	@units.setter
 	def units(self, units):
@@ -258,7 +240,7 @@ class ToastingGUI(ToastingBase):
 
 		@param units: str 'fahrenheit' or 'celcius'
 		"""
-		self.config['units'] = units
+		self.toaster.units = units
 
 	@property
 	def stateConfiguration(self):
@@ -292,6 +274,14 @@ class ToastingGUI(ToastingBase):
 			self.timer.Stop()
 			self.toaster.timerPeriod = periodInSeconds
 			self.timer.Start(self.timerPeriod * 1000.0)
+
+	@property
+	def config(self):
+		return self.toaster.config
+
+	@config.setter
+	def config(self, configDict):
+		self.toaster.config = configDict
 
 	# endregion Properties
 	# region BusyReady
@@ -392,7 +382,7 @@ class ToastingGUI(ToastingBase):
 		self.liveVisualizer.addDataPoint(
 			self.toaster.timestamp,
 			self.temperature,
-			self.toaster.target,
+			self.toaster.targetState,
 			self.toaster.currentState
 		)
 		self.liveCanvas.draw()
@@ -471,7 +461,7 @@ class ToastingGUI(ToastingBase):
 		# state
 		if self.toaster.running in ['Running', 'Paused']:
 			stateColor = self.liveVisualizer.getColor(
-				self.toaster.target,
+				self.toaster.targetState,
 				self.toaster.lastTarget
 			)
 			if stateColor == 'red':
@@ -587,7 +577,7 @@ class ToastingGUI(ToastingBase):
 			style=wx.FD_SAVE
 		)
 		# exit if user cancelled operation
-		if dialog.ShowModal() == wx.CANCEL:
+		if dialog.ShowModal() != wx.OK:
 			return
 
 		csvPath = dialog.GetPath()
@@ -600,7 +590,7 @@ class ToastingGUI(ToastingBase):
 		directory = os.path.dirname(csvPath)
 		filename = os.path.basename(csvPath).replace(".csv", ".json")
 		configPath = os.path.join(directory, filename)
-		self.dumpConfig(configPath)
+		self.toaster.dumpConfig(configPath)
 
 	def infoMessage(self, message, caption=None):
 		dialog = wx.MessageDialog(
@@ -646,16 +636,6 @@ class ToastingGUI(ToastingBase):
 	# endregion Helpers
 	# region Config
 
-	def getConfigFromJsonFile(self, jsonFile):
-		"""Get config from a JSON file
-
-		@param jsonFile: file path
-		@type jsonFile: str
-		@return: OrderedDict
-		"""
-		with open(jsonFile) as inf:
-			return json.load(inf, object_pairs_hook=OrderedDict)
-
 	@decorators.BusyReady(MODEL_NAME)
 	def saveConfig(self):
 		"""Save current config to JSON file"""
@@ -673,30 +653,17 @@ class ToastingGUI(ToastingBase):
 			return
 
 		# Extract file path from dialog and dump config
-		self.dumpConfig(dialog.GetPath())
-
-	def dumpConfig(self, filePath):
-		"""Dump configuration to file
-
-		@param filePath: str path to dump JSON config to
-		"""
-		with open(filePath, 'w') as oup:
-			config = OrderedDict()
-			config['units'] = self.units
-			config['pins'] = {}
-			config['pins']['SPI_CS'] = self.toaster.thermocouple.csPin
-			config['pins']['relay'] = self.toaster.relay.pin
-			config['tuning'] = {}
-			config['tuning']['timerPeriod'] = self.timerPeriod
-			config['tuning']['pid'] = self.toaster.pid.getConfig()
-			config['states'] = self.convertConfigGridToStateConfig()
-			json.dump(config, oup, indent=4)
-			self.updateStatus("Config saved to {}".format(filePath))
+		filePath = dialog.GetPath()
+		self.toaster.dumpConfig(filePath)
+		self.updateStatus("Config saved to {}".format(filePath))
 
 	def loadConfigFromFile(self, filePath):
+		"""
 
-		self.config = self.getConfigFromJsonFile(filePath)
-		self.stateConfiguration = self.config['states']
+		@param filePath:
+		@return:
+		"""
+		self.config = self.toaster.getConfigFromJsonFile(filePath)
 
 		# Update the GUI
 		self.updateGuiFromJsonConfig(self.config)
@@ -721,7 +688,7 @@ class ToastingGUI(ToastingBase):
 	def updateConfigurationGrid(self):
 		"""Update the grid and visualization with new configuration"""
 		# Update config grid
-		self.setupConfigurationGrid(self.stateConfiguration)
+		self.setupConfigurationGrid()
 
 		# Create new configurationVisualizer and draw it
 		self.configurationVisualizer = ConfigurationVisualizer(self.stateConfiguration, units=self.units)
@@ -735,7 +702,7 @@ class ToastingGUI(ToastingBase):
 		@type configPath: str
 		@return: OrderedDict
 		"""
-		config = self.getConfigFromJsonFile(configPath)
+		config = ToastStateMachine.getConfigFromJsonFile(configPath)
 		return config['states']
 
 	def updateGuiFromJsonConfig(self, config):

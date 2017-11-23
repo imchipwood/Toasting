@@ -2,18 +2,17 @@ from collections import OrderedDict
 
 
 class PID(object):
-	def __init__(self, p, i, d, minLimit=None, maxLimit=None, target=None, windupGuard=20.0):
+	def __init__(self, configDict=None):
 		super(PID, self).__init__()
 
-		self._kP = float(p)
-		self._kI = float(i)
-		self._kD = float(d)
+		self._kP = 0.0
+		self._kI = 0.0
+		self._kD = 0.0
 
-		self._windupGuard = windupGuard
+		self._windupGuard = 0.0
 
 		self._currentState = 0.0
-		self._targetState = target
-		self._interval = 10.0
+		self._targetState = 0.0
 
 		self._output = 0.0
 		self._error = 0.0
@@ -24,10 +23,13 @@ class PID(object):
 		self._deltaTime = 0.0
 		self._lastTime = 0.0
 
-		self._min = minLimit
-		self._max = maxLimit
+		self._min = None
+		self._max = None
 
-	# region PIDProperties
+		if configDict:
+			self.setConfig(configDict)
+
+	# region Gains
 
 	@property
 	def kP(self):
@@ -53,19 +55,8 @@ class PID(object):
 	def kD(self, kD):
 		self._kD = float(kD)
 
-	@property
-	def windupGuard(self):
-		return self._windupGuard
-
-	@windupGuard.setter
-	def windupGuard(self, windupGuard):
-		if windupGuard is not None:
-			self._windupGuard = float(windupGuard)
-		else:
-			self._windupGuard = None
-
-	# endregion PIDProperties
-	# region StateProperties
+	# endregion Gains
+	# region States
 		
 	@property
 	def state(self):
@@ -104,16 +95,19 @@ class PID(object):
 	def derror(self):
 		return self._dError
 
-	# endregion StateProperties
-	# region OtherProperties
+	# endregion States
+	# region Limits
 
 	@property
-	def interval(self):
-		return self._interval
+	def windupGuard(self):
+		return self._windupGuard
 
-	@interval.setter
-	def interval(self, intervalInHz):
-		self._interval = float(intervalInHz)
+	@windupGuard.setter
+	def windupGuard(self, windupGuard):
+		if windupGuard is not None:
+			self._windupGuard = float(windupGuard)
+		else:
+			self._windupGuard = None
 
 	@property
 	def min(self):
@@ -143,6 +137,22 @@ class PID(object):
 		else:
 			self._max = maxVal
 
+	# endregion Limits
+	# region Config
+
+	def setConfig(self, configDict):
+		"""Set new config for PID controller
+
+		@param configDict: dict of PID parameters
+		"""
+		self.kP = configDict['kP']
+		self.kI = configDict['kI']
+		self.kD = configDict['kD']
+		self.min = configDict['min'] if configDict['min'] != "" else None
+		self.max = configDict['max'] if configDict['max'] != "" else None
+		self.windupGuard = configDict['windupGuard'] if configDict['windupGuard'] != "" else None
+		self.zeroierror()
+
 	def getConfig(self):
 		"""Return current PID settings as dict"""
 		config = OrderedDict()
@@ -154,7 +164,7 @@ class PID(object):
 		config['windupGuard'] = "" if self.windupGuard is None else self.windupGuard
 		return config
 
-	# endregion OtherProperties
+	# endregion Config
 	# region Execution
 
 	def compute(self, currenttime, currentstate=None, newState=False):

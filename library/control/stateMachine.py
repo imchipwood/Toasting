@@ -1,5 +1,7 @@
 import csv
+import json
 import logging
+from collections import OrderedDict
 
 from library.other.setupLogging import getLogger
 from library.sensors.sensor_relay import Relay
@@ -17,85 +19,68 @@ class ToastStateMachine(object):
 		Soaking states hold the same temperature reached at the end of the previous state
 
 	"""
-	def __init__(self, stateConfiguration, timerPeriod, csPin, relayPin, stateMachineCompleteCallback=None, pidTuning={}, debugLevel=logging.INFO):
+	def __init__(self, jsonConfigPath, stateMachineCompleteCallback=None, debugLevel=logging.INFO):
 		super(ToastStateMachine, self).__init__()
 
 		self.logger = getLogger('ToastStateMachine', debugLevel)
 
-		self.states = None
-		self.stateConfiguration = stateConfiguration
-		# self.states = self._stateConfiguration.keys()
-		self.stateIndex = 0
+		# Config
+		self._config = self.getConfigFromJsonFile(jsonConfigPath)
+		self.pid = PID()
 
-		self.timestamp = 0.0
-		self.lastControlLoopTimestamp = 0.0
-		self.timerPeriod = timerPeriod
+		# Basics of state machine
+		self.states = None
+		self._stateConfiguration = self.config['states']
+		self.stateIndex = 0
 
 		self.currentState = None
 		self.lastTarget = 0.0
 		self.currentStateDuration = 0.0
 		self.currentStateEnd = 0.0
 		self.stateChanged = False
-
-		self.thermocouple = Thermocouple(csPin, debugLevel=debugLevel)
-		self.relay = Relay(relayPin, debugLevel=debugLevel)
-
 		self.stateMachineCompleteCallback = stateMachineCompleteCallback
 
 		self.soaking = False
 		self.runningStates = ['Running', 'Paused', 'Stopped']
 		self.running = 'Stopped'
 
+		# Control loop
+		self.timestamp = 0.0
+		self.lastControlLoopTimestamp = 0.0
+		self.timerPeriod = self.config['tuning']['timerPeriod']
+
+		# Sensors
+		self.pins = self.config['pins']
+		self.relay = Relay(self.pins['relay'], debugLevel=debugLevel)
+		self.thermocouple = Thermocouple(self.pins['SPI_CS'], debugLevel=debugLevel)
 		self.maxTCErrorHistory = 10
 		self.recentTCErrors = [None] * self.maxTCErrorHistory
 
-		kP = pidTuning['kP']
-		kI = pidTuning['kI']
-		kD = pidTuning['kD']
-		minLimit = pidTuning['min']
-		if minLimit == u'':
-			minLimit = None
-		maxLimit = pidTuning['max']
-		if maxLimit == u'':
-			maxLimit = None
-		windupGuard = pidTuning['windupGuard']
-		if windupGuard == u'':
-			windupGuard = None
+		# PID Controller
+		# self.pid = PID(configDict=self.config['tuning']['pid'])
 
-		self.pid = PID(
-			p=kP,
-			i=kI,
-			d=kD,
-			minLimit=minLimit,
-			maxLimit=maxLimit,
-			target=0.0,
-			windupGuard=windupGuard
-		)
+		self.config = self._config
 
+		# Data tracking
 		self.data = []
 
 	# region Properties
 
 	@property
 	def stateConfiguration(self):
-		return self._stateConfiguration
+		return self._config['states']
 
 	@stateConfiguration.setter
 	def stateConfiguration(self, configDict):
-		self._stateConfiguration = configDict
-		try:
-			self.logger.debug("updating states")
-			self.states = list(self.stateConfiguration.keys())
-			self.logger.debug("new states: {}".format(self.states))
-		except:
-			pass
+		self._config['states'] = configDict
+		self.states = list(self.stateConfiguration.keys())
 
 	@property
-	def target(self):
+	def targetState(self):
 		return self.pid.target
 
-	@target.setter
-	def target(self, newTarget):
+	@targetState.setter
+	def targetState(self, newTarget):
 		self.pid.target = newTarget
 
 	@property
@@ -110,14 +95,63 @@ class ToastStateMachine(object):
 	def relayState(self):
 		return self.relay.state
 
+	@property
+	def units(self):
+		return self._config['units']
+
+	@units.setter
+	def units(self, units):
+		self._config['units'] = units
+
+	@property
+	def config(self):
+		return self._config
+
+	@config.setter
+	def config(self, configDict):
+		self._config = configDict
+
+		# State config
+		self.stateConfiguration = configDict['states']
+
+		# PID tuning
+		self.pid.setConfig(configDict['tuning']['pid'])
+
+		# Units
+		self.units = configDict['units']
+
+		# Pins
+		if self.relay.pin != configDict['pins']['relay']:
+			self.relay.pin = configDict['pins']['relay']
+		if self.thermocouple.pin != configDict['pins']['SPI_CS']:
+			self.thermocouple.pin = configDict['pins']['SPI_CS']
+
+		# Clock period
+		if self.timerPeriod != configDict['tuning']['timerPeriod']:
+			self.timerPeriod = configDict['tuning']['timerPeriod']
+
 	# endregion Properties
+	# region Configuration
 
-	def cleanup(self):
-		"""Clean up all GPIO"""
-		self.relay.disable()
-		self.thermocouple.cleanup()
-		self.relay.cleanup()
+	def getConfigFromJsonFile(self, jsonFile):
+		"""Get config from a JSON file
 
+		@param jsonFile: file path
+		@type jsonFile: str
+		@return: OrderedDict
+		"""
+		with open(jsonFile) as inf:
+			return json.load(inf, object_pairs_hook=OrderedDict)
+
+	def dumpConfig(self, filePath):
+		"""Dump configuration to file
+
+		@param filePath: str path to dump JSON config to
+		"""
+		with open(filePath, 'w') as oup:
+			json.dump(self.config, oup, indent=4)
+
+	# endregion Configuration
 	# region StateMachine
 
 	def start(self):
@@ -215,10 +249,10 @@ class ToastStateMachine(object):
 		else:
 			# Not soaking - have we reached the target temp?
 			# +/- 3.0 as a buffer (yeah doesn't change for Fahrenheit WHATEVER)
-			if self.target > self.lastTarget:
-				return self.temperature >= self.target - 3.0
-			elif self.target < self.lastTarget:
-				return self.temperature <= self.target + 3.0
+			if self.targetState > self.lastTarget:
+				return self.temperature >= self.targetState - 3.0
+			elif self.targetState < self.lastTarget:
+				return self.temperature <= self.targetState + 3.0
 
 		# Nope, not ready
 		return False
@@ -244,13 +278,13 @@ class ToastStateMachine(object):
 		"""Update the current state variables"""
 		self.currentState = self.states[self.stateIndex]
 
-		self.lastTarget = self.target
-		self.target = float(self._stateConfiguration[self.currentState][CONFIG_KEY_TARGET])
+		self.lastTarget = self.targetState
+		self.targetState = float(self._stateConfiguration[self.currentState][CONFIG_KEY_TARGET])
 		self.currentStateDuration = float(self._stateConfiguration[self.currentState][CONFIG_KEY_DURATION])
 
 		# Soaking stages simply maintain a steady temperature for a certain duration
 		# Heating/Cooling stages have no duration
-		self.soaking = self.target == self.lastTarget
+		self.soaking = self.targetState == self.lastTarget
 		self.currentStateEnd = self.timestamp + self.currentStateDuration
 
 		# Zero out the integrated error so it can build up again for this state
@@ -261,7 +295,7 @@ class ToastStateMachine(object):
 			self.logger.debug(
 				"New state, target, end timestamp: {}, {:7.2f}, {}".format(
 					self.currentState,
-					self.target,
+					self.targetState,
 					"{:7.2f}".format(self.currentStateEnd) if self.soaking else "    n/a"
 				)
 			)
@@ -290,7 +324,7 @@ class ToastStateMachine(object):
 		data = {
 			'Timestamp': self.timestamp,
 			'Temperature': self.temperature,
-			'Target Temperature': self.target,
+			'Target Temperature': self.targetState,
 			'State': self.currentState,
 			'Relay State': self.relay.state,
 			'PID Output': self.pid.output,
@@ -330,3 +364,12 @@ class ToastStateMachine(object):
 		return True
 
 	# endregion Data
+	# region GPIO
+
+	def cleanup(self):
+		"""Clean up all GPIO"""
+		self.relay.disable()
+		self.thermocouple.cleanup()
+		self.relay.cleanup()
+
+	# endregion GPIO
