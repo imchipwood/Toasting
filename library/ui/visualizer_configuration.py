@@ -14,12 +14,12 @@ COLORS = {
 
 
 class ConfigurationVisualizer(object):
-	def __init__(self, stateConfiguration, doNotDraw=False):
+	def __init__(self, stateConfiguration, doNotDraw=False, units='celcius'):
 		super(ConfigurationVisualizer, self).__init__()
 		self.stateConfiguration = stateConfiguration
-		self.fig = self.createPlot(self.stateConfiguration, doNotDraw=doNotDraw)
+		self.fig = self.createPlot(self.stateConfiguration, doNotDraw=doNotDraw, units=units)
 
-	def createPlot(self, stateConfiguration=None, doNotDraw=False):
+	def createPlot(self, stateConfiguration=None, doNotDraw=False, units='celcius'):
 		"""Create a plot and return it
 
 		@param configurationDict: Configuration info
@@ -64,7 +64,12 @@ class ConfigurationVisualizer(object):
 			axis.set_ylim(0, 300)
 
 		axis.set_xlabel('Timestamp (seconds)')
-		axis.set_ylabel('Temperature (C)')
+		yLabel = 'Temperature ('
+		if units == 'celcius':
+			yLabel += 'C)'
+		elif units == 'fahrenheit':
+			yLabel += 'F)'
+		axis.set_ylabel(yLabel)
 		axis.grid(True)
 
 		# adjust bottom so xlabel shows up... because matplotlib is stupid

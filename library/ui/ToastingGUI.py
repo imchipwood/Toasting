@@ -149,7 +149,7 @@ class ToastingGUI(ToastingBase):
 		self.stateConfiguration = self.convertConfigGridToStateConfig()
 
 		# Initialize live visualizer
-		self.liveVisualizer = LiveVisualizer(stateConfiguration=self.stateConfiguration)
+		self.liveVisualizer = LiveVisualizer(stateConfiguration=self.stateConfiguration, units=self.units)
 		self.redrawLiveVisualization(visualizer=self.liveVisualizer)
 
 	def initializePIDPage(self):
@@ -709,7 +709,7 @@ class ToastingGUI(ToastingBase):
 		self.setupConfigurationGrid(self.stateConfiguration)
 
 		# Create new configurationVisualizer and draw it
-		self.configurationVisualizer = ConfigurationVisualizer(self.stateConfiguration)
+		self.configurationVisualizer = ConfigurationVisualizer(self.stateConfiguration, units=self.units)
 		self.redrawConfigurationVisualization(self.configurationVisualizer)
 		self.updateStatus("Configuration Updated")
 
