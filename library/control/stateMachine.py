@@ -175,8 +175,7 @@ class ToastStateMachine(object):
 		self.timestamp += self.timerPeriod
 
 		# Ready to move to next state?
-		if (self.soaking and self.timestamp >= self.currentStateEnd) or \
-				(not self.soaking and self.temperature >= self.target):
+		if self.readyForNextState():
 			# State is done - go to next state
 			self.nextState()
 
@@ -194,10 +193,27 @@ class ToastStateMachine(object):
 				if self.relay.state:
 					self.relay.disable()
 
-		# Print data to console for debug purposes
-		self.debugPrint()
+			# Print data to console for debug purposes
+			self.debugPrint()
 
 		self.updateData()
+
+	def readyForNextState(self):
+		"""Check if we're ready to move to the next state
+
+		@return: bool
+		"""
+		if self.soaking:
+			if self.timestamp >= self.currentStateEnd:
+				return True
+		else:
+			if self.target > self.lastTarget and self.temperature >= self.target:
+				return True
+			elif self.target < self.lastTarget and self.temperature <= self.target:
+				return True
+
+		# Nope, not ready
+		return False
 
 	def nextState(self):
 		"""Move state machine to next state"""
@@ -206,7 +222,7 @@ class ToastStateMachine(object):
 		self.stateIndex += 1
 
 		# Check if state machine has reached the end
-		if self.stateIndex == len(self.states):
+		if self.stateIndex == len(self.states) + 1:
 			self.running = 'Complete'
 			if self.stateMachineCompleteCallback:
 				self.stateMachineCompleteCallback()
@@ -223,17 +239,17 @@ class ToastStateMachine(object):
 		self.lastTarget = self.target
 		self.target = self._stateConfiguration[self.currentState][CONFIG_KEY_TARGET]
 		self.currentStateDuration = self._stateConfiguration[self.currentState][CONFIG_KEY_DURATION]
-		self.currentStateEnd += self.currentStateDuration
 
 		# Soaking stages simply maintain a steady temperature for a certain duration
 		# Heating/Cooling stages have no duration
 		self.soaking = self.target == self.lastTarget
+		self.currentStateEnd = self.timestamp + self.currentStateDuration
 
 		self.logger.info(
-			"New state, target, end timestamp: {:6.2f}, {:6.2f}, {:4}".format(
+			"New state, target, end timestamp: {:7.2f}, {:7.2f}, {}".format(
 				self.currentState,
 				self.target,
-				self.currentStateEnd if self.soaking else " n/a"
+				"{:4.0f}".format(self.currentStateEnd) if self.soaking else " n/a"
 			)
 		)
 
@@ -243,9 +259,9 @@ class ToastStateMachine(object):
 	def debugPrint(self):
 		"""Print debug info to screen"""
 		self.logger.debug(
-			"{:4f}, {:4}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}".format(
+			"{:4.0f}, {}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}".format(
 				self.timestamp,
-				self.currentStateEnd if self.soaking else " n/a",
+				"{:4.0f}".format(self.currentStateEnd) if self.soaking else " n/a",
 				self.pid.state,
 				self.pid.target,
 				self.pid.error,
@@ -266,6 +282,7 @@ class ToastStateMachine(object):
 			'PID Output': self.pid.output,
 			'PID Error': self.pid.error,
 			'PID IError': self.pid.ierror,
+			'PID DError': self.pid.derror,
 		}
 		self.data.append(data)
 
@@ -280,7 +297,16 @@ class ToastStateMachine(object):
 			return False
 
 		# write to file
-		header = ['Timestamp', 'Temperature', 'Target Temperature', 'State', 'PID Output', 'PID Error', 'PID IError']
+		header = [
+			'Timestamp',
+			'Temperature',
+			'Target Temperature',
+			'State',
+			'PID Output',
+			'PID Error',
+			'PID IError',
+			'PID DError',
+		]
 		with open(csvPath, 'w', newline="") as ouf:
 			writer = csv.DictWriter(ouf, fieldnames=header)
 			writer.writeheader()

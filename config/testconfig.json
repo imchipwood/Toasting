@@ -6,9 +6,9 @@
   },
   "tuning": {
     "pid": {
-      "kP": 10.0,
-      "kI": 0.1,
-      "kD": 40.0,
+      "kP": 5.0,
+      "kI": 0.08,
+      "kD": 50.0,
       "min": "",
       "max": "",
       "maxierror": 500.0
@@ -41,7 +41,7 @@
       "duration": 45
     },
     "cool": {
-      "target": 0,
+      "target": 50,
       "duration": 240
     }
   }
