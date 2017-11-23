@@ -1,14 +1,9 @@
 from collections import OrderedDict
-import logging
-
-from library.other.setupLogging import getLogger
 
 
 class PID(object):
 	def __init__(self, p, i, d, minLimit=None, maxLimit=None, target=None, windupGuard=20.0):
 		super(PID, self).__init__()
-
-		self.logger = getLogger("PID", logging.DEBUG)
 
 		self._kP = float(p)
 		self._kI = float(i)

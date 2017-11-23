@@ -10,8 +10,8 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 import wx
 
 from library.ui.ToastingGUIBase import GraphTestFrame
-from ConfigurationVisualizer import ConfigurationVisualizer, CONFIG_KEY_TARGET, CONFIG_KEY_DURATION
-from LiveVisualizer import LiveVisualizer
+from library.ui.visualizer_configuration import ConfigurationVisualizer, CONFIG_KEY_TARGET, CONFIG_KEY_DURATION
+from library.ui.visualizer_liveGraph import LiveVisualizer
 
 
 class ConfigurationGraphTestPanel(GraphTestFrame):

@@ -1,4 +1,3 @@
-# from ConfigurationVisualizer import ConfigurationVisualizer, CONFIG_KEY_TARGET
 from library.ui.visualizer_configuration import ConfigurationVisualizer, CONFIG_KEY_TARGET
 
 # this code was pretty helpful in getting live update working without redrawing entire graph

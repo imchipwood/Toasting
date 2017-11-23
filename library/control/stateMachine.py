@@ -122,7 +122,7 @@ class ToastStateMachine(object):
 
 	def start(self):
 		"""Begin the state machine"""
-		self.logger.info("Beginning state machine")
+		self.logger.debug("Beginning state machine")
 		self.running = 'Running'
 		# reset all the state variables
 		self.pid.zeroierror()
@@ -226,7 +226,7 @@ class ToastStateMachine(object):
 
 	def nextState(self):
 		"""Move state machine to next state"""
-		self.logger.info("moving to next state")
+		self.logger.debug("moving to next state")
 		# Increment state index
 		self.stateIndex += 1
 
@@ -259,7 +259,7 @@ class ToastStateMachine(object):
 		self.stateChanged = True
 
 		if self.stateIndex != 0:
-			self.logger.info(
+			self.logger.debug(
 				"New state, target, end timestamp: {}, {:7.2f}, {}".format(
 					self.currentState,
 					self.target,
