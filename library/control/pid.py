@@ -4,6 +4,9 @@ import logging
 from library.other.setupLogging import getLogger
 
 
+MAX_IERROR = 1000.0
+
+
 class PID(object):
 	def __init__(self, p, i, d, minLimit=None, maxLimit=None, target=None):
 		super(PID, self).__init__()
@@ -165,15 +168,15 @@ class PID(object):
 		# proportional error from target
 		self._error = self.target - self.state
 		# integral of error from target
-		self._iError += self.error * self._deltaTime
+		self._iError += self.error
 		# derivative of error from target
-		if self._deltaTime > 0:
-			# multiply seconds by freq in hz to ....? not sure what's going on right here
-			#TODO: Check if derivative error calculation is reasonable - the time portion seems funky
-			derror = (self.state - self._lastError) / (self._deltaTime * self.interval * 10.0)
-		else:
-			# match timing loop
-			derror = self.state - self._lastError
+		derror = self._lastError - self.error
+
+		# Clamp integrated error
+		if self.ierror > MAX_IERROR:
+			self._iError = MAX_IERROR
+		if self.ierror < -MAX_IERROR:
+			self._iError = -MAX_IERROR
 
 		# apply gains to error values
 		self._output = self.kP * self.error + self.kI * self.ierror - self.kD * derror
@@ -182,11 +185,12 @@ class PID(object):
 		self._lastError = self.error
 
 		self.logger.debug(
-			"target: {}, current: {}, error: {}, ierror: {}, output: {}".format(
-				self.target,
+			"{:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}".format(
 				self.state,
+				self.target,
 				self.error,
 				self.ierror,
+				derror,
 				self.output
 			)
 		)
