@@ -24,13 +24,9 @@
       "target": 150,
       "duration": 60
     },
-    "ramp2peak": {
-      "target": 200,
-      "duration": 90
-    },
     "ramp2reflow": {
       "target": 235,
-      "duration": 45
+      "duration": 120
     },
     "reflow": {
       "target": 235,
