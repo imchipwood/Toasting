@@ -7,11 +7,11 @@
   "tuning": {
     "pid": {
       "kP": 5.0,
-      "kI": 0.08,
+      "kI": 0.05,
       "kD": 50.0,
       "min": "",
       "max": "",
-      "maxierror": 500.0
+      "maxierror": 375.0
     },
     "timerPeriod": 0.5
   },
