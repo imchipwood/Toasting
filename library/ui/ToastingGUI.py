@@ -80,7 +80,7 @@ class ToastingGUI(ToastingBase):
 		# Start the timer (period stored in seconds, Start() takes period in mS)
 		self.timer.Start(self.timerPeriod * 1000)
 
-		self.updateGuiFromJsonConfig(self.config)
+		self.updateConfigFields()
 
 	def bindEvents(self):
 		"""Bind all events not bound in base GUI class"""
@@ -99,116 +99,6 @@ class ToastingGUI(ToastingBase):
 
 		# close
 		self.Bind(wx.EVT_CLOSE, self.onClose)
-
-	@decorators.BusyReady(MODEL_NAME)
-	def setupConfigurationGrid(self):
-		"""Set up the configuration grid based on current state config"""
-		# clear out all columns and rows
-		if self.configurationGrid.GetNumberCols():
-			self.configurationGrid.DeleteCols(0, self.configurationGrid.GetNumberCols())
-			self.configurationGrid.DeleteRows(0, self.configurationGrid.GetNumberRows())
-
-		# Set up the rows
-		self.configurationGrid.AppendRows(2)
-		self.configurationGrid.SetRowLabelValue(0, "Target Temp")
-		self.configurationGrid.SetRowLabelValue(1, "Step Duration")
-
-		# Set up the columns and insert the values from the config dict
-		for colNum, stepName in enumerate(self.stateConfiguration.keys()):
-			# Add a column
-			self.configurationGrid.AppendCols(1)
-			# Set column label (step name)
-			self.configurationGrid.SetColLabelValue(colNum, stepName)
-			# Insert config values
-			targetTemp = str(self.stateConfiguration[stepName][CONFIG_KEY_TARGET])
-			stepDuration = str(self.stateConfiguration[stepName][CONFIG_KEY_DURATION])
-			self.configurationGrid.SetCellValue(col=colNum, row=0, s=targetTemp)
-			self.configurationGrid.SetCellValue(col=colNum, row=1, s=stepDuration)
-
-	def initializeExecutionPage(self):
-		"""Initialize the execution page with a new config"""
-		# get current config
-		self.stateConfiguration = self.convertConfigGridToStateConfig()
-
-		# Initialize live visualizer
-		self.liveVisualizer = LiveVisualizer(stateConfiguration=self.stateConfiguration, units=self.units)
-		self.redrawLiveVisualization(visualizer=self.liveVisualizer)
-
-	def initializePIDPage(self):
-		"""Initialize PID page with values from PID controller"""
-		pid = self.toaster.pid
-		# self.logger.debug("initializePIDPage P, I, D: {}, {}, {}".format(pid.kP, pid.kI, pid.kD))
-		self.pidPTextCtrl.SetValue(str(pid.kP))
-		self.pidITextCtrl.SetValue(str(pid.kI))
-		self.pidDTextCtrl.SetValue(str(pid.kD))
-		if pid.min is not None:
-			self.pidMinOutLimitTextCtrl.SetValue(str(pid.min))
-		if pid.max is not None:
-			self.pidMaxOutLimitTextCtrl.SetValue(str(pid.max))
-		if pid.windupGuard is not None:
-			self.pidWindupGuardTextCtrl.SetValue(str(pid.windupGuard))
-
-		self.timerPeriodTextCtrl.SetValue(str(self.timerPeriod))
-		self.relayPinTextCtrl.SetValue(str(self.toaster.relay.pin))
-		self.spiCsPinTextCtrl.SetValue(str(self.toaster.thermocouple.csPin))
-
-	def updatePIDsFromFields(self):
-		"""Update PID controller tuning from values in PID page"""
-		self.logger.debug("updatePIDsFromFields")
-		kP = self.pidPTextCtrl.GetValue()
-		if kP is "":
-			kP = 0.0
-		self.toaster.pid.kP = float(kP)
-		kI = self.pidITextCtrl.GetValue()
-		if kI is "":
-			kI = 0.0
-		self.toaster.pid.kI = float(kI)
-		kD = self.pidDTextCtrl.GetValue()
-		if kD is "":
-			kD = 0.0
-		self.toaster.pid.kD = float(kD)
-
-		minVal = self.pidMinOutLimitTextCtrl.GetValue()
-		if minVal is not u"":
-			self.toaster.pid.min = float(minVal)
-		maxVal = self.pidMaxOutLimitTextCtrl.GetValue()
-		if maxVal is not u"":
-			self.toaster.pid.max = float(maxVal)
-		windupGuard = self.pidWindupGuardTextCtrl.GetValue()
-		if windupGuard is not u"":
-			self.toaster.pid.windupGuard = float(windupGuard)
-
-	def updateOtherTuning(self):
-		"""Update various tuning variables from tuning page"""
-		# relay pin
-		try:
-			relayPin = int(self.relayPinTextCtrl.GetValue())
-		except:
-			self.errorMessage("Invalid pin # for relay control", "Invalid Relay Pin #")
-			return
-		if relayPin != self.toaster.relay.pin:
-			self.toaster.relay.pin = relayPin
-
-		# SPI CS pin
-		try:
-			spiCsPin = int(self.spiCsPinTextCtrl.GetValue())
-		except:
-			self.errorMessage("Invalid pin # for SPI CS (enable)", "Invalid SPI CS Pin #")
-			return
-		if spiCsPin != self.toaster.thermocouple.csPin:
-			self.toaster.thermocouple.csPin = spiCsPin
-
-		try:
-			period = float(self.timerPeriodTextCtrl.GetValue())
-		except:
-			self.errorMessage(
-				"Invalid value for clock timer period. Please enter a float >= 0.5 (max of 2Hz refresh)",
-				"Invalid Timer Period"
-			)
-			return
-
-		# Reset timer
-		self.timerPeriod = period
 
 	# endregion Init
 	# region Properties
@@ -282,6 +172,14 @@ class ToastingGUI(ToastingBase):
 	@config.setter
 	def config(self, configDict):
 		self.toaster.config = configDict
+
+	@property
+	def pidConfig(self):
+		return self.toaster.pid.getConfig()
+
+	@pidConfig.setter
+	def pidConfig(self, configDict):
+		self.toaster.pid.setConfig(configDict)
 
 	# endregion Properties
 	# region BusyReady
@@ -390,12 +288,6 @@ class ToastingGUI(ToastingBase):
 	# endregion Visualization
 	# region Helpers
 
-	@decorators.BusyReady(MODEL_NAME)
-	def toastingComplete(self):
-		"""Do some stuff once reflow is complete"""
-		self.startStopReflowButton.SetLabel("Start Reflow")
-		self.dumpToCsv()
-
 	def updateStatus(self, text):
 		"""Convenience function for updating status bar
 
@@ -426,7 +318,7 @@ class ToastingGUI(ToastingBase):
 		# Store updated config & redraw stuff
 		self.stateConfiguration = newConfiguration
 		self.updateConfigurationGrid()
-		self.initializeExecutionPage()
+		self.initializeToastingPage()
 
 	def convertTemp(self, temp):
 		"""Convert a temp to the currently set units
@@ -440,6 +332,9 @@ class ToastingGUI(ToastingBase):
 			return (temp - 32.0) * 5.0 / 9.0
 		else:
 			return temp * 9.0 / 5.0 + 32.0
+
+	# endregion Helpers
+	# region StatusGrid
 
 	def updateStatusGrid(self):
 		"""Update status grid with latest info"""
@@ -567,30 +462,8 @@ class ToastingGUI(ToastingBase):
 			red, green, blue = 100, 255, 100
 		self.setStatusGridCellColour('relay', red, green, blue)
 
-	def dumpToCsv(self):
-		"""Dump collected data to CSV"""
-		dialog = wx.FileDialog(
-			parent=self,
-			message="Save Data & Configuration",
-			defaultDir=DATA_DIR,
-			defaultFile="toast_data.csv",
-			style=wx.FD_SAVE
-		)
-		# exit if user cancelled operation
-		if dialog.ShowModal() != wx.OK:
-			return
-
-		csvPath = dialog.GetPath()
-		if self.toaster.dumpDataToCsv(csvPath):
-			self.updateStatus("CSV stored @ {}".format(csvPath))
-		else:
-			self.updateStatus("No data to dump")
-
-		# Dump config, too
-		directory = os.path.dirname(csvPath)
-		filename = os.path.basename(csvPath).replace(".csv", ".json")
-		configPath = os.path.join(directory, filename)
-		self.toaster.dumpConfig(configPath)
+	# endregion StatusGrid
+	# region DialogHelpers
 
 	def infoMessage(self, message, caption=None):
 		dialog = wx.MessageDialog(
@@ -633,11 +506,55 @@ class ToastingGUI(ToastingBase):
 		dialog.ShowModal()
 		dialog.Destroy()
 
-	# endregion Helpers
-	# region Config
+	# endregion DialogHelpers
+	# region ConfigurationPage
 
 	@decorators.BusyReady(MODEL_NAME)
-	def saveConfig(self):
+	def initializeConfigurationPage(self):
+		"""Set up the configuration grid based on current state config"""
+		# clear out all columns and rows
+		if self.configurationGrid.GetNumberCols():
+			self.configurationGrid.DeleteCols(0, self.configurationGrid.GetNumberCols())
+			self.configurationGrid.DeleteRows(0, self.configurationGrid.GetNumberRows())
+
+		# Set up the rows
+		self.configurationGrid.AppendRows(2)
+		self.configurationGrid.SetRowLabelValue(0, "Target Temp")
+		self.configurationGrid.SetRowLabelValue(1, "Step Duration")
+
+		# Set up the columns and insert the values from the config dict
+		for colNum, stepName in enumerate(self.stateConfiguration.keys()):
+			# Add a column
+			self.configurationGrid.AppendCols(1)
+			# Set column label (step name)
+			self.configurationGrid.SetColLabelValue(colNum, stepName)
+			# Insert config values
+			targetTemp = str(self.stateConfiguration[stepName][CONFIG_KEY_TARGET])
+			stepDuration = str(self.stateConfiguration[stepName][CONFIG_KEY_DURATION])
+			self.configurationGrid.SetCellValue(col=colNum, row=0, s=targetTemp)
+			self.configurationGrid.SetCellValue(col=colNum, row=1, s=stepDuration)
+
+	@decorators.BusyReady(MODEL_NAME)
+	def configurationGridOnGridCellChange(self, event):
+		"""Event handler for cell value changing
+
+		@param event: wx.grid.EVT_GRID_CELL_CHANGED
+		"""
+		event.Skip()
+		self.stateConfiguration = self.convertConfigGridToStateConfig()
+		self.configurationVisualizer = ConfigurationVisualizer(self.stateConfiguration)
+		self.redrawConfigurationVisualization(self.configurationVisualizer)
+
+	def executeConfigButtonOnButtonClick(self, event):
+		"""Event handler for execution button
+
+		@param event: wx.EVT_BUTTON
+		"""
+		event.Skip()
+		self.baseNotebook.SetSelection(2)
+
+	@decorators.BusyReady(MODEL_NAME)
+	def saveConfigDialog(self):
 		"""Save current config to JSON file"""
 		# Create file save dialog
 		dialog = wx.FileDialog(
@@ -658,15 +575,15 @@ class ToastingGUI(ToastingBase):
 		self.updateStatus("Config saved to {}".format(filePath))
 
 	def loadConfigFromFile(self, filePath):
-		"""
+		"""Load in a new config from a JSON file path
 
-		@param filePath:
-		@return:
+		@param filePath: path to new JSON config file
+		@type filePath: str
 		"""
 		self.config = self.toaster.getConfigFromJsonFile(filePath)
 
 		# Update the GUI
-		self.updateGuiFromJsonConfig(self.config)
+		self.updateConfigFields()
 
 	def loadConfigDialog(self):
 		"""Show user a load file dialog and update configuration accordingly"""
@@ -688,7 +605,7 @@ class ToastingGUI(ToastingBase):
 	def updateConfigurationGrid(self):
 		"""Update the grid and visualization with new configuration"""
 		# Update config grid
-		self.setupConfigurationGrid()
+		self.initializeConfigurationPage()
 
 		# Create new configurationVisualizer and draw it
 		self.configurationVisualizer = ConfigurationVisualizer(self.stateConfiguration, units=self.units)
@@ -705,48 +622,17 @@ class ToastingGUI(ToastingBase):
 		config = ToastStateMachine.getConfigFromJsonFile(configPath)
 		return config['states']
 
-	def updateGuiFromJsonConfig(self, config):
-		"""Call any time a new JSON config is read
-
-		@param config: full toast config
-		@type config: dict
-		"""
+	def updateConfigFields(self):
+		"""Call any time a new JSON config is read"""
 		# Configuration grid
 		self.updateConfigurationGrid()
 
 		# Units
-		self.units = config['units']
-		self.celciusRadioButton.SetValue(self.units == 'celcius')
-		self.fahrenheitRadioButton.SetValue(self.units == 'fahrenheit')
+		self.celciusRadioButton.SetValue(self.config['units'] == 'celcius')
+		self.fahrenheitRadioButton.SetValue(self.config['units'] == 'fahrenheit')
 
 		# Tuning
-		tuning = config['tuning']
-		self.updatePIDFromConfigDict(tuning['pid'])
-		self.timerPeriod = tuning['timerPeriod']
-
-		# Pin #s
-		pins = config['pins']
-		self.toaster.relay.pin = pins['relay']
-		self.toaster.thermocouple.pin = pins['SPI_CS']
-
-	def updatePIDFromConfigDict(self, pidConfig):
-		"""Update the PID controller tuning
-
-		@param pidConfig: PID configuration
-		@type pidConfig: dict
-		"""
-		# self.logger.debug("updatePIDFromConfigDict")
-		# self.logger.debug(json.dumps(pidConfig, indent=2))
-		self.toaster.pid.kP = pidConfig['kP']
-		self.toaster.pid.kI = pidConfig['kI']
-		self.toaster.pid.kD = pidConfig['kD']
-		if pidConfig['min'] != "":
-			self.toaster.pid.min = pidConfig['min']
-		if pidConfig['max'] != "":
-			self.toaster.pid.max = pidConfig['max']
-		if pidConfig['windupGuard'] != "":
-			self.toaster.pid.windupGuard = pidConfig['windupGuard']
-		self.updateStatus("PIDs Updated")
+		self.initializeTuningPage()
 
 	def convertConfigGridToStateConfig(self):
 		"""Put values from grid into dictionary
@@ -770,7 +656,184 @@ class ToastingGUI(ToastingBase):
 
 		return configDict
 
-	# endregion Config
+	# endregion ConfigurationPage
+	# region TuningPage
+
+	def initializeTuningPage(self):
+		"""Initialize PID page with values from PID controller"""
+		pid = self.toaster.pid
+		# self.logger.debug("initializePIDPage P, I, D: {}, {}, {}".format(pid.kP, pid.kI, pid.kD))
+		self.pidPTextCtrl.SetValue(str(pid.kP))
+		self.pidITextCtrl.SetValue(str(pid.kI))
+		self.pidDTextCtrl.SetValue(str(pid.kD))
+		if pid.min is not None:
+			self.pidMinOutLimitTextCtrl.SetValue(str(pid.min))
+		if pid.max is not None:
+			self.pidMaxOutLimitTextCtrl.SetValue(str(pid.max))
+		if pid.windupGuard is not None:
+			self.pidWindupGuardTextCtrl.SetValue(str(pid.windupGuard))
+
+		self.timerPeriodTextCtrl.SetValue(str(self.timerPeriod))
+		self.relayPinTextCtrl.SetValue(str(self.toaster.relay.pin))
+		self.spiCsPinTextCtrl.SetValue(str(self.toaster.thermocouple.csPin))
+
+	def updatePIDsFromFields(self):
+		"""Update PID controller tuning from values in PID page"""
+		self.logger.debug("updatePIDsFromFields")
+		config = {}
+
+		config['kP'] = self.pidPTextCtrl.GetValue()
+		config['kI'] = self.pidITextCtrl.GetValue()
+		config['kD'] = self.pidDTextCtrl.GetValue()
+
+		config['min'] = self.pidMinOutLimitTextCtrl.GetValue()
+		config['max'] = self.pidMaxOutLimitTextCtrl.GetValue()
+		config['windupGuard'] = self.pidWindupGuardTextCtrl.GetValue()
+
+		self.pidConfig = config
+
+	def updateOtherTuning(self):
+		"""Update various tuning variables from tuning page"""
+		# relay pin
+		try:
+			relayPin = int(self.relayPinTextCtrl.GetValue())
+		except:
+			self.errorMessage("Invalid pin # for relay control", "Invalid Relay Pin #")
+			return
+		# Only update if pin has changed
+		if relayPin != self.toaster.relay.pin:
+			self.toaster.relay.pin = relayPin
+
+		# SPI CS pin
+		try:
+			spiCsPin = int(self.spiCsPinTextCtrl.GetValue())
+		except:
+			self.errorMessage("Invalid pin # for SPI CS (enable)", "Invalid SPI CS Pin #")
+			return
+		# Only update if pin has changed
+		if spiCsPin != self.toaster.thermocouple.csPin:
+			self.toaster.thermocouple.csPin = spiCsPin
+
+		try:
+			period = float(self.timerPeriodTextCtrl.GetValue())
+		except:
+			self.errorMessage(
+				"Invalid value for clock timer period. Please enter a float >= 0.5 (max of 2Hz refresh)",
+				"Invalid Timer Period"
+			)
+			return
+
+		# Reset timer
+		self.timerPeriod = period
+
+	def savePIDButtonOnButtonClick(self, event):
+		"""Event handler for PID save button
+
+		@param event: wx.EVT_BUTTON
+		"""
+		event.Skip()
+		self.updatePIDsFromFields()
+
+	def saveOtherTuningButtonOnButtonClick(self, event):
+		"""Event handler for Other tuning save button
+
+		@param event: wx.EVT_BUTTON
+		"""
+		event.Skip()
+		self.updateOtherTuning()
+
+	# endregion TuningPage
+	# region ToastingPage
+
+	def initializeToastingPage(self):
+		"""Initialize the execution page with a new config"""
+		# get current config
+		self.stateConfiguration = self.convertConfigGridToStateConfig()
+
+		# Initialize live visualizer
+		self.liveVisualizer = LiveVisualizer(stateConfiguration=self.stateConfiguration, units=self.units)
+		self.redrawLiveVisualization(visualizer=self.liveVisualizer)
+
+	@decorators.BusyReady(MODEL_NAME)
+	def startStopReflowButtonOnButtonClick(self, event):
+		"""Event handler for start/stop reflow button
+
+		@param event: wx.BUTTON
+		"""
+		event.Skip()
+		if self.startStopReflowButton.GetLabel() == 'Start Reflow':
+			# re-init the page to reset the live visualization
+			self.initializeToastingPage()
+			self.startStopReflowButton.SetLabel('Stop Reflow')
+			self.pauseReflowButton.Enable(True)
+			# start reflowing
+			self.toaster.start()
+			self.updateStatus("Reflow process started")
+		else:
+			self.toaster.stop()
+			self.startStopReflowButton.SetLabel('Start Reflow')
+			self.pauseReflowButton.Enable(False)
+			self.updateStatus("Reflow process stopped")
+			self.writeDataAndConfigToDisk()
+		self.pauseReflowButton.SetLabel('Pause Reflow')
+
+	def pauseReflowButtonOnButtonClick(self, event):
+		"""Event handler for pause/resume reflow button
+
+		@param event: wx.BUTTON
+		"""
+		event.Skip()
+		if self.pauseReflowButton.GetLabel() == "Pause Reflow":
+			self.toaster.pause()
+			self.pauseReflowButton.SetLabel("Resume Reflow")
+			self.updateStatus("Reflow process paused")
+		else:
+			self.toaster.resume()
+			self.pauseReflowButton.SetLabel("Pause Reflow")
+			self.updateStatus("Reflow process resumed")
+
+	def testButtonOnButtonClick(self, event):
+		"""Event handler for test button
+
+		@param event: wx.BUTTON
+		"""
+		event.Skip()
+		self.testTimer = 0.0
+		self.testing = True
+		self.updateStatus("Testing relay")
+
+	@decorators.BusyReady(MODEL_NAME)
+	def toastingComplete(self):
+		"""Do some stuff once reflow is complete"""
+		self.startStopReflowButton.SetLabel("Start Reflow")
+		self.writeDataAndConfigToDisk()
+
+	def writeDataAndConfigToDisk(self):
+		"""Dump collected data to CSV"""
+		dialog = wx.FileDialog(
+			parent=self,
+			message="Save Data & Configuration",
+			defaultDir=DATA_DIR,
+			defaultFile="toast_data.csv",
+			style=wx.FD_SAVE
+		)
+		# exit if user cancelled operation
+		if dialog.ShowModal() != wx.OK:
+			return
+
+		csvPath = dialog.GetPath()
+		if self.toaster.dumpDataToCsv(csvPath):
+			self.updateStatus("CSV stored @ {}".format(csvPath))
+		else:
+			self.updateStatus("No data to dump")
+
+		# Dump config, too
+		directory = os.path.dirname(csvPath)
+		filename = os.path.basename(csvPath).replace(".csv", ".json")
+		configPath = os.path.join(directory, filename)
+		self.toaster.dumpConfig(configPath)
+
+	# endregion ToastingPage
 	# region Testing
 
 	@decorators.BusyReady(MODEL_NAME)
@@ -797,7 +860,7 @@ class ToastingGUI(ToastingBase):
 			self.updateStatus("Relay test complete")
 
 	# endregion Testing
-	# region EventHandlers
+	# region GeneralEventHandlers
 
 	def timerHandler(self, event):
 		"""Event handler for wx.Timer
@@ -841,63 +904,6 @@ class ToastingGUI(ToastingBase):
 		# update status grid
 		self.updateStatusGrid()
 
-	@decorators.BusyReady(MODEL_NAME)
-	def startStopReflowButtonOnButtonClick(self, event):
-		"""Event handler for start/stop reflow button
-
-		@param event: wx.BUTTON
-		"""
-		event.Skip()
-		if self.startStopReflowButton.GetLabel() == 'Start Reflow':
-			# re-init the page to reset the live visualization
-			self.initializeExecutionPage()
-			self.startStopReflowButton.SetLabel('Stop Reflow')
-			self.pauseReflowButton.Enable(True)
-			# start reflowing
-			self.toaster.start()
-			self.updateStatus("Reflow process started")
-		else:
-			self.toaster.stop()
-			self.startStopReflowButton.SetLabel('Start Reflow')
-			self.pauseReflowButton.Enable(False)
-			self.updateStatus("Reflow process stopped")
-			self.dumpToCsv()
-		self.pauseReflowButton.SetLabel('Pause Reflow')
-
-	def pauseReflowButtonOnButtonClick(self, event):
-		"""Event handler for pause/resume reflow button
-
-		@param event: wx.BUTTON
-		"""
-		event.Skip()
-		if self.pauseReflowButton.GetLabel() == "Pause Reflow":
-			self.toaster.pause()
-			self.pauseReflowButton.SetLabel("Resume Reflow")
-			self.updateStatus("Reflow process paused")
-		else:
-			self.toaster.resume()
-			self.pauseReflowButton.SetLabel("Pause Reflow")
-			self.updateStatus("Reflow process resumed")
-
-	# @decorators.BusyReady(MODEL_NAME)
-	def testButtonOnButtonClick(self, event):
-		"""Event handler for test button
-
-		@param event: wx.BUTTON
-		"""
-		event.Skip()
-		self.testTimer = 0.0
-		self.testing = True
-		self.updateStatus("Testing relay")
-
-	def executeConfigButtonOnButtonClick(self, event):
-		"""Event handler for execution button
-
-		@param event: wx.EVT_BUTTON
-		"""
-		event.Skip()
-		self.baseNotebook.SetSelection(2)
-
 	def baseNotebookOnNotebookPageChanged(self, event):
 		"""Event handler for notebook page change
 
@@ -909,36 +915,9 @@ class ToastingGUI(ToastingBase):
 			# do nothing - leave existing config alone
 			return
 		elif index == 1:
-			self.initializePIDPage()
+			self.initializeTuningPage()
 		elif index == 2:
-			self.initializeExecutionPage()
-
-	def savePIDButtonOnButtonClick(self, event):
-		"""Event handler for PID save button
-
-		@param event: wx.EVT_BUTTON
-		"""
-		event.Skip()
-		self.updatePIDsFromFields()
-
-	def saveOtherTuningButtonOnButtonClick(self, event):
-		"""Event handler for Other tuning save button
-
-		@param event: wx.EVT_BUTTON
-		"""
-		event.Skip()
-		self.updateOtherTuning()
-
-	@decorators.BusyReady(MODEL_NAME)
-	def configurationGridOnGridCellChange(self, event):
-		"""Event handler for cell value changing
-
-		@param event: wx.grid.EVT_GRID_CELL_CHANGED
-		"""
-		event.Skip()
-		self.stateConfiguration = self.convertConfigGridToStateConfig()
-		self.configurationVisualizer = ConfigurationVisualizer(self.stateConfiguration)
-		self.redrawConfigurationVisualization(self.configurationVisualizer)
+			self.initializeToastingPage()
 
 	@decorators.BusyReady(MODEL_NAME)
 	def temperatureOnRadioButton(self, event):
@@ -969,7 +948,7 @@ class ToastingGUI(ToastingBase):
 		@param event: wx.EVT_BUTTON
 		"""
 		event.Skip()
-		self.dumpToCsv()
+		self.writeDataAndConfigToDisk()
 
 	def saveConfigButtonOnButtonClick(self, event):
 		"""Event handler for save config button
@@ -977,7 +956,7 @@ class ToastingGUI(ToastingBase):
 		@param event: wx.EVT_BUTTON
 		"""
 		event.Skip()
-		self.saveConfig()
+		self.saveConfigDialog()
 
 	def loadConfigButtonOnButtonClick(self, event):
 		"""Event handler for load config button
@@ -993,7 +972,7 @@ class ToastingGUI(ToastingBase):
 		@param event: wx.EVT_MENU
 		"""
 		event.Skip()
-		self.saveConfig()
+		self.saveConfigDialog()
 
 	def loadConfigMenuItemOnMenuSelection(self, event):
 		"""Event handler for load config menu item
@@ -1012,7 +991,7 @@ class ToastingGUI(ToastingBase):
 		self.toaster.cleanup()
 		self.Destroy()
 		
-	# endregion EventHandlers
+	# endregion GeneralEventHandlers
 
 
 if __name__ == '__main__':
