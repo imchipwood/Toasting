@@ -528,7 +528,7 @@ class ToastingGUI(ToastingBase):
 			self.configurationGrid.AppendCols(1)
 			# Set column label (step name) & adjust width
 			self.configurationGrid.SetColLabelValue(colNum, stepName)
-			self.configurationGrid.SetColMinimalWidth(colNum, 75)
+			self.configurationGrid.SetColMinimalWidth(colNum, 90)
 			# Insert config values
 			targetTemp = str(self.stateConfiguration[stepName][CONFIG_KEY_TARGET])
 			stepDuration = str(self.stateConfiguration[stepName][CONFIG_KEY_DURATION])
