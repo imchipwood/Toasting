@@ -50,7 +50,7 @@ class ToastingGUI(ToastingBase):
 		self.config = self.getConfigFromJsonFile(baseConfigPath)
 		pins = self.config['pins']
 		tuning = self.config['tuning']
-		self.units = self.config['units']
+		self._units = self.config['units']
 
 		# Create a state machine with an empty configuration dict
 		self.toaster = ToastStateMachine(
@@ -234,7 +234,7 @@ class ToastingGUI(ToastingBase):
 	@property
 	def temperature(self):
 		"""Getter for current temperature"""
-		if self.config['units'] == 'celcius':
+		if self.units == 'celcius':
 			return self.toaster.temperature
 		else:
 			return self.convertTemp(self.toaster.temperature)
@@ -242,10 +242,23 @@ class ToastingGUI(ToastingBase):
 	@property
 	def refTemperature(self):
 		"""Getter for current reference temperature"""
-		if self.config['units'] == 'celcius':
+		if self.units == 'celcius':
 			return self.toaster.refTemperature
 		else:
 			return self.convertTemp(self.toaster.refTemperature)
+
+	@property
+	def units(self):
+		"""Getter for current temperature units"""
+		return self.config['units']
+
+	@units.setter
+	def units(self, units):
+		"""Setter for current temperature units
+
+		@param units: str 'fahrenheit' or 'celcius'
+		"""
+		self.config['units'] = units
 
 	@property
 	def stateConfiguration(self):
