@@ -581,7 +581,7 @@ class ToastingGUI(ToastingBase):
 		"""Dump collected data to CSV"""
 		dialog = wx.FileDialog(
 			parent=self,
-			message="Save Data To CSV",
+			message="Save Data & Configuration",
 			defaultDir=DATA_DIR,
 			defaultFile="toast_data.csv",
 			style=wx.FD_SAVE
@@ -595,6 +595,12 @@ class ToastingGUI(ToastingBase):
 			self.updateStatus("CSV stored @ {}".format(csvPath))
 		else:
 			self.updateStatus("No data to dump")
+
+		# Dump config, too
+		directory = os.path.dirname(csvPath)
+		filename = os.path.basename(csvPath).replace(".csv", ".json")
+		configPath = os.path.join(directory, filename)
+		self.dumpConfig(configPath)
 
 	def infoMessage(self, message, caption=None):
 		dialog = wx.MessageDialog(
@@ -667,7 +673,13 @@ class ToastingGUI(ToastingBase):
 			return
 
 		# Extract file path from dialog and dump config
-		filePath = dialog.GetPath()
+		self.dumpConfig(dialog.GetPath())
+
+	def dumpConfig(self, filePath):
+		"""Dump configuration to file
+
+		@param filePath: str path to dump JSON config to
+		"""
 		with open(filePath, 'w') as oup:
 			config = OrderedDict()
 			config['units'] = self.units
