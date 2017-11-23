@@ -184,7 +184,6 @@ class ToastStateMachine(object):
 
 		# Control loop @ 1Hz
 		if (self.timestamp - self.lastControlLoopTimestamp) >= 1.0:
-		# if True:
 			self.lastControlLoopTimestamp = self.timestamp
 
 			# Calculate PID output
@@ -231,7 +230,7 @@ class ToastStateMachine(object):
 		self.stateIndex += 1
 
 		# Check if state machine has reached the end
-		if self.stateIndex == len(self.states) + 1:
+		if self.stateIndex == len(self.states):
 			self.running = 'Complete'
 			if self.stateMachineCompleteCallback:
 				self.stateMachineCompleteCallback()
