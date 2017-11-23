@@ -4,7 +4,7 @@ import logging
 from library.other.setupLogging import getLogger
 
 
-MAX_IERROR = 1000.0
+MAX_IERROR = 500.0
 
 
 class PID(object):
