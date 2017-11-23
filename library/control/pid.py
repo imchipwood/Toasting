@@ -176,7 +176,7 @@ class PID(object):
 		# proportional error from target
 		self._error = self.target - self.state
 		# integral of error from target
-		self._iError += self.error
+		self._iError += self.error * self._deltaTime
 		# derivative of error from target
 		derror = self._lastError - self.error
 
