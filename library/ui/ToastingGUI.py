@@ -400,6 +400,7 @@ class ToastingGUI(ToastingBase):
 	# endregion Visualization
 	# region Helpers
 
+	@decorators.BusyReady(MODEL_NAME)
 	def toastingComplete(self):
 		"""Do some stuff once reflow is complete"""
 		self.dumpToCsv()
@@ -828,6 +829,7 @@ class ToastingGUI(ToastingBase):
 		# handle progress gauge
 		if self.testing or self.toaster.running == 'Running':
 			self.progressGauge.Pulse()
+			self.baseNotebook.Disable()
 		else:
 			self.progressGauge.SetValue(100)
 
@@ -875,6 +877,7 @@ class ToastingGUI(ToastingBase):
 			self.startStopReflowButton.SetLabel('Start Reflow')
 			self.pauseReflowButton.Enable(False)
 			self.updateStatus("Reflow process stopped")
+			self.dumpToCsv()
 		self.pauseReflowButton.SetLabel('Pause Reflow')
 
 	def pauseReflowButtonOnButtonClick(self, event):

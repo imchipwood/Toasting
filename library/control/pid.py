@@ -161,7 +161,7 @@ class PID(object):
 	# endregion OtherProperties
 	# region Execution
 
-	def compute(self, currenttime, currentstate=None):
+	def compute(self, currenttime, currentstate=None, newState=False):
 		"""Compute the output of the PID controller based on the elapsed time and the current target
 
 		@param currenttime: the time at which the latest input was sampled
@@ -183,7 +183,11 @@ class PID(object):
 		# integral of error from target
 		self._iError += self.error * self._deltaTime
 		# derivative of error from target
-		self._dError = (self._lastError - self.error) / self._deltaTime
+		if newState:
+			# force derivative to 0 if we just changed states
+			self._dError = 0.0
+		else:
+			self._dError = (self._lastError - self.error) / self._deltaTime
 
 		# Clamp integrated error
 		if self._maxIError:
@@ -193,7 +197,7 @@ class PID(object):
 				self._iError = -self.maxIError
 
 		# apply gains to error values
-		self._output = self.kP * self.error + self.kI * self.ierror - self.kD * self._dError
+		self._output = self.kP * self.error + self.kI * self.ierror - self.kD * self.derror
 
 		self._lastTime = currenttime
 		self._lastError = self.error

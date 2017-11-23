@@ -35,6 +35,7 @@ class ToastStateMachine(object):
 		self.lastTarget = 0.0
 		self.currentStateDuration = 0.0
 		self.currentStateEnd = 0.0
+		self.stateChanged = False
 
 		self.thermocouple = Thermocouple(csPin, debugLevel=debugLevel)
 		self.relay = Relay(relayPin, debugLevel=debugLevel)
@@ -128,7 +129,7 @@ class ToastStateMachine(object):
 		self.timestamp = 0.0
 		self.lastControlLoopTimestamp = 0.0
 		self.stateIndex = 0
-		self.updateState()
+		self.updateStateVariables()
 		self.lastTarget = 0.0
 		self.data = []
 
@@ -138,7 +139,7 @@ class ToastStateMachine(object):
 		self.stateIndex = 0
 		self.timestamp = 0.0
 		self.lastControlLoopTimestamp = 0.0
-		self.updateState()
+		self.updateStateVariables()
 		self.lastTarget = 0.0
 
 	def resume(self):
@@ -187,9 +188,10 @@ class ToastStateMachine(object):
 			self.lastControlLoopTimestamp = self.timestamp
 
 			# Calculate PID output
-			self.pid.compute(self.timestamp, self.temperature)
+			self.pid.compute(self.timestamp, self.temperature, self.stateChanged)
+			self.stateChanged = False
 
-			if self.stateIndex == len(self.states):
+			if self.stateIndex == len(self.states) - 1:
 				# Last state is always a cooling state - force relay off
 				self.relay.disable()
 			else:
@@ -212,10 +214,10 @@ class ToastStateMachine(object):
 			if self.timestamp >= self.currentStateEnd:
 				return True
 		else:
-			if self.target > self.lastTarget and self.temperature >= self.target:
-				return True
-			elif self.target < self.lastTarget and self.temperature <= self.target:
-				return True
+			if self.target > self.lastTarget:
+				return self.temperature >= self.target
+			elif self.target < self.lastTarget:
+				return self.temperature <= self.target
 
 		# Nope, not ready
 		return False
@@ -235,9 +237,9 @@ class ToastStateMachine(object):
 
 		# Update state variables if we're still running
 		if self.running == 'Running':
-			self.updateState()
+			self.updateStateVariables()
 
-	def updateState(self):
+	def updateStateVariables(self):
 		"""Update the current state variables"""
 		self.currentState = self.states[self.stateIndex]
 
@@ -252,6 +254,7 @@ class ToastStateMachine(object):
 
 		# Zero out the integrated error so it can build up again for this state
 		self.pid.zeroierror()
+		self.stateChanged = True
 
 		if self.stateIndex != 0:
 			self.logger.info(
