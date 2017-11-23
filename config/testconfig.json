@@ -26,7 +26,7 @@
     },
     "ramp2reflow": {
       "target": 235,
-      "duration": 120
+      "duration": 60
     },
     "reflow": {
       "target": 235,
