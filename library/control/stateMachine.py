@@ -224,6 +224,13 @@ class ToastStateMachine(object):
 		# Heating/Cooling stages have no duration
 		self.soaking = self.target == self.lastTarget
 
+		self.logger.info(
+			"state: {}, target: {}".format(
+				self.currentState,
+				self.target
+			)
+		)
+
 	# endregion StateMachine
 	# region Data
 
