@@ -6,8 +6,8 @@ from library.ui.visualizer_configuration import ConfigurationVisualizer, CONFIG_
 
 
 class LiveVisualizer(ConfigurationVisualizer):
-	def __init__(self, stateConfiguration, redrawCallback=None):
-		super(LiveVisualizer, self).__init__(stateConfiguration, doNotDraw=True)
+	def __init__(self, stateConfiguration, redrawCallback=None, units='celcius'):
+		super(LiveVisualizer, self).__init__(stateConfiguration, doNotDraw=True, units=units)
 		self.lastStepNum = 0
 		self.originalFig = self.fig
 

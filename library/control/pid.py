@@ -4,11 +4,8 @@ import logging
 from library.other.setupLogging import getLogger
 
 
-MAX_IERROR = 500.0
-
-
 class PID(object):
-	def __init__(self, p, i, d, minLimit=None, maxLimit=None, target=None):
+	def __init__(self, p, i, d, minLimit=None, maxLimit=None, target=None, windupGuard=20.0):
 		super(PID, self).__init__()
 
 		self.logger = getLogger("PID", logging.DEBUG)
@@ -16,6 +13,8 @@ class PID(object):
 		self._kP = float(p)
 		self._kI = float(i)
 		self._kD = float(d)
+
+		self._windupGuard = windupGuard
 
 		self._currentState = 0.0
 		self._targetState = target
@@ -25,6 +24,7 @@ class PID(object):
 		self._error = 0.0
 		self._lastError = 0.0
 		self._iError = 0.0
+		self._dError = 0.0
 
 		self._deltaTime = 0.0
 		self._lastTime = 0.0
@@ -57,6 +57,17 @@ class PID(object):
 	@kD.setter
 	def kD(self, kD):
 		self._kD = float(kD)
+
+	@property
+	def windupGuard(self):
+		return self._windupGuard
+
+	@windupGuard.setter
+	def windupGuard(self, windupGuard):
+		if windupGuard is not None:
+			self._windupGuard = float(windupGuard)
+		else:
+			self._windupGuard = None
 
 	# endregion PIDProperties
 	# region StateProperties
@@ -93,6 +104,10 @@ class PID(object):
 	@property
 	def ierror(self):
 		return self._iError
+
+	@property
+	def derror(self):
+		return self._dError
 
 	# endregion StateProperties
 	# region OtherProperties
@@ -141,12 +156,13 @@ class PID(object):
 		config['kD'] = self.kD
 		config['min'] = "" if self.min is None else self.min
 		config['max'] = "" if self.max is None else self.max
+		config['windupGuard'] = "" if self.windupGuard is None else self.windupGuard
 		return config
 
 	# endregion OtherProperties
 	# region Execution
 
-	def compute(self, currenttime, currentstate=None):
+	def compute(self, currenttime, currentstate=None, newState=False):
 		"""Compute the output of the PID controller based on the elapsed time and the current target
 
 		@param currenttime: the time at which the latest input was sampled
@@ -159,39 +175,38 @@ class PID(object):
 		if not self.target:
 			raise Exception("No target state set, cannot compute PID output")
 
+		# calculate change in time
 		self._deltaTime = currenttime - self._lastTime
+
+		# update state if available
 		if currentstate:
 			self._currentState = currentstate
 
 		# proportional error from target
 		self._error = self.target - self.state
 		# integral of error from target
-		self._iError += self.error
-		# derivative of error from target
-		derror = self._lastError - self.error
+		self._iError += self.error * self._deltaTime
 
-		# Clamp integrated error
-		if self.ierror > MAX_IERROR:
-			self._iError = MAX_IERROR
-		if self.ierror < -MAX_IERROR:
-			self._iError = -MAX_IERROR
+		# windup guard for integrated error
+		if self.windupGuard:
+			if self.ierror < -self.windupGuard:
+				self._iError = -self.windupGuard
+			if self.ierror > self.windupGuard:
+				self._iError = self.windupGuard
+
+		# derivative of error from target
+		if newState:
+			# force derivative to 0 if we just changed states
+			self._dError = 0.0
+		else:
+			# derivative is slope of error over time
+			self._dError = (self.error - self._lastError) / self._deltaTime
 
 		# apply gains to error values
-		self._output = self.kP * self.error + self.kI * self.ierror - self.kD * derror
+		self._output = self.kP * self.error + self.kI * self.ierror + self.kD * self.derror
 
 		self._lastTime = currenttime
 		self._lastError = self.error
-
-		self.logger.debug(
-			"{:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}".format(
-				self.state,
-				self.target,
-				self.error,
-				self.ierror,
-				derror,
-				self.output
-			)
-		)
 
 		return self.output
 

@@ -6,11 +6,12 @@
   },
   "tuning": {
     "pid": {
-      "kP": 10.0,
-      "kI": 0.1,
-      "kD": 5.0,
+      "kP": 0.5,
+      "kI": 0.005,
+      "kD": 7.0,
       "min": "",
-      "max": ""
+      "max": "",
+      "windupGuard": 20.0
     },
     "timerPeriod": 0.5
   },
@@ -40,7 +41,7 @@
       "duration": 45
     },
     "cool": {
-      "target": 0,
+      "target": 50,
       "duration": 240
     }
   }

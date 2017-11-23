@@ -35,6 +35,7 @@ class ToastStateMachine(object):
 		self.lastTarget = 0.0
 		self.currentStateDuration = 0.0
 		self.currentStateEnd = 0.0
+		self.stateChanged = False
 
 		self.thermocouple = Thermocouple(csPin, debugLevel=debugLevel)
 		self.relay = Relay(relayPin, debugLevel=debugLevel)
@@ -57,6 +58,9 @@ class ToastStateMachine(object):
 		maxLimit = pidTuning['max']
 		if maxLimit == u'':
 			maxLimit = None
+		windupGuard = pidTuning['windupGuard']
+		if windupGuard == u'':
+			windupGuard = None
 
 		self.pid = PID(
 			p=kP,
@@ -64,7 +68,8 @@ class ToastStateMachine(object):
 			d=kD,
 			minLimit=minLimit,
 			maxLimit=maxLimit,
-			target=0.0
+			target=0.0,
+			windupGuard=windupGuard
 		)
 
 		self.data = []
@@ -124,7 +129,7 @@ class ToastStateMachine(object):
 		self.timestamp = 0.0
 		self.lastControlLoopTimestamp = 0.0
 		self.stateIndex = 0
-		self.updateState()
+		self.updateStateVariables()
 		self.lastTarget = 0.0
 		self.data = []
 
@@ -132,7 +137,9 @@ class ToastStateMachine(object):
 		"""Stop the state machine"""
 		self.running = 'Stopped'
 		self.stateIndex = 0
-		self.updateState()
+		self.timestamp = 0.0
+		self.lastControlLoopTimestamp = 0.0
+		self.updateStateVariables()
 		self.lastTarget = 0.0
 
 	def resume(self):
@@ -171,29 +178,49 @@ class ToastStateMachine(object):
 		self.timestamp += self.timerPeriod
 
 		# Ready to move to next state?
-		if (self.soaking and self.timestamp >= self.currentStateEnd) or \
-				(not self.soaking and self.temperature >= self.target):
+		if self.readyForNextState():
 			# State is done - go to next state
 			self.nextState()
 
 		# Control loop @ 1Hz
 		if (self.timestamp - self.lastControlLoopTimestamp) >= 1.0:
+		# if True:
 			self.lastControlLoopTimestamp = self.timestamp
 
 			# Calculate PID output
-			self.pid.compute(self.timestamp, self.temperature)
+			self.pid.compute(self.timestamp, self.temperature, self.stateChanged)
+			self.stateChanged = False
 
-			if self.pid.output > 0.0:
-				if not self.relay.state:
-					self.relay.enable()
+			if self.stateIndex == len(self.states) - 1:
+				# Last state is always a cooling state - force relay off
+				self.relay.disable()
 			else:
-				if self.relay.state:
+				# Not last state = check PID output
+				if self.pid.output > 0.0:
+					self.relay.enable()
+				else:
 					self.relay.disable()
 
-		# Print data to console for debug purposes
-		# self.debugPrint()
+			# only print/update data when the control loop updates
+			self.debugPrint()
+			self.updateData()
 
-		self.updateData()
+	def readyForNextState(self):
+		"""Check if we're ready to move to the next state
+
+		@return: bool
+		"""
+		if self.soaking:
+			if self.timestamp >= self.currentStateEnd:
+				return True
+		else:
+			if self.target > self.lastTarget:
+				return self.temperature >= self.target
+			elif self.target < self.lastTarget:
+				return self.temperature <= self.target
+
+		# Nope, not ready
+		return False
 
 	def nextState(self):
 		"""Move state machine to next state"""
@@ -202,7 +229,7 @@ class ToastStateMachine(object):
 		self.stateIndex += 1
 
 		# Check if state machine has reached the end
-		if self.stateIndex == len(self.states):
+		if self.stateIndex == len(self.states) + 1:
 			self.running = 'Complete'
 			if self.stateMachineCompleteCallback:
 				self.stateMachineCompleteCallback()
@@ -210,38 +237,51 @@ class ToastStateMachine(object):
 
 		# Update state variables if we're still running
 		if self.running == 'Running':
-			self.updateState()
+			self.updateStateVariables()
 
-	def updateState(self):
+	def updateStateVariables(self):
 		"""Update the current state variables"""
 		self.currentState = self.states[self.stateIndex]
 
 		self.lastTarget = self.target
-		self.target = self._stateConfiguration[self.currentState][CONFIG_KEY_TARGET]
-		self.currentStateDuration = self._stateConfiguration[self.currentState][CONFIG_KEY_DURATION]
-		self.currentStateEnd += self.currentStateDuration
+		self.target = float(self._stateConfiguration[self.currentState][CONFIG_KEY_TARGET])
+		self.currentStateDuration = float(self._stateConfiguration[self.currentState][CONFIG_KEY_DURATION])
 
 		# Soaking stages simply maintain a steady temperature for a certain duration
 		# Heating/Cooling stages have no duration
 		self.soaking = self.target == self.lastTarget
+		self.currentStateEnd = self.timestamp + self.currentStateDuration
 
-		self.logger.info(
-			"New state, target: {}, {}".format(
-				self.currentState,
-				self.target
+		# Zero out the integrated error so it can build up again for this state
+		self.pid.zeroierror()
+		self.stateChanged = True
+
+		if self.stateIndex != 0:
+			self.logger.info(
+				"New state, target, end timestamp: {}, {:7.2f}, {}".format(
+					self.currentState,
+					self.target,
+					"{:7.2f}".format(self.currentStateEnd) if self.soaking else "    n/a"
+				)
 			)
-		)
 
 	# endregion StateMachine
 	# region Data
 
 	def debugPrint(self):
-		message = "{:6.2f}, {:6.2f}, {:6.2f}".format(
-			self.pid.output,
-			self.pid.error,
-			self.pid.ierror
+		"""Print debug info to screen"""
+		self.logger.debug(
+			"{:7.2f}, {}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}".format(
+				self.timestamp,
+				"{:7.2f}".format(self.currentStateEnd) if self.soaking else "    n/a",
+				self.pid.state,
+				self.pid.target,
+				self.pid.error,
+				self.pid.ierror,
+				self.pid.derror,
+				self.pid.output
+			)
 		)
-		self.logger.debug(message)
 
 	def updateData(self):
 		"""Update data tracking"""
@@ -251,9 +291,11 @@ class ToastStateMachine(object):
 			'Temperature': self.temperature,
 			'Target Temperature': self.target,
 			'State': self.currentState,
+			'Relay State': self.relay.state,
 			'PID Output': self.pid.output,
 			'PID Error': self.pid.error,
 			'PID IError': self.pid.ierror,
+			'PID DError': self.pid.derror,
 		}
 		self.data.append(data)
 
@@ -268,7 +310,17 @@ class ToastStateMachine(object):
 			return False
 
 		# write to file
-		header = ['Timestamp', 'Temperature', 'Target Temperature', 'State', 'PID Output', 'PID Error', 'PID IError']
+		header = [
+			'Timestamp',
+			'Temperature',
+			'Target Temperature',
+			'State',
+			'Relay State'
+			'PID Output',
+			'PID Error',
+			'PID IError',
+			'PID DError',
+		]
 		with open(csvPath, 'w', newline="") as ouf:
 			writer = csv.DictWriter(ouf, fieldnames=header)
 			writer.writeheader()

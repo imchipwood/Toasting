@@ -50,7 +50,7 @@ class ToastingGUI(ToastingBase):
 		self.config = self.getConfigFromJsonFile(baseConfigPath)
 		pins = self.config['pins']
 		tuning = self.config['tuning']
-		self.units = self.config['units']
+		self._units = self.config['units']
 
 		# Create a state machine with an empty configuration dict
 		self.toaster = ToastStateMachine(
@@ -149,7 +149,7 @@ class ToastingGUI(ToastingBase):
 		self.stateConfiguration = self.convertConfigGridToStateConfig()
 
 		# Initialize live visualizer
-		self.liveVisualizer = LiveVisualizer(stateConfiguration=self.stateConfiguration)
+		self.liveVisualizer = LiveVisualizer(stateConfiguration=self.stateConfiguration, units=self.units)
 		self.redrawLiveVisualization(visualizer=self.liveVisualizer)
 
 	def initializePIDPage(self):
@@ -160,9 +160,11 @@ class ToastingGUI(ToastingBase):
 		self.pidITextCtrl.SetValue(str(pid.kI))
 		self.pidDTextCtrl.SetValue(str(pid.kD))
 		if pid.min is not None:
-			self.pidMinOutLimitTextCtrl.SetValue(pid.min)
+			self.pidMinOutLimitTextCtrl.SetValue(str(pid.min))
 		if pid.max is not None:
-			self.pidMaxOutLimitTextCtrl.SetValue(pid.max)
+			self.pidMaxOutLimitTextCtrl.SetValue(str(pid.max))
+		if pid.windupGuard is not None:
+			self.pidIErrorLimitTextCtrl.SetValue(str(pid.windupGuard))
 
 		self.timerPeriodTextCtrl.SetValue(str(self.timerPeriod))
 		self.relayPinTextCtrl.SetValue(str(self.toaster.relay.pin))
@@ -190,6 +192,9 @@ class ToastingGUI(ToastingBase):
 		maxVal = self.pidMaxOutLimitTextCtrl.GetValue()
 		if maxVal is not u"":
 			self.toaster.pid.max = float(maxVal)
+		windupGuard = self.pidIErrorLimitTextCtrl.GetValue()
+		if windupGuard is not u"":
+			self.toaster.pid.windupGuard = float(windupGuard)
 
 	def updateOtherTuning(self):
 		"""Update various tuning variables from tuning page"""
@@ -229,7 +234,7 @@ class ToastingGUI(ToastingBase):
 	@property
 	def temperature(self):
 		"""Getter for current temperature"""
-		if self.config['units'] == 'celcius':
+		if self.units == 'celcius':
 			return self.toaster.temperature
 		else:
 			return self.convertTemp(self.toaster.temperature)
@@ -237,10 +242,23 @@ class ToastingGUI(ToastingBase):
 	@property
 	def refTemperature(self):
 		"""Getter for current reference temperature"""
-		if self.config['units'] == 'celcius':
+		if self.units == 'celcius':
 			return self.toaster.refTemperature
 		else:
 			return self.convertTemp(self.toaster.refTemperature)
+
+	@property
+	def units(self):
+		"""Getter for current temperature units"""
+		return self.config['units']
+
+	@units.setter
+	def units(self, units):
+		"""Setter for current temperature units
+
+		@param units: str 'fahrenheit' or 'celcius'
+		"""
+		self.config['units'] = units
 
 	@property
 	def stateConfiguration(self):
@@ -297,6 +315,7 @@ class ToastingGUI(ToastingBase):
 		@param enable: to enable or disable, that is the question
 		@type enable: bool
 		"""
+		self.baseNotebook.Enable(enable)
 		self.configurationGrid.Enable(enable)
 		self.saveConfigButton.Enable(enable)
 		self.executeConfigButton.Enable(enable)
@@ -381,8 +400,10 @@ class ToastingGUI(ToastingBase):
 	# endregion Visualization
 	# region Helpers
 
+	@decorators.BusyReady(MODEL_NAME)
 	def toastingComplete(self):
 		"""Do some stuff once reflow is complete"""
+		self.startStopReflowButton.SetLabel("Start Reflow")
 		self.dumpToCsv()
 
 	def updateStatus(self, text):
@@ -415,6 +436,7 @@ class ToastingGUI(ToastingBase):
 		# Store updated config & redraw stuff
 		self.stateConfiguration = newConfiguration
 		self.updateConfigurationGrid()
+		self.initializeExecutionPage()
 
 	def convertTemp(self, temp):
 		"""Convert a temp to the currently set units
@@ -690,7 +712,7 @@ class ToastingGUI(ToastingBase):
 		self.setupConfigurationGrid(self.stateConfiguration)
 
 		# Create new configurationVisualizer and draw it
-		self.configurationVisualizer = ConfigurationVisualizer(self.stateConfiguration)
+		self.configurationVisualizer = ConfigurationVisualizer(self.stateConfiguration, units=self.units)
 		self.redrawConfigurationVisualization(self.configurationVisualizer)
 		self.updateStatus("Configuration Updated")
 
@@ -743,6 +765,8 @@ class ToastingGUI(ToastingBase):
 			self.toaster.pid.min = pidConfig['min']
 		if pidConfig['max'] != "":
 			self.toaster.pid.max = pidConfig['max']
+		if pidConfig['windupGuard'] != "":
+			self.toaster.pid.windupGuard = pidConfig['windupGuard']
 		self.updateStatus("PIDs Updated")
 
 	def convertConfigGridToStateConfig(self):
@@ -806,8 +830,13 @@ class ToastingGUI(ToastingBase):
 		# handle progress gauge
 		if self.testing or self.toaster.running == 'Running':
 			self.progressGauge.Pulse()
+			# disable other panels while running
+			self.configurationPanel.Enable(False)
+			self.tuningPanel.Enable(False)
 		else:
 			self.progressGauge.SetValue(100)
+			self.configurationPanel.Enable(True)
+			self.tuningPanel.Enable(True)
 
 		# tell control to read thermocouple, etc.
 		self.toaster.tick(self.testing)
@@ -853,6 +882,7 @@ class ToastingGUI(ToastingBase):
 			self.startStopReflowButton.SetLabel('Start Reflow')
 			self.pauseReflowButton.Enable(False)
 			self.updateStatus("Reflow process stopped")
+			self.dumpToCsv()
 		self.pauseReflowButton.SetLabel('Pause Reflow')
 
 	def pauseReflowButtonOnButtonClick(self, event):
