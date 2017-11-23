@@ -16,27 +16,27 @@
     "timerPeriod": 0.5
   },
   "states": {
-    "preheat": {
+    "ramp2soak": {
       "target": 150,
       "duration": 180
     },
-    "preheat_soak": {
+    "preheat": {
       "target": 150,
       "duration": 60
     },
-    "soak": {
+    "ramp2peak": {
       "target": 200,
       "duration": 90
     },
-    "reflow_up": {
+    "ramp2reflow": {
       "target": 235,
       "duration": 45
     },
-    "reflow_soak": {
+    "reflow": {
       "target": 235,
       "duration": 30
     },
-    "cool": {
+    "cooling": {
       "target": 50,
       "duration": 240
     }
