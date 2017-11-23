@@ -434,6 +434,7 @@ class ToastingGUI(ToastingBase):
 		# Store updated config & redraw stuff
 		self.stateConfiguration = newConfiguration
 		self.updateConfigurationGrid()
+		self.initializeExecutionPage()
 
 	def convertTemp(self, temp):
 		"""Convert a temp to the currently set units
