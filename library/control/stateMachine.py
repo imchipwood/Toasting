@@ -193,7 +193,7 @@ class ToastStateMachine(object):
 					self.relay.disable()
 
 		# Print data to console for debug purposes
-		self.debugPrint()
+		# self.debugPrint()
 
 		self.updateData()
 

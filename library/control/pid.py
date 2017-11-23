@@ -181,7 +181,7 @@ class PID(object):
 		self._lastTime = currenttime
 		self._lastError = self.error
 
-		self.logger.info(
+		self.logger.debug(
 			"target: {}, current: {}, error: {}, ierror: {}, output: {}".format(
 				self.target,
 				self.state,
