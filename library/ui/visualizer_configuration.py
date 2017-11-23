@@ -8,7 +8,7 @@ CONFIG_KEY_DURATION = "duration"
 
 COLORS = {
 	'+': 'red',
-	'==': 'yellow',
+	'==': 'green',
 	'-': 'blue'
 }
 
