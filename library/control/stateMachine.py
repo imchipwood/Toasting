@@ -117,6 +117,7 @@ class ToastStateMachine(object):
 
 	def start(self):
 		"""Begin the state machine"""
+		self.logger.info("Beginning state machine")
 		self.running = 'Running'
 		# reset all the state variables
 		self.timestamp = 0.0
@@ -168,6 +169,7 @@ class ToastStateMachine(object):
 		# Increment timestamp
 		self.logger.info("incrementing timestamp")
 		self.timestamp += self.timerPeriod
+		self.logger.info("timestamp: {}".format(self.timestamp))
 
 		# Ready to move to next state?
 		if self.soaking and self.timestamp >= self.currentStateEnd or self.temperature == self.target:
