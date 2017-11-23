@@ -197,6 +197,8 @@ class ToastStateMachine(object):
 		# Increment state index
 		self.stateIndex += 1
 
+		self.debugPrint()
+
 		# Check if state machine has reached the end
 		if self.stateIndex == len(self.states):
 			self.running = 'Complete'
@@ -223,6 +225,14 @@ class ToastStateMachine(object):
 
 	# endregion StateMachine
 	# region Data
+
+	def debugPrint(self):
+		message = "{:6.2f}, {:6.2f}, {:6.2f}".format(
+			self.pid.output,
+			self.pid.error,
+			self.pid.ierror
+		)
+		self.logger.debug(message)
 
 	def updateData(self):
 		"""Update data tracking"""
