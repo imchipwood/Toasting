@@ -160,9 +160,11 @@ class ToastingGUI(ToastingBase):
 		self.pidITextCtrl.SetValue(str(pid.kI))
 		self.pidDTextCtrl.SetValue(str(pid.kD))
 		if pid.min is not None:
-			self.pidMinOutLimitTextCtrl.SetValue(pid.min)
+			self.pidMinOutLimitTextCtrl.SetValue(str(pid.min))
 		if pid.max is not None:
-			self.pidMaxOutLimitTextCtrl.SetValue(pid.max)
+			self.pidMaxOutLimitTextCtrl.SetValue(str(pid.max))
+		if pid.maxIError is not None:
+			self.pidIErrorLimitTextCtrl.SetValue(str(pid.maxIError))
 
 		self.timerPeriodTextCtrl.SetValue(str(self.timerPeriod))
 		self.relayPinTextCtrl.SetValue(str(self.toaster.relay.pin))
@@ -190,6 +192,9 @@ class ToastingGUI(ToastingBase):
 		maxVal = self.pidMaxOutLimitTextCtrl.GetValue()
 		if maxVal is not u"":
 			self.toaster.pid.max = float(maxVal)
+		maxIError = self.pidIErrorLimitTextCtrl.GetValue()
+		if maxIError is not u"":
+			self.toaster.pid.maxIError = float(maxIError)
 
 	def updateOtherTuning(self):
 		"""Update various tuning variables from tuning page"""
@@ -743,6 +748,8 @@ class ToastingGUI(ToastingBase):
 			self.toaster.pid.min = pidConfig['min']
 		if pidConfig['max'] != "":
 			self.toaster.pid.max = pidConfig['max']
+		if pidConfig['maxierror'] != "":
+			self.toaster.pid.maxierror = pidConfig['maxierror']
 		self.updateStatus("PIDs Updated")
 
 	def convertConfigGridToStateConfig(self):

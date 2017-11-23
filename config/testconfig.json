@@ -10,7 +10,8 @@
       "kI": 0.1,
       "kD": 5.0,
       "min": "",
-      "max": ""
+      "max": "",
+      "maxierror": 500.0
     },
     "timerPeriod": 0.5
   },

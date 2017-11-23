@@ -8,7 +8,7 @@ MAX_IERROR = 500.0
 
 
 class PID(object):
-	def __init__(self, p, i, d, minLimit=None, maxLimit=None, target=None):
+	def __init__(self, p, i, d, minLimit=None, maxLimit=None, target=None, maxIError=None):
 		super(PID, self).__init__()
 
 		self.logger = getLogger("PID", logging.DEBUG)
@@ -31,6 +31,7 @@ class PID(object):
 
 		self._min = minLimit
 		self._max = maxLimit
+		self._maxIError = maxIError
 
 	# region PIDProperties
 
@@ -57,6 +58,14 @@ class PID(object):
 	@kD.setter
 	def kD(self, kD):
 		self._kD = float(kD)
+
+	@property
+	def maxIError(self):
+		return self._maxIError
+
+	@maxIError.setter
+	def maxIError(self, maxierror):
+		self._maxIError = abs(maxierror)
 
 	# endregion PIDProperties
 	# region StateProperties
@@ -141,6 +150,7 @@ class PID(object):
 		config['kD'] = self.kD
 		config['min'] = "" if self.min is None else self.min
 		config['max'] = "" if self.max is None else self.max
+		config['maxierror'] = "" if self._maxIError is None else self._maxIError
 		return config
 
 	# endregion OtherProperties
@@ -171,10 +181,11 @@ class PID(object):
 		derror = self._lastError - self.error
 
 		# Clamp integrated error
-		if self.ierror > MAX_IERROR:
-			self._iError = MAX_IERROR
-		if self.ierror < -MAX_IERROR:
-			self._iError = -MAX_IERROR
+		if self._maxIError:
+			if self.ierror > self.maxIError:
+				self._iError = self.maxIError
+			if self.ierror < -self.maxIError:
+				self._iError = -self.maxIError
 
 		# apply gains to error values
 		self._output = self.kP * self.error + self.kI * self.ierror - self.kD * derror

@@ -57,6 +57,9 @@ class ToastStateMachine(object):
 		maxLimit = pidTuning['max']
 		if maxLimit == u'':
 			maxLimit = None
+		maxIError = pidTuning['maxierror']
+		if maxIError == u'':
+			maxIError = None
 
 		self.pid = PID(
 			p=kP,
@@ -64,7 +67,8 @@ class ToastStateMachine(object):
 			d=kD,
 			minLimit=minLimit,
 			maxLimit=maxLimit,
-			target=0.0
+			target=0.0,
+			maxIError=maxIError
 		)
 
 		self.data = []
