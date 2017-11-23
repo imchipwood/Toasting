@@ -166,7 +166,7 @@ class ToastingBase ( wx.Frame ):
 		bSizer10.Add( self.saveConfigButton, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		self.loadConfigButton = wx.Button( configurationGridStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Load", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer10.Add( self.loadConfigButton, 0, wx.ALL, 5 )
+		bSizer10.Add( self.loadConfigButton, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		self.executeConfigButton = wx.Button( configurationGridStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Execute", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer10.Add( self.executeConfigButton, 0, wx.ALL|wx.EXPAND, 5 )
