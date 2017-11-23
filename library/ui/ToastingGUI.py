@@ -830,9 +830,13 @@ class ToastingGUI(ToastingBase):
 		# handle progress gauge
 		if self.testing or self.toaster.running == 'Running':
 			self.progressGauge.Pulse()
-			self.baseNotebook.Disable()
+			# disable other panels while running
+			self.configurationPanel.Enable(False)
+			self.tuningPanel.Enable(False)
 		else:
 			self.progressGauge.SetValue(100)
+			self.configurationPanel.Enable(True)
+			self.tuningPanel.Enable(True)
 
 		# tell control to read thermocouple, etc.
 		self.toaster.tick(self.testing)
