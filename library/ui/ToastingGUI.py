@@ -521,6 +521,7 @@ class ToastingGUI(ToastingBase):
 		self.configurationGrid.AppendRows(2)
 		self.configurationGrid.SetRowLabelValue(0, "Target Temp")
 		self.configurationGrid.SetRowLabelValue(1, "Step Duration")
+		self.configurationGrid.SetRowLabelSize(150)
 
 		# Set up the columns and insert the values from the config dict
 		for colNum, stepName in enumerate(self.stateConfiguration.keys()):
@@ -530,7 +531,6 @@ class ToastingGUI(ToastingBase):
 			# Set column label (step name)
 			self.configurationGrid.SetColLabelValue(colNum, stepName)
 			self.configurationGrid.AutoSizeColLabelSize(colNum)
-			self.configurationGrid.AutoSizeRowLabelSize(colNum)
 			self.configurationGrid.SetColMinimalWidth(colNum, 150)
 
 			# Insert config values
