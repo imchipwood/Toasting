@@ -174,20 +174,24 @@ class PID(object):
 		if not self.target:
 			raise Exception("No target state set, cannot compute PID output")
 
+		# calculate change in time
 		self._deltaTime = currenttime - self._lastTime
+
+		# update state if available
 		if currentstate:
 			self._currentState = currentstate
 
 		# proportional error from target
 		self._error = self.target - self.state
 		# integral of error from target
-		self._iError += self.error * self._deltaTime
+		self._iError += self.error
 		# derivative of error from target
 		if newState:
 			# force derivative to 0 if we just changed states
 			self._dError = 0.0
 		else:
-			self._dError = (self._lastError - self.error) / self._deltaTime
+			# derivative is slope of error over time
+			self._dError = (self.error - self._lastError) / self._deltaTime
 
 		# Clamp integrated error
 		if self._maxIError:
