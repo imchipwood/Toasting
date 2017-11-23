@@ -214,10 +214,12 @@ class ToastStateMachine(object):
 			if self.timestamp >= self.currentStateEnd:
 				return True
 		else:
+			# Not soaking - have we reached the target temp?
+			# +/- 3.0 as a buffer (yeah doesn't change for Fahrenheit WHATEVER)
 			if self.target > self.lastTarget:
-				return self.temperature >= self.target
+				return self.temperature >= self.target - 3.0
 			elif self.target < self.lastTarget:
-				return self.temperature <= self.target
+				return self.temperature <= self.target + 3.0
 
 		# Nope, not ready
 		return False
