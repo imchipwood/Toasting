@@ -36,10 +36,6 @@
       "target": 235,
       "duration": 30
     },
-    "reflow_down": {
-      "target": 200,
-      "duration": 45
-    },
     "cool": {
       "target": 50,
       "duration": 240
