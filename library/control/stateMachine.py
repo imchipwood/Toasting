@@ -167,9 +167,7 @@ class ToastStateMachine(object):
 			return
 
 		# Increment timestamp
-		self.logger.info("incrementing timestamp")
 		self.timestamp += self.timerPeriod
-		self.logger.info("timestamp: {}".format(self.timestamp))
 
 		# Ready to move to next state?
 		if self.soaking and self.timestamp >= self.currentStateEnd or self.temperature == self.target:
@@ -177,8 +175,7 @@ class ToastStateMachine(object):
 			self.nextState()
 
 		# Control loop @ 1Hz
-		if self.lastControlLoopTimestamp - self.timestamp >= 1.0:
-			self.logger.info("computing PID")
+		if (self.timestamp - self.lastControlLoopTimestamp) >= 1.0:
 			self.lastControlLoopTimestamp = self.timestamp
 
 			# Calculate PID output
@@ -230,7 +227,7 @@ class ToastStateMachine(object):
 		self.soaking = self.target == self.lastTarget
 
 		self.logger.info(
-			"state: {}, target: {}".format(
+			"New state, target: {}, {}".format(
 				self.currentState,
 				self.target
 			)
