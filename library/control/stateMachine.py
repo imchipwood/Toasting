@@ -182,8 +182,8 @@ class ToastStateMachine(object):
 			self.nextState()
 
 		# Control loop @ 1Hz
-		# if (self.timestamp - self.lastControlLoopTimestamp) >= 1.0:
-		if True:
+		if (self.timestamp - self.lastControlLoopTimestamp) >= 1.0:
+		# if True:
 			self.lastControlLoopTimestamp = self.timestamp
 
 			# Calculate PID output
@@ -250,13 +250,15 @@ class ToastStateMachine(object):
 		self.soaking = self.target == self.lastTarget
 		self.currentStateEnd = self.timestamp + self.currentStateDuration
 
+		# Zero out the integrated error so it can build up again for this state
+		self.pid.zeroierror()
+
 		if self.stateIndex != 0:
-			stateEnd = "{:7.2f}".format(self.currentStateEnd)
 			self.logger.info(
-				"New state, target, end timestamp: {:7.2f}, {:7.2f}, {}".format(
+				"New state, target, end timestamp: {}, {:7.2f}, {}".format(
 					self.currentState,
 					self.target,
-					stateEnd if self.soaking else " n/a"
+					"{:7.2f}".format(self.currentStateEnd) if self.soaking else "    n/a"
 				)
 			)
 
@@ -265,11 +267,10 @@ class ToastStateMachine(object):
 
 	def debugPrint(self):
 		"""Print debug info to screen"""
-		stateEnd = "{:7.2f}".format(self.currentStateEnd)
 		self.logger.debug(
 			"{:7.2f}, {}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}".format(
 				self.timestamp,
-				stateEnd if self.soaking else " n/a",
+				"{:7.2f}".format(self.currentStateEnd) if self.soaking else "    n/a",
 				self.pid.state,
 				self.pid.target,
 				self.pid.error,
