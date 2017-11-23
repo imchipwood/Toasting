@@ -228,9 +228,9 @@ class ToastingBase ( wx.Frame ):
 		self.pidMaxOutLimitStaticText.Wrap( -1 )
 		bSizer18.Add( self.pidMaxOutLimitStaticText, 1, wx.ALL|wx.EXPAND, 5 )
 		
-		self.pidIErrorLimitStaticText = wx.StaticText( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"PIDIError Limit", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
-		self.pidIErrorLimitStaticText.Wrap( -1 )
-		bSizer18.Add( self.pidIErrorLimitStaticText, 1, wx.ALL|wx.EXPAND, 5 )
+		self.pidWindupGuardStaticText = wx.StaticText( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"PID Windup Guard", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
+		self.pidWindupGuardStaticText.Wrap( -1 )
+		bSizer18.Add( self.pidWindupGuardStaticText, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
 		pidTuningStaticBoxSizer.Add( bSizer18, 0, wx.EXPAND, 5 )
@@ -252,8 +252,8 @@ class ToastingBase ( wx.Frame ):
 		self.pidMaxOutLimitTextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer181.Add( self.pidMaxOutLimitTextCtrl, 1, wx.ALL, 5 )
 		
-		self.pidIErrorLimitTextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer181.Add( self.pidIErrorLimitTextCtrl, 1, wx.ALL, 5 )
+		self.pidWindupGuardTextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer181.Add( self.pidWindupGuardTextCtrl, 1, wx.ALL, 5 )
 		
 		
 		pidTuningStaticBoxSizer.Add( bSizer181, 0, wx.EXPAND, 5 )
