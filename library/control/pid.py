@@ -1,9 +1,15 @@
 from collections import OrderedDict
+import logging
+
+from library.other.setupLogging import getLogger
 
 
 class PID(object):
 	def __init__(self, p, i, d, minLimit=None, maxLimit=None, target=None):
 		super(PID, self).__init__()
+
+		self.logger = getLogger("PID", logging.DEBUG)
+
 		self._kP = float(p)
 		self._kI = float(i)
 		self._kD = float(d)
@@ -150,6 +156,8 @@ class PID(object):
 		if not self.target:
 			raise Exception("No target state set, cannot compute PID output")
 
+		self.logger.info("Computing PID output")
+
 		self._deltaTime = currenttime - self._lastTime
 		if currentstate:
 			self._currentState = currentstate
@@ -172,6 +180,16 @@ class PID(object):
 
 		self._lastTime = currenttime
 		self._lastError = self.error
+
+		self.logger.info(
+			"target: {}, current: {}, error: {}, ierror: {}, output: {}".format(
+				self.target,
+				self.state,
+				self.error,
+				self.ierror,
+				self.output
+			)
+		)
 
 		return self.output
 
