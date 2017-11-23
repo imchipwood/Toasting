@@ -193,10 +193,9 @@ class ToastStateMachine(object):
 				if self.relay.state:
 					self.relay.disable()
 
-			# Print data to console for debug purposes
+			# only print/update data when the control loop updates
 			self.debugPrint()
-
-		self.updateData()
+			self.updateData()
 
 	def readyForNextState(self):
 		"""Check if we're ready to move to the next state
