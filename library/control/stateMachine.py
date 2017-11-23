@@ -181,15 +181,12 @@ class ToastStateMachine(object):
 
 			# Calculate PID output
 			self.pid.compute(self.timestamp, self.temperature)
-			self.logger.debug("pidout: {}".format(self.pid.output))
 
 			if self.pid.output > 0.0:
 				if not self.relay.state:
-					self.logger.debug("enabling relay")
 					self.relay.enable()
 			else:
 				if self.relay.state:
-					self.logger.debug("disabling relay")
 					self.relay.disable()
 
 		# Print data to console for debug purposes

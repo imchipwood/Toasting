@@ -159,8 +159,6 @@ class PID(object):
 		if not self.target:
 			raise Exception("No target state set, cannot compute PID output")
 
-		self.logger.info("Computing PID output")
-
 		self._deltaTime = currenttime - self._lastTime
 		if currentstate:
 			self._currentState = currentstate
