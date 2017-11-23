@@ -230,10 +230,10 @@ class ToastStateMachine(object):
 		self.soaking = self.target == self.lastTarget
 
 		self.logger.info(
-			"New state, target, end timestamp: {}, {}, {}".format(
+			"New state, target, end timestamp: {:6.2f}, {:6.2f}, {:4}".format(
 				self.currentState,
 				self.target,
-				self.currentStateEnd if self.soaking else ""
+				self.currentStateEnd if self.soaking else " n/a"
 			)
 		)
 
@@ -243,9 +243,9 @@ class ToastStateMachine(object):
 	def debugPrint(self):
 		"""Print debug info to screen"""
 		self.logger.debug(
-			"{:4f}, {:4f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}".format(
+			"{:4f}, {:4}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}".format(
 				self.timestamp,
-				self.currentStateEnd,
+				self.currentStateEnd if self.soaking else " n/a",
 				self.pid.state,
 				self.pid.target,
 				self.pid.error,
