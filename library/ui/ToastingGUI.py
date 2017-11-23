@@ -538,6 +538,10 @@ class ToastingGUI(ToastingBase):
 			self.configurationGrid.SetCellValue(col=colNum, row=0, s=targetTemp)
 			self.configurationGrid.SetCellValue(col=colNum, row=1, s=stepDuration)
 
+			# Set cell alignment to center
+			for rowNum in range(self.configurationGrid.GetNumberRows()):
+				self.configurationGrid.SetCellAlignment(wx.ALIGN_CENTER, rowNum, colNum)
+
 	@decorators.BusyReady(MODEL_NAME)
 	def configurationGridOnGridCellChange(self, event):
 		"""Event handler for cell value changing
