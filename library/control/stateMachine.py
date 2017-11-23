@@ -120,6 +120,7 @@ class ToastStateMachine(object):
 		self.logger.info("Beginning state machine")
 		self.running = 'Running'
 		# reset all the state variables
+		self.pid.zeroierror()
 		self.timestamp = 0.0
 		self.lastControlLoopTimestamp = 0.0
 		self.stateIndex = 0
