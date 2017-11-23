@@ -17,6 +17,8 @@ class PID(object):
 		self._kI = float(i)
 		self._kD = float(d)
 
+		self._windupGuard = 20.0
+
 		self._currentState = 0.0
 		self._targetState = target
 		self._interval = 10.0
@@ -59,6 +61,14 @@ class PID(object):
 	@kD.setter
 	def kD(self, kD):
 		self._kD = float(kD)
+
+	@property
+	def windupGuard(self):
+		return self._windupGuard
+
+	@windupGuard.setter
+	def winduupGuard(self, windupGuard):
+		self._windupGuard = float(windupGuard)
 
 	@property
 	def maxIError(self):
@@ -184,7 +194,14 @@ class PID(object):
 		# proportional error from target
 		self._error = self.target - self.state
 		# integral of error from target
-		self._iError += self.error
+		self._iError += self.error * self._deltaTime
+
+		# windup guard for integrated error
+		if self.ierror < -self.windupGuard:
+			self._iError = -self.windupGuard
+		if self.ierror > self.windupGuard:
+			self._iError = self.windupGuard
+
 		# derivative of error from target
 		if newState:
 			# force derivative to 0 if we just changed states

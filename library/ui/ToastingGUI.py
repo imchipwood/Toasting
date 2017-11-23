@@ -403,6 +403,7 @@ class ToastingGUI(ToastingBase):
 	@decorators.BusyReady(MODEL_NAME)
 	def toastingComplete(self):
 		"""Do some stuff once reflow is complete"""
+		self.startStopReflowButton.SetLabel("Start Reflow")
 		self.dumpToCsv()
 
 	def updateStatus(self, text):

@@ -291,6 +291,7 @@ class ToastStateMachine(object):
 			'Temperature': self.temperature,
 			'Target Temperature': self.target,
 			'State': self.currentState,
+			'Relay State': self.relay.state,
 			'PID Output': self.pid.output,
 			'PID Error': self.pid.error,
 			'PID IError': self.pid.ierror,
@@ -314,6 +315,7 @@ class ToastStateMachine(object):
 			'Temperature',
 			'Target Temperature',
 			'State',
+			'Relay State'
 			'PID Output',
 			'PID Error',
 			'PID IError',
