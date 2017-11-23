@@ -164,7 +164,7 @@ class ToastingGUI(ToastingBase):
 		if pid.max is not None:
 			self.pidMaxOutLimitTextCtrl.SetValue(str(pid.max))
 		if pid.windupGuard is not None:
-			self.pidIErrorLimitTextCtrl.SetValue(str(pid.windupGuard))
+			self.pidWindupGuardTextCtrl.SetValue(str(pid.windupGuard))
 
 		self.timerPeriodTextCtrl.SetValue(str(self.timerPeriod))
 		self.relayPinTextCtrl.SetValue(str(self.toaster.relay.pin))
@@ -192,7 +192,7 @@ class ToastingGUI(ToastingBase):
 		maxVal = self.pidMaxOutLimitTextCtrl.GetValue()
 		if maxVal is not u"":
 			self.toaster.pid.max = float(maxVal)
-		windupGuard = self.pidIErrorLimitTextCtrl.GetValue()
+		windupGuard = self.pidWindupGuardTextCtrl.GetValue()
 		if windupGuard is not u"":
 			self.toaster.pid.windupGuard = float(windupGuard)
 
