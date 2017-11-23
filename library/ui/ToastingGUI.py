@@ -526,14 +526,17 @@ class ToastingGUI(ToastingBase):
 		for colNum, stepName in enumerate(self.stateConfiguration.keys()):
 			# Add a column
 			self.configurationGrid.AppendCols(1)
-			# Set column label (step name) & adjust width
+
+			# Set column label (step name)
 			self.configurationGrid.SetColLabelValue(colNum, stepName)
-			self.configurationGrid.SetColMinimalWidth(colNum, 90)
+
 			# Insert config values
 			targetTemp = str(self.stateConfiguration[stepName][CONFIG_KEY_TARGET])
 			stepDuration = str(self.stateConfiguration[stepName][CONFIG_KEY_DURATION])
 			self.configurationGrid.SetCellValue(col=colNum, row=0, s=targetTemp)
 			self.configurationGrid.SetCellValue(col=colNum, row=1, s=stepDuration)
+
+		self.configurationGrid.AutoSizeColumns()
 
 	@decorators.BusyReady(MODEL_NAME)
 	def configurationGridOnGridCellChange(self, event):
