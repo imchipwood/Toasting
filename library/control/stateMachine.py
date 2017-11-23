@@ -171,7 +171,8 @@ class ToastStateMachine(object):
 		self.timestamp += self.timerPeriod
 
 		# Ready to move to next state?
-		if self.soaking and self.timestamp >= self.currentStateEnd or self.temperature == self.target:
+		if (self.soaking and self.timestamp >= self.currentStateEnd) or \
+				(not self.soaking and self.temperature >= self.target):
 			# State is done - go to next state
 			self.nextState()
 
