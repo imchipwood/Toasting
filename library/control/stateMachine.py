@@ -317,7 +317,7 @@ class ToastStateMachine(object):
 			'Temperature',
 			'Target Temperature',
 			'State',
-			'Relay State'
+			'Relay State',
 			'PID Output',
 			'PID Error',
 			'PID IError',
