@@ -25,6 +25,7 @@ class PID(object):
 		self._error = 0.0
 		self._lastError = 0.0
 		self._iError = 0.0
+		self._dError = 0.0
 
 		self._deltaTime = 0.0
 		self._lastTime = 0.0
@@ -103,6 +104,10 @@ class PID(object):
 	def ierror(self):
 		return self._iError
 
+	@property
+	def derror(self):
+		return self._dError
+
 	# endregion StateProperties
 	# region OtherProperties
 
@@ -178,7 +183,7 @@ class PID(object):
 		# integral of error from target
 		self._iError += self.error * self._deltaTime
 		# derivative of error from target
-		derror = self._lastError - self.error
+		self._dError = self._lastError - self.error
 
 		# Clamp integrated error
 		if self._maxIError:
@@ -188,21 +193,10 @@ class PID(object):
 				self._iError = -self.maxIError
 
 		# apply gains to error values
-		self._output = self.kP * self.error + self.kI * self.ierror - self.kD * derror
+		self._output = self.kP * self.error + self.kI * self.ierror - self.kD * self._dError
 
 		self._lastTime = currenttime
 		self._lastError = self.error
-
-		self.logger.debug(
-			"{:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}".format(
-				self.state,
-				self.target,
-				self.error,
-				self.ierror,
-				derror,
-				self.output
-			)
-		)
 
 		return self.output
 

@@ -195,7 +195,7 @@ class ToastStateMachine(object):
 					self.relay.disable()
 
 		# Print data to console for debug purposes
-		# self.debugPrint()
+		self.debugPrint()
 
 		self.updateData()
 
@@ -230,9 +230,10 @@ class ToastStateMachine(object):
 		self.soaking = self.target == self.lastTarget
 
 		self.logger.info(
-			"New state, target: {}, {}".format(
+			"New state, target, end timestamp: {}, {}, {}".format(
 				self.currentState,
-				self.target
+				self.target,
+				self.currentStateEnd if self.soaking else ""
 			)
 		)
 
@@ -240,12 +241,19 @@ class ToastStateMachine(object):
 	# region Data
 
 	def debugPrint(self):
-		message = "{:6.2f}, {:6.2f}, {:6.2f}".format(
-			self.pid.output,
-			self.pid.error,
-			self.pid.ierror
+		"""Print debug info to screen"""
+		self.logger.debug(
+			"{:4f}, {:4f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}, {:6.2f}".format(
+				self.timestamp,
+				self.currentStateEnd,
+				self.pid.state,
+				self.pid.target,
+				self.pid.error,
+				self.pid.ierror,
+				self.pid.derror,
+				self.pid.output
+			)
 		)
-		self.logger.debug(message)
 
 	def updateData(self):
 		"""Update data tracking"""
