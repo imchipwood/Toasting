@@ -182,17 +182,21 @@ class ToastStateMachine(object):
 			self.nextState()
 
 		# Control loop @ 1Hz
-		if (self.timestamp - self.lastControlLoopTimestamp) >= 1.0:
+		# if (self.timestamp - self.lastControlLoopTimestamp) >= 1.0:
+		if True:
 			self.lastControlLoopTimestamp = self.timestamp
 
 			# Calculate PID output
 			self.pid.compute(self.timestamp, self.temperature)
 
-			if self.pid.output > 0.0:
-				if not self.relay.state:
-					self.relay.enable()
+			if self.stateIndex == len(self.states):
+				# Last state is always a cooling state - force relay off
+				self.relay.disable()
 			else:
-				if self.relay.state:
+				# Not last state = check PID output
+				if self.pid.output > 0.0:
+					self.relay.enable()
+				else:
 					self.relay.disable()
 
 			# only print/update data when the control loop updates
@@ -247,11 +251,12 @@ class ToastStateMachine(object):
 		self.currentStateEnd = self.timestamp + self.currentStateDuration
 
 		if self.stateIndex != 0:
+			stateEnd = "{:4.0f}".format(self.currentStateEnd)
 			self.logger.info(
 				"New state, target, end timestamp: {:7.2f}, {:7.2f}, {}".format(
 					self.currentState,
 					self.target,
-					"{:4.0f}".format(self.currentStateEnd) if self.soaking else " n/a"
+					stateEnd if self.soaking else " n/a"
 				)
 			)
 
@@ -260,10 +265,11 @@ class ToastStateMachine(object):
 
 	def debugPrint(self):
 		"""Print debug info to screen"""
+		stateEnd = "{:4.0f}".format(self.currentStateEnd)
 		self.logger.debug(
 			"{:4.0f}, {}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}".format(
 				self.timestamp,
-				"{:4.0f}".format(self.currentStateEnd) if self.soaking else " n/a",
+				stateEnd if self.soaking else " n/a",
 				self.pid.state,
 				self.pid.target,
 				self.pid.error,

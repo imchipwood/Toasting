@@ -183,7 +183,7 @@ class PID(object):
 		# integral of error from target
 		self._iError += self.error * self._deltaTime
 		# derivative of error from target
-		self._dError = self._lastError - self.error
+		self._dError = (self._lastError - self.error) / self._deltaTime
 
 		# Clamp integrated error
 		if self._maxIError:
