@@ -166,6 +166,7 @@ class ToastStateMachine(object):
 			return
 
 		# Increment timestamp
+		self.logger.info("incrementing timestamp")
 		self.timestamp += self.timerPeriod
 
 		# Ready to move to next state?
@@ -174,7 +175,8 @@ class ToastStateMachine(object):
 			self.nextState()
 
 		# Control loop @ 1Hz
-		if self.lastControlLoopTimestamp - self.timestamp >= 1:
+		if self.lastControlLoopTimestamp - self.timestamp >= 1.0:
+			self.logger.info("computing PID")
 			self.lastControlLoopTimestamp = self.timestamp
 
 			# Calculate PID output
@@ -197,6 +199,7 @@ class ToastStateMachine(object):
 
 	def nextState(self):
 		"""Move state machine to next state"""
+		self.logger.info("moving to next state")
 		# Increment state index
 		self.stateIndex += 1
 
