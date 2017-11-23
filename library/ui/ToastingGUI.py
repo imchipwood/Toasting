@@ -315,6 +315,7 @@ class ToastingGUI(ToastingBase):
 		@param enable: to enable or disable, that is the question
 		@type enable: bool
 		"""
+		self.baseNotebook.Enable(enable)
 		self.configurationGrid.Enable(enable)
 		self.saveConfigButton.Enable(enable)
 		self.executeConfigButton.Enable(enable)

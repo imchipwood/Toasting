@@ -242,8 +242,8 @@ class ToastStateMachine(object):
 		self.currentState = self.states[self.stateIndex]
 
 		self.lastTarget = self.target
-		self.target = self._stateConfiguration[self.currentState][CONFIG_KEY_TARGET]
-		self.currentStateDuration = self._stateConfiguration[self.currentState][CONFIG_KEY_DURATION]
+		self.target = float(self._stateConfiguration[self.currentState][CONFIG_KEY_TARGET])
+		self.currentStateDuration = float(self._stateConfiguration[self.currentState][CONFIG_KEY_DURATION])
 
 		# Soaking stages simply maintain a steady temperature for a certain duration
 		# Heating/Cooling stages have no duration
@@ -251,7 +251,7 @@ class ToastStateMachine(object):
 		self.currentStateEnd = self.timestamp + self.currentStateDuration
 
 		if self.stateIndex != 0:
-			stateEnd = "{:4.0f}".format(self.currentStateEnd)
+			stateEnd = "{:7.2f}".format(self.currentStateEnd)
 			self.logger.info(
 				"New state, target, end timestamp: {:7.2f}, {:7.2f}, {}".format(
 					self.currentState,
@@ -265,9 +265,9 @@ class ToastStateMachine(object):
 
 	def debugPrint(self):
 		"""Print debug info to screen"""
-		stateEnd = "{:4.0f}".format(self.currentStateEnd)
+		stateEnd = "{:7.2f}".format(self.currentStateEnd)
 		self.logger.debug(
-			"{:4.0f}, {}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}".format(
+			"{:7.2f}, {}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}".format(
 				self.timestamp,
 				stateEnd if self.soaking else " n/a",
 				self.pid.state,
