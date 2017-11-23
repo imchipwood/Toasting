@@ -203,7 +203,7 @@ class PID(object):
 			self._dError = (self.error - self._lastError) / self._deltaTime
 
 		# apply gains to error values
-		self._output = self.kP * self.error + self.kI * self.ierror - self.kD * self.derror
+		self._output = self.kP * self.error + self.kI * self.ierror + self.kD * self.derror
 
 		self._lastTime = currenttime
 		self._lastError = self.error
