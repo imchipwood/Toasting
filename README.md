@@ -20,19 +20,20 @@ Python3.5.3 was used to develop Toasting, it should work on newer versions as we
 
 Note: this GUI requires wxpython-4.0.0b2, which is only available via building & installing from source.
 
-##### Create & activate Python virtual environment
+#### Create & activate Python virtual environment
 python3 -m venv toasting_venv
 
 source toasting_venv/bin/activate
 
-##### Install the basic Python packages
+#### Install the basic Python packages
 pip install -r requirements.txt
 
-##### wxpython-4.0.0b2 - follow instructions here
+#### wxpython-4.0.0b2 - follow instructions here
 https://wiki.wxpython.org/BuildWxPythonOnRaspberryPi
 
 ## Control & Sensors
-####Oven Control - Relay
+
+### Oven Control - Relay
 This application is designed to switch a toaster oven on/off via a relay. 
 Ensure the relay you use is rated high enough for the power needs of your toaster oven.
 Monitor the relay's temperature while running - it shouldn't get hot.
@@ -41,15 +42,15 @@ Note: Raspberry Pi GPIO are not capable of switching large relays,
 so a [transistor-relay driver](http://www.electronics-tutorials.ws/blog/relay-switch-circuit.html) 
 should be used.
 
-######Default Relay pin: GPIO4 (BCM)
+#### Default Relay pin: BCM GPIO4
 
-####Temperature Monitoring - Thermocouple
+### Temperature Monitoring - Thermocouple
 A [MAX31855 Thermocouple Amplifier](https://www.adafruit.com/product/269) is used to 
 measure temperature via thermocouple. 
 Communication with the MAX31855 is done via SPI. 
 [Adafruit has a good tutorial on thermocouples](https://learn.adafruit.com/thermocouple?view=all)
 
-######Default SPI CS pin: SPI0_CE0_N (GPIO8 BCM) 
+#### Default Thermocouple SPI CS pin: SPI0_CE0_N (BCM GPIO8) 
 
 ## Source the venv & run application
 source /path/to/toasting_venv/bin/activate
