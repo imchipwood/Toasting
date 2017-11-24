@@ -8,3 +8,5 @@ pip install -r requirements.txt
 
 ### wxpython-4.0.0b2 must be built & installed manually following these instructions
 https://wiki.wxpython.org/BuildWxPythonOnRaspberryPi
+
+![Live Graph Screenshot](https://raw.githubusercontent.com/imchipwood/Toasting/master/doc/panel_toasting.png)
