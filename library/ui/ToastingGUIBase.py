@@ -18,7 +18,7 @@ import wx.grid
 class ToastingBase ( wx.Frame ):
 	
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Toasting", pos = wx.DefaultPosition, size = wx.Size( 786,600 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Toasting", pos = wx.DefaultPosition, size = wx.Size( 800,700 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
 		self.SetSizeHints( wx.Size( 786,600 ), wx.DefaultSize )
 		
@@ -48,48 +48,53 @@ class ToastingBase ( wx.Frame ):
 		
 		bSizer13 = wx.BoxSizer( wx.HORIZONTAL )
 		
+		self.m_panel7 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.m_panel7.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_BTNSHADOW ) )
+		
+		bSizer261 = wx.BoxSizer( wx.HORIZONTAL )
+		
 		bSizer14 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.celciusRadioButton = wx.RadioButton( self, wx.ID_ANY, u"Celcius", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.celciusRadioButton = wx.RadioButton( self.m_panel7, wx.ID_ANY, u"Celcius", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer14.Add( self.celciusRadioButton, 0, wx.ALL, 5 )
 		
-		self.fahrenheitRadioButton = wx.RadioButton( self, wx.ID_ANY, u"Fahrenheit", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.fahrenheitRadioButton = wx.RadioButton( self.m_panel7, wx.ID_ANY, u"Fahrenheit", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer14.Add( self.fahrenheitRadioButton, 0, wx.ALL, 5 )
 		
 		
-		bSizer13.Add( bSizer14, 1, wx.EXPAND, 5 )
+		bSizer261.Add( bSizer14, 1, wx.EXPAND, 5 )
 		
 		
-		bSizer13.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+		bSizer261.Add( ( 0, 0), 1, wx.EXPAND, 5 )
 		
 		bSizer15 = wx.BoxSizer( wx.VERTICAL )
 		
 		bSizer16 = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.m_staticText5 = wx.StaticText( self, wx.ID_ANY, u"Relay", wx.DefaultPosition, wx.Size( 50,-1 ), wx.ALIGN_CENTRE )
+		self.m_staticText5 = wx.StaticText( self.m_panel7, wx.ID_ANY, u"Relay", wx.DefaultPosition, wx.Size( 50,-1 ), wx.ALIGN_CENTRE )
 		self.m_staticText5.Wrap( -1 )
 		bSizer16.Add( self.m_staticText5, 0, wx.TOP, 5 )
 		
-		self.m_staticText1 = wx.StaticText( self, wx.ID_ANY, u"Temp", wx.DefaultPosition, wx.Size( 50,-1 ), wx.ALIGN_CENTRE )
+		self.m_staticText1 = wx.StaticText( self.m_panel7, wx.ID_ANY, u"Temp", wx.DefaultPosition, wx.Size( 50,-1 ), wx.ALIGN_CENTRE )
 		self.m_staticText1.Wrap( -1 )
 		bSizer16.Add( self.m_staticText1, 0, wx.TOP, 5 )
 		
-		self.m_staticText2 = wx.StaticText( self, wx.ID_ANY, u"Ref.", wx.DefaultPosition, wx.Size( 50,-1 ), wx.ALIGN_CENTRE )
+		self.m_staticText2 = wx.StaticText( self.m_panel7, wx.ID_ANY, u"Ref.", wx.DefaultPosition, wx.Size( 50,-1 ), wx.ALIGN_CENTRE )
 		self.m_staticText2.Wrap( -1 )
 		bSizer16.Add( self.m_staticText2, 0, wx.TOP, 5 )
 		
-		self.m_staticText3 = wx.StaticText( self, wx.ID_ANY, u"Status", wx.DefaultPosition, wx.Size( 70,-1 ), wx.ALIGN_CENTRE )
+		self.m_staticText3 = wx.StaticText( self.m_panel7, wx.ID_ANY, u"Status", wx.DefaultPosition, wx.Size( 70,-1 ), wx.ALIGN_CENTRE )
 		self.m_staticText3.Wrap( -1 )
 		bSizer16.Add( self.m_staticText3, 0, wx.TOP, 5 )
 		
-		self.m_staticText4 = wx.StaticText( self, wx.ID_ANY, u"State", wx.DefaultPosition, wx.Size( 80,-1 ), wx.ALIGN_CENTRE )
+		self.m_staticText4 = wx.StaticText( self.m_panel7, wx.ID_ANY, u"State", wx.DefaultPosition, wx.Size( 80,-1 ), wx.ALIGN_CENTRE )
 		self.m_staticText4.Wrap( -1 )
 		bSizer16.Add( self.m_staticText4, 0, wx.TOP, 5 )
 		
 		
 		bSizer15.Add( bSizer16, 1, wx.EXPAND, 5 )
 		
-		self.statusGrid = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.statusGrid = wx.grid.Grid( self.m_panel7, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 		
 		# Grid
 		self.statusGrid.CreateGrid( 1, 5 )
@@ -120,7 +125,13 @@ class ToastingBase ( wx.Frame ):
 		bSizer15.Add( self.statusGrid, 0, wx.ALL, 5 )
 		
 		
-		bSizer13.Add( bSizer15, 0, wx.EXPAND, 5 )
+		bSizer261.Add( bSizer15, 0, wx.EXPAND, 5 )
+		
+		
+		self.m_panel7.SetSizer( bSizer261 )
+		self.m_panel7.Layout()
+		bSizer261.Fit( self.m_panel7 )
+		bSizer13.Add( self.m_panel7, 1, wx.EXPAND, 5 )
 		
 		
 		baseSizer.Add( bSizer13, 0, wx.EXPAND, 5 )
@@ -406,7 +417,7 @@ class ToastingBase ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.saveConfigMenuItemOnMenuSelection, id = self.saveConfigMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.loadConfigMenuItemOnMenuSelection, id = self.loadConfigMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.onClose, id = self.exitMenuItem.GetId() )
-		self.Bind( wx.EVT_MENU, self.onAbout, id = self.aboutMenuItem.GetId() )
+		self.Bind( wx.EVT_MENU, self.aboutMenuItemOnMenuSelection, id = self.aboutMenuItem.GetId() )
 		self.celciusRadioButton.Bind( wx.EVT_RADIOBUTTON, self.temperatureOnRadioButton )
 		self.fahrenheitRadioButton.Bind( wx.EVT_RADIOBUTTON, self.temperatureOnRadioButton )
 		self.baseNotebook.Bind( wx.EVT_NOTEBOOK_PAGE_CHANGED, self.baseNotebookOnNotebookPageChanged )
@@ -434,7 +445,7 @@ class ToastingBase ( wx.Frame ):
 	def onClose( self, event ):
 		event.Skip()
 	
-	def onAbout( self, event ):
+	def aboutMenuItemOnMenuSelection( self, event ):
 		event.Skip()
 	
 	def temperatureOnRadioButton( self, event ):
