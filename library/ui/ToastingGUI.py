@@ -631,7 +631,9 @@ class ToastingGUI(ToastingBase):
 		return config['states']
 
 	def updateConfigFields(self):
-		"""Call any time a new JSON config is read"""
+		"""Update all GUI fields pertaining to Toaster config
+		@note: call this any time the config is updated in some way
+		"""
 		# Configuration grid
 		self.updateConfigurationGrid()
 
@@ -669,11 +671,15 @@ class ToastingGUI(ToastingBase):
 
 	def initializeTuningPage(self):
 		"""Initialize PID page with values from PID controller"""
+		#
 		pid = self.toaster.pid
-		# self.logger.debug("initializePIDPage P, I, D: {}, {}, {}".format(pid.kP, pid.kI, pid.kD))
+
+		# Gains
 		self.pidPTextCtrl.SetValue(str(pid.kP))
 		self.pidITextCtrl.SetValue(str(pid.kI))
 		self.pidDTextCtrl.SetValue(str(pid.kD))
+
+		# Limits
 		if pid.min is not None:
 			self.pidMinOutLimitTextCtrl.SetValue(str(pid.min))
 		if pid.max is not None:
@@ -681,58 +687,46 @@ class ToastingGUI(ToastingBase):
 		if pid.windupGuard is not None:
 			self.pidWindupGuardTextCtrl.SetValue(str(pid.windupGuard))
 
+		# Timer period & sensor pins
 		self.timerPeriodTextCtrl.SetValue(str(self.timerPeriod))
 		self.relayPinTextCtrl.SetValue(str(self.toaster.relay.pin))
 		self.spiCsPinTextCtrl.SetValue(str(self.toaster.thermocouple.csPin))
 
 	def updatePIDsFromFields(self):
 		"""Update PID controller tuning from values in PID page"""
-		self.logger.debug("updatePIDsFromFields")
-		config = {}
-
-		config['kP'] = self.pidPTextCtrl.GetValue()
-		config['kI'] = self.pidITextCtrl.GetValue()
-		config['kD'] = self.pidDTextCtrl.GetValue()
-
-		config['min'] = self.pidMinOutLimitTextCtrl.GetValue()
-		config['max'] = self.pidMaxOutLimitTextCtrl.GetValue()
-		config['windupGuard'] = self.pidWindupGuardTextCtrl.GetValue()
-
-		self.pidConfig = config
+		self.pidConfig = {
+			'kP': self.pidPTextCtrl.GetValue(),
+			'kI': self.pidITextCtrl.GetValue(),
+			'kD': self.pidDTextCtrl.GetValue(),
+			'min': self.pidMinOutLimitTextCtrl.GetValue(),
+			'max': self.pidMaxOutLimitTextCtrl.GetValue(),
+			'windupGuard': self.pidWindupGuardTextCtrl.GetValue(),
+		}
 
 	def updateOtherTuning(self):
 		"""Update various tuning variables from tuning page"""
 		# relay pin
 		try:
-			relayPin = int(self.relayPinTextCtrl.GetValue())
+			self.toaster.relay.pin = int(self.relayPinTextCtrl.GetValue())
 		except:
 			self.errorMessage("Invalid pin # for relay control", "Invalid Relay Pin #")
 			return
-		# Only update if pin has changed
-		if relayPin != self.toaster.relay.pin:
-			self.toaster.relay.pin = relayPin
 
 		# SPI CS pin
 		try:
-			spiCsPin = int(self.spiCsPinTextCtrl.GetValue())
+			self.toaster.thermocouple.csPin = int(self.spiCsPinTextCtrl.GetValue())
 		except:
 			self.errorMessage("Invalid pin # for SPI CS (enable)", "Invalid SPI CS Pin #")
 			return
-		# Only update if pin has changed
-		if spiCsPin != self.toaster.thermocouple.csPin:
-			self.toaster.thermocouple.csPin = spiCsPin
 
 		try:
-			period = float(self.timerPeriodTextCtrl.GetValue())
+			self.timerPeriod = float(self.timerPeriodTextCtrl.GetValue())
 		except:
 			self.errorMessage(
 				"Invalid value for clock timer period. Please enter a float >= 0.5 (max of 2Hz refresh)",
 				"Invalid Timer Period"
 			)
 			return
-
-		# Reset timer
-		self.timerPeriod = period
 
 	def savePIDButtonOnButtonClick(self, event):
 		"""Event handler for PID save button
