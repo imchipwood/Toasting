@@ -298,7 +298,7 @@ class ToastingBase ( wx.Frame ):
 		
 		bSizer27.Add( ( 0, 0), 1, wx.ALL|wx.EXPAND, 5 )
 		
-		self.spiCsPinStaticText = wx.StaticText( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"SPI CS Pin (BCM)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
+		self.spiCsPinStaticText = wx.StaticText( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"SPI CS Pin (0, 1)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
 		self.spiCsPinStaticText.Wrap( -1 )
 		bSizer27.Add( self.spiCsPinStaticText, 1, wx.ALL|wx.EXPAND, 5 )
 		
