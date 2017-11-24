@@ -18,15 +18,18 @@ No other Pi models have been tested.
 # Setup
 Python3.5.3 was used to develop Toasting, it should work on newer versions as well. 
 
-Note: this GUI requires wxpython-4.0.0b2, which is only available via building & installing from source.
+**Note:** Toasting uses wxpython-4.0.0b2, which is not available thru pip. 
+Continue reading for instructions on building from source
 
-## Create & activate Python virtual environment
-python3 -m venv toasting_venv
+## Create & activate Python virtual environment (Optional)
+Using a virtual environment is not necessary but is recommended.
 
-source toasting_venv/bin/activate
+`python3 -m venv toasting_venv`
+
+`source toasting_venv/bin/activate`
 
 ## Install Python packages available via pip
-pip install -r requirements.txt
+`pip3 install -r requirements.txt`
 
 ## wxpython-4.0.0b2
 Follow these instructions: https://wiki.wxpython.org/BuildWxPythonOnRaspberryPi
@@ -38,22 +41,24 @@ This application is designed to switch a toaster oven on/off via a relay.
 Ensure the relay you use is rated high enough for the power needs of your toaster oven.
 Monitor the relay's temperature while running - it shouldn't get hot.
 
-Note: Raspberry Pi GPIO are not capable of switching large relays,
+**Note:** Raspberry Pi GPIO are not capable of switching large relays,
 so a [transistor-relay driver](http://www.electronics-tutorials.ws/blog/relay-switch-circuit.html) 
 should be used.
-#### Default Relay pin: BCM GPIO4
+
+**Default Relay pin: BCM GPIO4**
 
 ## Temperature Monitoring - Thermocouple
 A [MAX31855 Thermocouple Amplifier](https://www.adafruit.com/product/269) is used to 
 measure temperature via thermocouple. 
 Communication with the MAX31855 is done via SPI. 
 [Adafruit has a good tutorial on thermocouples](https://learn.adafruit.com/thermocouple?view=all)
-#### Default Thermocouple SPI CS pin: SPI0_CE0_N (BCM GPIO8) 
 
-## Source the venv & run application
-source /path/to/toasting_venv/bin/activate
+**Default Thermocouple SPI CS pin: SPI0_CE0_N (BCM GPIO8)** 
 
-python toasting.py
+## Source the venv (optional) & run application
+***(Optional)*** `source /path/to/toasting_venv/bin/activate`
+
+`python3 toasting.py`
 
 # Screenshots
 #### Reflow profile configuration
