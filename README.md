@@ -1,9 +1,9 @@
-## USE THIS PROGRAM AT YOUR OWN RISK
+# USE THIS PROGRAM AT YOUR OWN RISK
 This tool is designed to turn a toaster oven on and off - this involves rewiring a toaster
 oven and working with AC mains power. Be VERY careful and do your testing in a safe place
 where an accidental fire is containable.
 
-## Toasting - What is it?
+# Toasting - What is it?
 'Toasting' is a reflow soldering toaster oven controller GUI designed for the Raspberry Pi.
 Reflow soldering is generally used for small, surface mount components that are difficult
 to solder by hand.
@@ -15,25 +15,25 @@ Toasting works well on a Pi 3, but is very slow on the single-core Pi Zero.
 The Pi Zero *can* run the GUI but the live graph does not update in real time.
 No other Pi models have been tested.
 
-## Setup
+# Setup
 Python3.5.3 was used to develop Toasting, it should work on newer versions as well. 
 
 Note: this GUI requires wxpython-4.0.0b2, which is only available via building & installing from source.
 
-#### Create & activate Python virtual environment
+## Create & activate Python virtual environment
 python3 -m venv toasting_venv
 
 source toasting_venv/bin/activate
 
-#### Install the basic Python packages
+## Install the basic Python packages
 pip install -r requirements.txt
 
-#### wxpython-4.0.0b2 - follow instructions here
+## wxpython-4.0.0b2 - follow instructions here
 https://wiki.wxpython.org/BuildWxPythonOnRaspberryPi
 
-## Control & Sensors
+# Control & Sensors
 
-### Oven Control - Relay
+## Oven Control - Relay
 This application is designed to switch a toaster oven on/off via a relay. 
 Ensure the relay you use is rated high enough for the power needs of your toaster oven.
 Monitor the relay's temperature while running - it shouldn't get hot.
@@ -44,7 +44,7 @@ should be used.
 
 #### Default Relay pin: BCM GPIO4
 
-### Temperature Monitoring - Thermocouple
+## Temperature Monitoring - Thermocouple
 A [MAX31855 Thermocouple Amplifier](https://www.adafruit.com/product/269) is used to 
 measure temperature via thermocouple. 
 Communication with the MAX31855 is done via SPI. 
@@ -57,7 +57,7 @@ source /path/to/toasting_venv/bin/activate
 
 python toasting.py
 
-## Screenshots
+# Screenshots
 #### Reflow profile configuration
 ![Reflow Profile Configuration](https://github.com/imchipwood/Toasting/blob/master/doc/panel_reflow_configuration.png?raw=true)
 
