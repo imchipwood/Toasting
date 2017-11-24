@@ -1,4 +1,4 @@
-
+from random import randint
 HIGH = 1
 LOW = 0
 OUT = 1
@@ -20,3 +20,7 @@ def output(pin, direction):
 
 def cleanup(pin):
 	pass
+
+
+def input(pin):
+	return randint(0, 1)

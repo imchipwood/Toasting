@@ -1,7 +1,7 @@
 {
   "units": "celcius",
   "pins": {
-    "SPI_CS": 8,
+    "SPI_CS": 0,
     "relay": 4
   },
   "tuning": {

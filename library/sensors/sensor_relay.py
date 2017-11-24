@@ -7,6 +7,7 @@ try:
 	import RPi.GPIO as GPIO
 except:
 	# Other
+	logging.info("Failed to import RPi.GPIO - using mock GPIO libraries")
 	import library.sensors.mock_gpio as GPIO
 
 
@@ -16,7 +17,7 @@ class Sensor(object):
 
 		self.logger = getLogger('Sensor', debugLevel)
 		self.debugLevel = debugLevel
-		self.state = False
+		# self.state = False
 		self._pin = int(pin)
 		self.positive = enable
 		self.negative = GPIO.LOW if enable == GPIO.HIGH else GPIO.HIGH
@@ -27,9 +28,14 @@ class Sensor(object):
 
 	@pin.setter
 	def pin(self, pin):
-		self.cleanup()
-		self._pin = pin
-		self.init()
+		if pin != self.pin:
+			self.cleanup()
+			self._pin = pin
+			self.init()
+
+	@property
+	def state(self):
+		return GPIO.input(self.pin)
 
 	def init(self):
 		self.logger.debug("initing pin {}".format(self.pin))
@@ -39,11 +45,9 @@ class Sensor(object):
 
 	def enable(self):
 		GPIO.output(self.pin, self.positive)
-		self.state = True
 
 	def disable(self):
 		GPIO.output(self.pin, self.negative)
-		self.state = False
 
 	def cleanup(self):
 		try:

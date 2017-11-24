@@ -121,14 +121,11 @@ class ToastStateMachine(object):
 		self.units = configDict['units']
 
 		# Pins
-		if self.relay.pin != configDict['pins']['relay']:
-			self.relay.pin = configDict['pins']['relay']
-		if self.thermocouple.pin != configDict['pins']['SPI_CS']:
-			self.thermocouple.pin = configDict['pins']['SPI_CS']
+		self.relay.pin = configDict['pins']['relay']
+		self.thermocouple.csPin = configDict['pins']['SPI_CS']
 
 		# Clock period
-		if self.timerPeriod != configDict['tuning']['timerPeriod']:
-			self.timerPeriod = configDict['tuning']['timerPeriod']
+		self.timerPeriod = configDict['tuning']['timerPeriod']
 
 	# endregion Properties
 	# region Configuration
@@ -249,6 +246,7 @@ class ToastStateMachine(object):
 		else:
 			# Not soaking - have we reached the target temp?
 			# +/- 3.0 as a buffer (yeah doesn't change for Fahrenheit WHATEVER)
+			buffer = 3.0 if self.units == 'celcius' else 3.0 * 9.0/5.0 + 32.0
 			if self.targetState > self.lastTarget:
 				return self.temperature >= self.targetState - 3.0
 			elif self.targetState < self.lastTarget:

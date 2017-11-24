@@ -1,3 +1,4 @@
+from random import randint
 
 
 class SpiDev(object):
@@ -16,5 +17,5 @@ class SpiDev(object):
 	def close(self):
 		pass
 
-	def xfer(self, val):
-		return [0] * len(val)
+	def xfer(self, bytes):
+		return
