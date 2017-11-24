@@ -5,6 +5,8 @@ OUT = 1
 IN = 0
 BCM = 'bcm'
 
+global STATE
+
 
 def setmode(mode):
 	pass
@@ -15,7 +17,8 @@ def setup(pin, type):
 
 
 def output(pin, direction):
-	pass
+	global STATE
+	STATE = direction
 
 
 def cleanup(pin):
@@ -23,4 +26,5 @@ def cleanup(pin):
 
 
 def input(pin):
-	return randint(0, 1)
+	global STATE
+	return STATE

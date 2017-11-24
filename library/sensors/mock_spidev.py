@@ -11,11 +11,13 @@ class SpiDev(object):
 		self.lsbfirst = False
 		self.mode = 0
 
-	def open(self, arga, argb):
+	def open(self, bus, device):
 		pass
 
 	def close(self):
 		pass
 
 	def xfer(self, bytes):
-		return
+		# for x in range(0, len(bytes)):
+		# 	bytes[x] = randint(0, 255)
+		return [0] * len(bytes)

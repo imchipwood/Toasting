@@ -7,10 +7,8 @@ try:
 	import spidev
 except:
 	# Other
-	logging.info("Failed to import spidev - using mock spidev libraries")
+	print("!!!WARNING!!! Failed to import spidev - using mock spidev library")
 	import library.sensors.mock_spidev as spidev
-
-VALID_UNITS = ['celcius', 'fahrenheit']
 
 
 class ExceptionTemplate(Exception):
@@ -34,10 +32,6 @@ class TCVccShortError(ExceptionTemplate):
 
 
 class TCError(ExceptionTemplate):
-	pass
-
-
-class UnitError(ExceptionTemplate):
 	pass
 
 
@@ -88,14 +82,20 @@ class Thermocouple(object):
 	def init(self):
 		"""Initialize SPI interface"""
 		self.spi = spidev.SpiDev()
-		# CPOL = 0 -> clock default low, thus CPHA = 0 -> capture on rising edge
-		self.spi.open(self.csPin, 0)
+
+		# RPi has a single SPI bus (0), and two CS pins (0, 1)
+		self.spi.open(bus=0, device=self.csPin)
+
 		# set SCLK frequency to 4MHz (MAX31855 has a max of 5MHz)
 		self.spi.max_speed_hz = 4000000
+
 		# set CS active low
 		self.spi.cshigh = False
+
 		# set MSB first (only way RPi can transfer)
 		self.spi.bits_per_word = 8
+
+		# CPOL = 0 -> clock default low, thus CPHA = 0 -> capture on rising edge
 		# CPOL|CPHA 0b00 = 0, 0b11 = 3
 		self.spi.lsbfirst = False
 		self.spi.mode = 0
