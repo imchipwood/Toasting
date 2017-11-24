@@ -165,7 +165,8 @@ class Thermocouple(object):
 	def cleanup(self):
 		"""Close SPI interface"""
 		try:
-			self.spi.close()
-			self.logger.debug("SPI shut down")
+			if self.spi:
+				self.spi.close()
+				self.logger.debug("SPI shut down")
 		except Exception as e:
-			self.logger.exception("spi.close() exception:\n{}".format(e.message))
+			self.logger.exception("spi.close() exception")
