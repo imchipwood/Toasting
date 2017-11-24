@@ -58,10 +58,13 @@ Communication with the MAX31855 is done via SPI.
 
 __Default Thermocouple SPI CS pin: SPI0_CE0_N (BCM GPIO8)__ 
 
-## Source the venv (optional) & run application
+# Running Toasting
+Toasting is a GUI and thus requires a desktop - set up a VNC server and connect to it, 
+or connect a monitor, keyboard, and mouse.
+
+If you're using a virtual environment, source it now.
 ```
-source /path/to/toasting_venv/bin/activate
-python3 toasting.py
+python3 /path/to/Toasting/toasting.py
 ```
 
 # Screenshots
@@ -73,3 +76,41 @@ python3 toasting.py
 
 #### Live graph updates during reflow
 ![Live Graph Screenshot](https://raw.githubusercontent.com/imchipwood/Toasting/master/doc/panel_toasting.png)
+
+# Basic Tool Usage
+## Basic Reflow Profile Configuration
+The basic configuration is designed for solder paste that reflows around 230 degrees celcius.
+Stages:
+- ramp2soak - Ramp temperature to 150*C
+- preheat - Hold @ 150*C for 60 seconds to ensure all components have heated up
+- ramp2reflow - Ramp temperature to 235*C
+- reflow - Hold temperature @ 235*C for 30 seconds
+- cool - Cool down. There is really no control over cooling, as the oven will hold heat for quite some time even 
+with the heating elements turned off. Opening the door helps, a small USB fan helps more.  
+
+### Editing the configuration
+The basic config is located here: `Toasting/config/baseConfig.json`. The state durations & target temperatures can be
+edited in the GUI. If you want to add more states, you must add them to the JSON config file.
+
+## Tuning
+The basic PID tuning should work well enough for most toaster ovens. You can edit the tuning in the JSON file, or on 
+the tuning page in the GUI.
+
+## Testing
+At all times, the current temperature & reference temperatures are displayed at the top of the GUI. You may change the
+display units with the buttons in the top left. 
+
+To test the relay, go to the "Toasting" page and click the "Test Relay" button. This will toggle the relay on/off 5 times.
+
+## Running the reflow profile
+If you are satisfied with your profile & tuning, go to the "Toasting" page and click "Start Reflow". The graph will 
+update in real time. The colors are as follows:
+
+The graph plots two temperatures in real time. 
+
+The target temperature is always plotted __orange__.
+
+The current temperature color depends on whether the temperature is increasing, decreasing, or static in that stage:  
+  - Increasing temperature: __red__
+  - Static temperature: __green__
+  - Decreasing temperature: __blue__
