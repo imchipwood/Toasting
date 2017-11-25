@@ -147,7 +147,7 @@ if __name__ == "__main__":
 	app = wx.App()
 
 	# Open a fake config
-	configFileName = "testconfig.json"
+	configFileName = "baseConfig.json"
 	configFilePath = os.path.join(os.path.dirname(__file__), "..", "config", configFileName)
 	with open(configFilePath) as inf:
 		config = json.load(inf, object_pairs_hook=OrderedDict)

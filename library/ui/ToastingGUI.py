@@ -29,7 +29,7 @@ class ToastingGUI(ToastingBase):
 
 	# region Init
 
-	def __init__(self, parent):
+	def __init__(self, parent, baseConfigurationPath):
 		ToastingBase.__init__(self, parent)
 
 		self.logger = getLogger('ToastingGUI', DEBUG_LEVEL)
@@ -46,9 +46,8 @@ class ToastingGUI(ToastingBase):
 		self.liveCanvas = None
 
 		# Create the state machine
-		baseConfigPath = os.path.join(CONFIG_DIR, "testconfig.json")
 		self.toaster = ToastStateMachine(
-			jsonConfigPath=baseConfigPath,
+			jsonConfigPath=baseConfigurationPath,
 			stateMachineCompleteCallback=self.toastingComplete,
 			debugLevel=DEBUG_LEVEL
 		)
