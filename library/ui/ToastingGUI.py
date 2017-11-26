@@ -992,8 +992,8 @@ class ToastingGUI(ToastingBase):
 
 		@param event: wx.EVT_CLOSE
 		"""
+		event.Skip()
 		self.toaster.cleanup()
 		self.Destroy()
-		event.Skip()
 		
 	# endregion GeneralEventHandlers
