@@ -324,7 +324,7 @@ class ToastingGUI(ToastingBase):
 
 		# Store updated config & redraw stuff
 		self.stateConfiguration = newConfiguration
-		self.updateConfigurationGrid()
+		self.initializeConfigurationPage()
 		self.initializeToastingPage()
 
 	def convertTemp(self, temp):
@@ -623,14 +623,6 @@ class ToastingGUI(ToastingBase):
 		# Extract file path from dialog and load it
 		self.loadConfigFromFile(dialog.GetPath())
 
-	def updateConfigurationGrid(self):
-		"""Update the grid and visualization with new configuration"""
-		# Update config grid
-		self.initializeConfigurationPage()
-
-		# Draw the config visualization
-		# self.redrawConfigurationVisualization()
-
 	def updateGuiFieldsFromNewConfig(self):
 		"""Update all GUI fields pertaining to Toaster config"""
 		# Units
@@ -638,7 +630,7 @@ class ToastingGUI(ToastingBase):
 		self.fahrenheitRadioButton.SetValue(self.config['units'] == 'fahrenheit')
 
 		# Configuration grid
-		self.updateConfigurationGrid()
+		self.initializeConfigurationPage()
 
 		# Tuning page
 		self.initializeTuningPage()
