@@ -48,6 +48,14 @@ class ToastingGUI(ToastingBase):
 		self.liveVisualizer = None
 		self.liveCanvas = None
 
+		# Notebook pages
+		self.notebookPages = ['Configuration', 'Tuning', 'Toasting!']
+		self.pageInitFunctions = {
+			'Configuration': self.initializeConfigurationPage,
+			'Tuning': self.initializeTuningPage,
+			'Toasting!': self.initializeToastingPage
+		}
+
 		# Create the state machine
 		self.toaster = ToastStateMachine(
 			jsonConfigPath=baseConfigurationPath,
@@ -102,6 +110,13 @@ class ToastingGUI(ToastingBase):
 
 		# close
 		self.Bind(wx.EVT_CLOSE, self.onClose)
+
+	@decorators.BusyReady(MODEL_NAME)
+	def initCurrentPage(self):
+		"""Initialize the currently selected notebook page"""
+		currentPageIndex = self.baseNotebook.GetSelection()
+		currentPageName = self.notebookPages[currentPageIndex]
+		self.pageInitFunctions[currentPageName]()
 
 	# endregion Init
 	# region Properties
@@ -303,6 +318,7 @@ class ToastingGUI(ToastingBase):
 		"""
 		self.statusBar.SetStatusText(text)
 
+	@decorators.BusyReady(MODEL_NAME)
 	def temperatureUnitsChange(self):
 		"""Update config/graphs/etc. when user changes units"""
 		# Get the current config
@@ -324,8 +340,12 @@ class ToastingGUI(ToastingBase):
 
 		# Store updated config & redraw stuff
 		self.stateConfiguration = newConfiguration
-		self.initializeConfigurationPage()
-		self.initializeToastingPage()
+
+		self.initCurrentPage()
+		# if self.baseNotebook.GetSelection() == self.notebookPages.index('Configuration'):
+		# 	self.initializeConfigurationPage()
+		# elif self.baseNotebook.GetSelection() == self.notebookPages.index('Toasting!'):
+		# 	self.initializeToastingPage()
 
 	def convertTemp(self, temp):
 		"""Convert a temp to the currently set units
@@ -729,6 +749,7 @@ class ToastingGUI(ToastingBase):
 		"""
 		event.Skip()
 		self.updatePIDsFromFields()
+		self.updateStatus("PID tuning updated")
 
 	def saveOtherTuningButtonOnButtonClick(self, event):
 		"""Event handler for Other tuning save button
@@ -737,6 +758,7 @@ class ToastingGUI(ToastingBase):
 		"""
 		event.Skip()
 		self.updateOtherTuning()
+		self.updateStatus("Pin & Timing tuning updated")
 
 	# endregion TuningPage
 	# region ToastingPage
@@ -828,7 +850,7 @@ class ToastingGUI(ToastingBase):
 	# endregion ToastingPage
 	# region Testing
 
-	@decorators.BusyReady(MODEL_NAME)
+	# @decorators.BusyReady(MODEL_NAME)
 	def testTick(self):
 		"""Fire this event to test relay"""
 		self.setStatusGridCellValue('status', 'Testing')
@@ -901,21 +923,9 @@ class ToastingGUI(ToastingBase):
 
 		@param event: wx.EVT_NOTEBOOK_PAGE_CHANGED
 		"""
-		# Define which functions to use when changing to each page
-		pageInitFunctions = {
-			0: self.initializeConfigurationPage,
-			1: self.initializeTuningPage,
-			2: self.initializeToastingPage
-		}
-
-		# Get the index of the page we're changing to and call the corresponding function
-		index = event.GetEventObject().GetSelection()
-		pageInitFunctions[index]()
-
-		# Call the page change event func or the page won't initialize properly
 		event.Skip()
+		self.initCurrentPage()
 
-	@decorators.BusyReady(MODEL_NAME)
 	def temperatureOnRadioButton(self, event):
 		"""Event handler for temperature radio buttons
 
