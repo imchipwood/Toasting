@@ -111,7 +111,7 @@ class ToastingGUI(ToastingBase):
 		# close
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 
-	@decorators.BusyReady(MODEL_NAME)
+	# @decorators.BusyReady(MODEL_NAME)
 	def initCurrentPage(self):
 		"""Initialize the currently selected notebook page"""
 		currentPageIndex = self.baseNotebook.GetSelection()
@@ -282,7 +282,7 @@ class ToastingGUI(ToastingBase):
 		self.logger.debug("redrawConfigurationVisualization FINISH")
 
 	@decorators.BusyReady(MODEL_NAME)
-	def redrawLiveVisualization(self, visualizer):
+	def redrawLiveVisualization(self):
 		"""Add a new LiveVisualizer to the execution panel
 
 		@param visualizer: matplotlib LiveVisualizer for displaying config & live data
@@ -292,7 +292,8 @@ class ToastingGUI(ToastingBase):
 		sizer.Clear()
 		sizer.Layout()
 
-		self.liveCanvas = FigureCanvas(self.liveVisualizationPanel, -1, visualizer.fig)
+		self.liveVisualizer = LiveVisualizer(stateConfiguration=self.stateConfiguration, units=self.units)
+		self.liveCanvas = FigureCanvas(self.liveVisualizationPanel, -1, self.liveVisualizer.fig)
 		sizer.Add(self.liveCanvas, 1, wx.EXPAND)
 		self.liveVisualizationPanel.Layout()
 
@@ -765,8 +766,7 @@ class ToastingGUI(ToastingBase):
 
 	def initializeToastingPage(self):
 		"""Draw the basic live-graph for the Toasting page"""
-		self.liveVisualizer = LiveVisualizer(stateConfiguration=self.stateConfiguration, units=self.units)
-		self.redrawLiveVisualization(visualizer=self.liveVisualizer)
+		self.redrawLiveVisualization()
 
 	@decorators.BusyReady(MODEL_NAME)
 	def startStopReflowButtonOnButtonClick(self, event):
