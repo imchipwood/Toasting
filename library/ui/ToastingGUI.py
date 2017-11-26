@@ -629,7 +629,7 @@ class ToastingGUI(ToastingBase):
 		self.initializeConfigurationPage()
 
 		# Draw the config visualization
-		self.redrawConfigurationVisualization()
+		# self.redrawConfigurationVisualization()
 
 	def updateGuiFieldsFromNewConfig(self):
 		"""Update all GUI fields pertaining to Toaster config"""
