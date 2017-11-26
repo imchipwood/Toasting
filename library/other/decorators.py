@@ -32,14 +32,13 @@ def BusyReady(modelName):
 			try:
 				# Call the busy function
 				sendBusySignal(modelName)
-				print("BUSY: {}".format(function.__name__))
+				print("BUSY/COUNTERS: {}, {}".format(function.__name__, BusyCounterDict[modelName]))
 				# Call the actual function
 				return function(*args, **kwargs)
 			finally:
 				# Call the ready function
 				sendReadySignal(modelName)
-				print("READY: {}".format(function.__name__))
-				print("COUNTERS: {}".format(BusyCounterDict[modelName]))
+				print("READY/COUNTERS: {}, {}".format(function.__name__, BusyCounterDict[modelName]))
 
 		return wrapper
 
