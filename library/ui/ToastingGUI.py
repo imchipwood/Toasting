@@ -268,7 +268,7 @@ class ToastingGUI(ToastingBase):
 		@param visualizer: matplotlib configurationVisualizer for displaying config setup
 		@type visualizer: ConfigurationVisualizer
 		"""
-		self.logger.debug("redrawConfigurationVisualization")
+		# self.logger.debug("redrawConfigurationVisualization")
 		# Clear out existing configurationVisualizer
 		sizer = self.configurationVisualizerPanel.GetSizer()
 		sizer.Clear()
@@ -538,7 +538,7 @@ class ToastingGUI(ToastingBase):
 	@decorators.BusyReady(MODEL_NAME)
 	def initializeConfigurationPage(self):
 		"""Set up the configuration grid based on current state config"""
-		self.logger.debug("initializeConfigurationPage")
+		# self.logger.debug("initializeConfigurationPage")
 		# clear out all columns and rows
 		if self.configurationGrid.GetNumberCols():
 			self.configurationGrid.DeleteCols(0, self.configurationGrid.GetNumberCols())
@@ -577,7 +577,7 @@ class ToastingGUI(ToastingBase):
 
 		@param event: wx.grid.EVT_GRID_CELL_CHANGED
 		"""
-		self.logger.debug("configurationGridOnGridCellChange")
+		# self.logger.debug("configurationGridOnGridCellChange")
 		event.Skip()
 		# Get the state config
 		self.stateConfiguration = self.convertConfigGridToStateConfig()
