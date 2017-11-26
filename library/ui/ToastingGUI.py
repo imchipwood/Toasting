@@ -111,12 +111,12 @@ class ToastingGUI(ToastingBase):
 		# close
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 
-	# @decorators.BusyReady(MODEL_NAME)
 	def initCurrentPage(self):
 		"""Initialize the currently selected notebook page"""
-		currentPageIndex = self.baseNotebook.GetSelection()
-		currentPageName = self.notebookPages[currentPageIndex]
-		self.pageInitFunctions[currentPageName]()
+		if self.baseNotebook:
+			currentPageIndex = self.baseNotebook.GetSelection()
+			currentPageName = self.notebookPages[currentPageIndex]
+			self.pageInitFunctions[currentPageName]()
 
 	# endregion Init
 	# region Properties
@@ -221,7 +221,6 @@ class ToastingGUI(ToastingBase):
 		@param enable: to enable or disable, that is the question
 		@type enable: bool
 		"""
-		# self.baseNotebook.Enable(enable)
 		self.configurationGrid.Enable(enable)
 		self.saveConfigButton.Enable(enable)
 		self.executeConfigButton.Enable(enable)
@@ -439,7 +438,6 @@ class ToastingGUI(ToastingBase):
 		self.statusGrid.SetColSize(4, baseColumnWidth+30)
 
 		# Force the sizer to adjust the layout - otherwise, grid isn't visible while GUI is initializing
-		# self.statusGrid.Layout()
 		self.statusGrid.GetContainingSizer().Layout()
 
 	def setStatusGridCellColour(self, statusName, red=0, green=0, blue=0):
@@ -540,7 +538,6 @@ class ToastingGUI(ToastingBase):
 	@decorators.BusyReady(MODEL_NAME)
 	def initializeConfigurationPage(self):
 		"""Set up the configuration grid based on current state config"""
-		# self.logger.debug("initializeConfigurationPage")
 		# clear out all columns and rows
 		if self.configurationGrid.GetNumberCols():
 			self.configurationGrid.DeleteCols(0, self.configurationGrid.GetNumberCols())
@@ -579,8 +576,8 @@ class ToastingGUI(ToastingBase):
 
 		@param event: wx.grid.EVT_GRID_CELL_CHANGED
 		"""
-		# self.logger.debug("configurationGridOnGridCellChange")
-		# event.Skip()
+		event.Skip()
+
 		# Get the state config
 		self.stateConfiguration = self.convertConfigGridToStateConfig()
 
