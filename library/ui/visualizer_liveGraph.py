@@ -5,24 +5,25 @@ from library.ui.visualizer_configuration import ConfigurationVisualizer, CONFIG_
 
 
 class LiveVisualizer(ConfigurationVisualizer):
-	def __init__(self, stateConfiguration, redrawCallback=None, units='celcius'):
+	def __init__(self, stateConfiguration, units='celcius'):
 		super(LiveVisualizer, self).__init__(stateConfiguration, doNotDraw=True, units=units)
-		self.lastStepNum = 0
-		self.originalFig = self.fig
-
-		self.redrawCallback = redrawCallback
-
+		
+		# State tracking
 		self.lastState = None
 		self.currentState = None
-		self.liveData = []
-		self.lines = {}
 
+		# Create a new plot
 		self.axes = self.fig.add_subplot(111)
 		self.axes.grid(True)
 		# self.axes.set_facecolor('black')
 		self.axes.set_title("Live Temperature", size=12)
+
+		# Matplotlib plot data structs
 		self.stateDataPlots = {}
 		self.stateTargetPlots = {}
+		
+		# Actual data storage
+		self.liveData = []
 
 	def addDataPoint(self, x, y, currentTarget, stateName):
 		"""Add an X/Y point to the graph
@@ -43,15 +44,19 @@ class LiveVisualizer(ConfigurationVisualizer):
 		self.updateGraph()
 
 	def updateGraph(self):
-		"""Redraw the graph, adding any new points to the plot"""
+		"""Update the x/y data of the plots to reflect new data"""
 		# Create new plot with correct color if new state
 		if self.currentState != self.lastState:
 			# get the color for this state
 			currentTarget = self.stateConfiguration[self.currentState][CONFIG_KEY_TARGET]
+			
+			# Get the target for the last state. If last state doesn't exist, assume target was 0
 			if self.lastState:
 				lastTarget = self.stateConfiguration[self.lastState][CONFIG_KEY_TARGET]
 			else:
 				lastTarget = 0
+
+			# Get the color for the current state based on the current & last states
 			color = self.getColor(currentTarget, lastTarget)
 
 			# make new plot
@@ -71,16 +76,51 @@ class LiveVisualizer(ConfigurationVisualizer):
 			)
 
 		# gather list of x/y values for this state
-		xList = [x for x, y, target, state in self.liveData if state == self.currentState]
-		yList = [y for x, y, target, state in self.liveData if state == self.currentState]
-		targetYList = [target for x, y, target, state in self.liveData if state == self.currentState]
+		timestamps, temperatures, targetTemperatures = self.getCurrentStateData()
+
+		# Check if axes limits need to be adjusted
+		self.updateAxesLimits()
 
 		# update plot data for this state
-		self.stateDataPlots[self.currentState].set_xdata(xList)
-		self.stateDataPlots[self.currentState].set_ydata(yList)
-		self.stateTargetPlots[self.currentState].set_xdata(xList)
-		self.stateTargetPlots[self.currentState].set_ydata(targetYList)
+		self.stateDataPlots[self.currentState].set_xdata(timestamps)
+		self.stateDataPlots[self.currentState].set_ydata(temperatures)
+		self.stateTargetPlots[self.currentState].set_xdata(timestamps)
+		self.stateTargetPlots[self.currentState].set_ydata(targetTemperatures)
 
-		# redraw if we got a callback
-		if self.redrawCallback:
-			self.redrawCallback()
+	def getCurrentStateData(self):
+		"""Get lists of current state data for plotting
+
+		@return: tuple of lists of data - timestamps, current temperatures, target temperatures
+		"""
+		timestamps = [timestamp for timestamp, currentTemperature, targetTemperature, state in self.liveData if state == self.currentState]
+		temperatures = [currentTemperature for x, currentTemperature, targetTemperature, state in self.liveData if state == self.currentState]
+		targetTemperatures = [targetTemperature for x, y, targetTemperature, state in self.liveData if state == self.currentState]
+		return timestamps, temperatures, targetTemperatures
+
+	def updateAxesLimits(self):
+		"""Check that axes can display all data and adjust limits if necessary"""
+		# Timestamps
+		maxTimestamp = [timestamp for timestamp, currentTemperature, targetTemperature, state in self.liveData][-1]
+
+		# Is the latest timestamp approaching the end of the X axis?
+		xMin, xMax = self.axes.get_xlim()
+		if maxTimestamp >= (xMax - 50):
+			xMax += 50
+
+		# Set the new x-axis limits
+		self.axes.set_xlim(xMin, xMax)
+
+		# Temperatures
+		allTemperatures = [currentTemperature for timestamp, currentTemperature, targetTemperature, state in self.liveData]
+		allTargetTemperatures = [targetTemperature for timestamp, currentTemperature, targetTemperature, state in self.liveData]
+
+		# Is the lowest temperature approaching the y-axis lower limit?
+		yMin, yMax = self.axes.get_ylim()
+		if min(allTemperatures) <= (yMin + 20) or min(allTargetTemperatures) <= (yMin + 20):
+			yMin -= 50
+		# Is the highest temperature approaching the y-axis upper limit?
+		if max(allTemperatures) >= (yMax - 20) or max(allTargetTemperatures) >= (yMax - 20):
+			yMax += 50
+
+		# Set the new y-axis limits
+		self.axes.set_ylim(yMin, yMax)

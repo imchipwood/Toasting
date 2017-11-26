@@ -130,7 +130,8 @@ class ToastStateMachine(object):
 	# endregion Properties
 	# region Configuration
 
-	def getConfigFromJsonFile(self, jsonFile):
+	@staticmethod
+	def getConfigFromJsonFile(jsonFile):
 		"""Get config from a JSON file
 
 		@param jsonFile: file path

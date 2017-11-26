@@ -82,11 +82,10 @@ class LiveGraphTestPanel(ConfigurationGraphTestPanel):
 		self.visualizer = LiveVisualizer(self.stateConfiguration)
 		self.fig = self.visualizer.fig
 		self.addFigToPanel(self.fig)
-		self.visualizer.redrawCallback = self.canvas.draw
 		
 		# State machine
 		self.statePeriod = 0.5
-		self.states = self.stateConfiguration.keys()
+		self.states = list(self.stateConfiguration.keys())
 		self.stateIndex = 0
 		self.currentState = self.states[self.stateIndex]
 		self.currentStateEnd = self.stateConfiguration[self.currentState][CONFIG_KEY_DURATION]
@@ -141,15 +140,15 @@ class LiveGraphTestPanel(ConfigurationGraphTestPanel):
 	def updateGraph(self):
 		"""Update the graph with latest date point"""
 		self.visualizer.addDataPoint(self.timestamp, self.y, self.currentTarget, self.currentState)
+		self.canvas.draw()
 
 
 if __name__ == "__main__":
 	app = wx.App()
 
 	# Open a fake config
-	configFileName = "baseConfig.json"
-	configFilePath = os.path.join(os.path.dirname(__file__), "..", "config", configFileName)
-	with open(configFilePath) as inf:
+	from definitions import getBaseConfigurationFilePath
+	with open(getBaseConfigurationFilePath()) as inf:
 		config = json.load(inf, object_pairs_hook=OrderedDict)
 		config = config['states']
 

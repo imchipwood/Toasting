@@ -18,9 +18,9 @@
   "states": {
     "ramp2soak": {
       "target": 150,
-      "duration": 180
+      "duration": 120
     },
-    "preheat": {
+    "soak": {
       "target": 150,
       "duration": 60
     },
@@ -34,7 +34,7 @@
     },
     "cooling": {
       "target": 50,
-      "duration": 240
+      "duration": 180
     }
   }
 }

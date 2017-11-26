@@ -1,6 +1,6 @@
-import json
-import logging
+# Generic imports
 import os
+import logging
 from collections import OrderedDict
 
 import matplotlib
@@ -11,6 +11,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 import wx
 import wx.grid
 
+# Application imports
 from library.ui.ToastingGUIBase import ToastingBase
 from library.ui.visualizer_configuration import ConfigurationVisualizer, CONFIG_KEY_DURATION, CONFIG_KEY_TARGET
 from library.ui.visualizer_liveGraph import LiveVisualizer
@@ -79,7 +80,8 @@ class ToastingGUI(ToastingBase):
 		# Start the timer (period stored in seconds, Start() takes period in mS)
 		self.timer.Start(self.timerPeriod * 1000)
 
-		self.updateConfigFields()
+		# Initialize all the pages
+		self.updateGuiFieldsFromNewConfig()
 
 	def bindEvents(self):
 		"""Bind all events not bound in base GUI class"""
@@ -243,7 +245,7 @@ class ToastingGUI(ToastingBase):
 	# region Visualization
 
 	@decorators.BusyReady(MODEL_NAME)
-	def redrawConfigurationVisualization(self, visualizer):
+	def redrawConfigurationVisualization(self):
 		"""Add a new configurationVisualizer to the configuration panel
 
 		@param visualizer: matplotlib configurationVisualizer for displaying config setup
@@ -255,6 +257,7 @@ class ToastingGUI(ToastingBase):
 		sizer.Layout()
 
 		# Create and add the configurationVisualizer canvas to the sizer
+		visualizer = ConfigurationVisualizer(self.stateConfiguration, units=self.units)
 		canvas = FigureCanvas(self.configurationVisualizerPanel, -1, visualizer.fig)
 		sizer.Add(canvas, 1, wx.EXPAND)
 		self.configurationVisualizerPanel.Layout()
@@ -276,12 +279,15 @@ class ToastingGUI(ToastingBase):
 
 	def updateLiveVisualization(self):
 		"""Add the latest data points to the live visualization"""
+		# Add data to the graph
 		self.liveVisualizer.addDataPoint(
 			self.toaster.timestamp,
 			self.temperature,
 			self.toaster.targetState,
 			self.toaster.currentState
 		)
+		
+		# Force visualizer to redraw itself with the new data
 		self.liveCanvas.draw()
 
 	# endregion Visualization
@@ -464,11 +470,13 @@ class ToastingGUI(ToastingBase):
 	# endregion StatusGrid
 	# region DialogHelpers
 
+	"""Dialog helpers are simple macros for creating various wx dialog windows"""
+
 	def infoMessage(self, message, caption=None):
 		dialog = wx.MessageDialog(
 			parent=self,
 			message=message,
-			caption=caption if caption else "Warning",
+			caption=caption if caption else "Info",
 			style=wx.OK | wx.ICON_INFORMATION
 		)
 		dialog.ShowModal()
@@ -478,7 +486,7 @@ class ToastingGUI(ToastingBase):
 		dialog = wx.MessageDialog(
 			parent=self,
 			message=message,
-			caption=caption if caption else "Warning",
+			caption=caption if caption else "Toasting needs your input",
 			style=wx.YES_NO | wx.ICON_INFORMATION
 		)
 		result = dialog.ShowModal()
@@ -489,7 +497,7 @@ class ToastingGUI(ToastingBase):
 		dialog = wx.MessageDialog(
 			parent=self,
 			message=message,
-			caption=caption if caption else "Warning",
+			caption=caption if caption else "Error",
 			style=wx.OK | wx.ICON_ERROR
 		)
 		dialog.ShowModal()
@@ -541,6 +549,8 @@ class ToastingGUI(ToastingBase):
 			for rowNum in range(self.configurationGrid.GetNumberRows()):
 				self.configurationGrid.SetCellAlignment(wx.ALIGN_CENTER, rowNum, colNum)
 
+		self.redrawConfigurationVisualization()
+
 	@decorators.BusyReady(MODEL_NAME)
 	def configurationGridOnGridCellChange(self, event):
 		"""Event handler for cell value changing
@@ -548,9 +558,11 @@ class ToastingGUI(ToastingBase):
 		@param event: wx.grid.EVT_GRID_CELL_CHANGED
 		"""
 		event.Skip()
+		# Get the state config
 		self.stateConfiguration = self.convertConfigGridToStateConfig()
-		self.configurationVisualizer = ConfigurationVisualizer(self.stateConfiguration)
-		self.redrawConfigurationVisualization(self.configurationVisualizer)
+
+		# Update the config visualization
+		self.redrawConfigurationVisualization()
 
 	def executeConfigButtonOnButtonClick(self, event):
 		"""Event handler for execution button
@@ -587,10 +599,10 @@ class ToastingGUI(ToastingBase):
 		@param filePath: path to new JSON config file
 		@type filePath: str
 		"""
-		self.config = self.toaster.getConfigFromJsonFile(filePath)
+		self.config = ToastStateMachine.getConfigFromJsonFile(filePath)
 
 		# Update the GUI
-		self.updateConfigFields()
+		self.updateGuiFieldsFromNewConfig()
 
 	def loadConfigDialog(self):
 		"""Show user a load file dialog and update configuration accordingly"""
@@ -614,34 +626,23 @@ class ToastingGUI(ToastingBase):
 		# Update config grid
 		self.initializeConfigurationPage()
 
-		# Create new configurationVisualizer and draw it
-		self.configurationVisualizer = ConfigurationVisualizer(self.stateConfiguration, units=self.units)
-		self.redrawConfigurationVisualization(self.configurationVisualizer)
-		self.updateStatus("Configuration Updated")
+		# Draw the config visualization
+		self.redrawConfigurationVisualization()
 
-	def getStateConfigurationFromJsonFile(self, configPath):
-		"""Parse a JSON config file and return the states specifically
-
-		@param configPath: path to configuration json file
-		@type configPath: str
-		@return: OrderedDict
-		"""
-		config = ToastStateMachine.getConfigFromJsonFile(configPath)
-		return config['states']
-
-	def updateConfigFields(self):
-		"""Update all GUI fields pertaining to Toaster config
-		@note: call this any time the config is updated in some way
-		"""
-		# Configuration grid
-		self.updateConfigurationGrid()
-
+	def updateGuiFieldsFromNewConfig(self):
+		"""Update all GUI fields pertaining to Toaster config"""
 		# Units
 		self.celciusRadioButton.SetValue(self.config['units'] == 'celcius')
 		self.fahrenheitRadioButton.SetValue(self.config['units'] == 'fahrenheit')
 
-		# Tuning
+		# Configuration grid
+		self.updateConfigurationGrid()
+
+		# Tuning page
 		self.initializeTuningPage()
+
+		# Live graph page
+		self.initializeToastingPage()
 
 	def convertConfigGridToStateConfig(self):
 		"""Put values from grid into dictionary
@@ -747,9 +748,9 @@ class ToastingGUI(ToastingBase):
 	# region ToastingPage
 
 	def initializeToastingPage(self):
-		"""Initialize the execution page with a new config"""
+		"""Draw the basic live-graph for the Toasting page"""
 		# get current config
-		self.stateConfiguration = self.convertConfigGridToStateConfig()
+		# self.stateConfiguration = self.convertConfigGridToStateConfig()
 
 		# Initialize live visualizer
 		self.liveVisualizer = LiveVisualizer(stateConfiguration=self.stateConfiguration, units=self.units)
@@ -910,15 +911,19 @@ class ToastingGUI(ToastingBase):
 
 		@param event: wx.EVT_NOTEBOOK_PAGE_CHANGED
 		"""
-		event.Skip()
+		# Define which functions to use when changing to each page
+		pageInitFunctions = {
+			0: self.initializeConfigurationPage,
+			1: self.initializeTuningPage,
+			2: self.initializeToastingPage
+		}
+
+		# Get the index of the page we're changing to and call the corresponding function
 		index = event.GetEventObject().GetSelection()
-		if index == 0:
-			# do nothing - leave existing config alone
-			return
-		elif index == 1:
-			self.initializeTuningPage()
-		elif index == 2:
-			self.initializeToastingPage()
+		pageInitFunctions[index]()
+
+		# Call the page change event func or the page won't initialize properly
+		event.Skip()
 
 	@decorators.BusyReady(MODEL_NAME)
 	def temperatureOnRadioButton(self, event):
@@ -926,7 +931,6 @@ class ToastingGUI(ToastingBase):
 
 		@param event: wx.EVT_RADIO_BUTTON
 		"""
-		# self.logger.debug("temperatureOnRadioButton")
 		radioBox = event.GetEventObject()
 		if radioBox == self.celciusRadioButton and self.units == 'celcius':
 			return
