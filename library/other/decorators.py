@@ -7,23 +7,21 @@ BusyCounterDict = Counter()
 LocksDict = defaultdict(lambda: Lock())
 
 
-def sendBusySignal(modelName, functionName):
+def sendBusySignal(modelName):
 	with LocksDict[modelName]:
 		# increment counter for busy indicating that it's busy
 		BusyCounterDict[modelName] = BusyCounterDict[modelName] + 1
 		# send ready signal if all other ready signals finished
 		if BusyCounterDict[modelName] >= 1:
-			print("{}_BUSY: {}".format(modelName, functionName))
 			pub.sendMessage('{}_BUSY'.format(modelName))
 
 
-def sendReadySignal(modelName, functionName):
+def sendReadySignal(modelName):
 	with LocksDict[modelName]:
 		# decrement counter
 		BusyCounterDict[modelName] = BusyCounterDict[modelName] - 1
 		# send ready signal if all other ready signals finished
 		if BusyCounterDict[modelName] == 0:
-			print("{}_READY: {}".format(modelName, functionName))
 			pub.sendMessage('{}_READY'.format(modelName))
 
 
@@ -33,14 +31,12 @@ def BusyReady(modelName):
 		def wrapper(*args, **kwargs):
 			try:
 				# Call the busy function
-				sendBusySignal(modelName, function.__name__)
-				print("BUSY/COUNTERS: {}, {}".format(function.__name__, BusyCounterDict[modelName]))
+				sendBusySignal(modelName)
 				# Call the actual function
 				return function(*args, **kwargs)
 			finally:
 				# Call the ready function
-				sendReadySignal(modelName, function.__name__)
-				print("READY/COUNTERS: {}, {}".format(function.__name__, BusyCounterDict[modelName]))
+				sendReadySignal(modelName)
 
 		return wrapper
 
