@@ -25,6 +25,8 @@ MODEL_NAME = "Toasting"
 DEBUG_LEVEL = logging.INFO
 DEBUG_LEVEL = logging.DEBUG
 
+# TODO: Figure out why there's an error on exit for tuning/toasting pages
+
 
 class ToastingGUI(ToastingBase):
 
@@ -749,10 +751,6 @@ class ToastingGUI(ToastingBase):
 
 	def initializeToastingPage(self):
 		"""Draw the basic live-graph for the Toasting page"""
-		# get current config
-		# self.stateConfiguration = self.convertConfigGridToStateConfig()
-
-		# Initialize live visualizer
 		self.liveVisualizer = LiveVisualizer(stateConfiguration=self.stateConfiguration, units=self.units)
 		self.redrawLiveVisualization(visualizer=self.liveVisualizer)
 
