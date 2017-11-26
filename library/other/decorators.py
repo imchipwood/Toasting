@@ -32,9 +32,11 @@ def BusyReady(modelName):
 			try:
 				# Call the busy function
 				sendBusySignal(modelName)
+				print("BUSY: {}".format(function.__name__))
 				# Call the actual function
 				return function(*args, **kwargs)
 			finally:
+				print("READY: {}".format(function.__name__))
 				# Call the ready function
 				sendReadySignal(modelName)
 

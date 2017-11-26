@@ -246,7 +246,7 @@ class ToastingGUI(ToastingBase):
 	# endregion BusyReady
 	# region Visualization
 
-	# @decorators.BusyReady(MODEL_NAME)
+	@decorators.BusyReady(MODEL_NAME)
 	def redrawConfigurationVisualization(self):
 		"""Add a new configurationVisualizer to the configuration panel
 
