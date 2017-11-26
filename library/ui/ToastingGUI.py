@@ -990,21 +990,8 @@ class ToastingGUI(ToastingBase):
 
 		@param event: wx.EVT_CLOSE
 		"""
-		event.Skip()
 		self.toaster.cleanup()
 		self.Destroy()
+		event.Skip()
 		
 	# endregion GeneralEventHandlers
-
-
-if __name__ == '__main__':
-	# create the base app
-	app = wx.App()
-
-	# instantiate the view
-	view = ToastingGUI(None)
-	view.Show()
-
-	# bring the view to the top & run it
-	app.SetTopWindow(view)
-	app.MainLoop()
