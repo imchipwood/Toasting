@@ -343,10 +343,6 @@ class ToastingGUI(ToastingBase):
 		self.stateConfiguration = newConfiguration
 
 		self.initCurrentPage()
-		# if self.baseNotebook.GetSelection() == self.notebookPages.index('Configuration'):
-		# 	self.initializeConfigurationPage()
-		# elif self.baseNotebook.GetSelection() == self.notebookPages.index('Toasting!'):
-		# 	self.initializeToastingPage()
 
 	def convertTemp(self, temp):
 		"""Convert a temp to the currently set units
