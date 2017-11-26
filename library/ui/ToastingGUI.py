@@ -25,8 +25,6 @@ MODEL_NAME = "Toasting"
 DEBUG_LEVEL = logging.INFO
 DEBUG_LEVEL = logging.DEBUG
 
-# TODO: Figure out why there's an error on exit for tuning/toasting pages
-
 
 class ToastingGUI(ToastingBase):
 
