@@ -268,7 +268,7 @@ class ToastingGUI(ToastingBase):
 		@param visualizer: matplotlib configurationVisualizer for displaying config setup
 		@type visualizer: ConfigurationVisualizer
 		"""
-		# self.logger.debug("redrawConfigurationVisualization")
+		self.logger.debug("redrawConfigurationVisualization START")
 		# Clear out existing configurationVisualizer
 		sizer = self.configurationVisualizerPanel.GetSizer()
 		sizer.Clear()
@@ -279,6 +279,7 @@ class ToastingGUI(ToastingBase):
 		canvas = FigureCanvas(self.configurationVisualizerPanel, -1, visualizer.fig)
 		sizer.Add(canvas, 1, wx.EXPAND)
 		self.configurationVisualizerPanel.Layout()
+		self.logger.debug("redrawConfigurationVisualization FINISH")
 
 	@decorators.BusyReady(MODEL_NAME)
 	def redrawLiveVisualization(self, visualizer):
