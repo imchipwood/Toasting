@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import os
 import wx
 from library.ui.ToastingGUI import ToastingGUI
