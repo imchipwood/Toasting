@@ -578,7 +578,7 @@ class ToastingGUI(ToastingBase):
 		@param event: wx.grid.EVT_GRID_CELL_CHANGED
 		"""
 		# self.logger.debug("configurationGridOnGridCellChange")
-		event.Skip()
+		# event.Skip()
 		# Get the state config
 		self.stateConfiguration = self.convertConfigGridToStateConfig()
 
