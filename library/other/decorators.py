@@ -12,7 +12,7 @@ def sendBusySignal(modelName):
 		# increment counter for busy indicating that it's busy
 		BusyCounterDict[modelName] = BusyCounterDict[modelName] + 1
 		# send ready signal if all other ready signals finished
-		if BusyCounterDict[modelName] == 1:
+		if BusyCounterDict[modelName] >= 1:
 			pub.sendMessage('{}_BUSY'.format(modelName))
 
 
