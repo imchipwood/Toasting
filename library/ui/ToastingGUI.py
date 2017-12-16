@@ -308,13 +308,20 @@ class ToastingGUI(ToastingBase):
 	# endregion Visualization
 	# region Helpers
 
-	def updateStatus(self, text):
+	def updateStatus(self, text, logLevel=None):
 		"""Convenience function for updating status bar
 
 		@param text: text to put on status bar
 		@type text: str
 		"""
 		self.statusBar.SetStatusText(text)
+		if logLevel == logging.INFO:
+			self.logger.info(text)
+		if logLevel in [logging.WARNING, logging.WARN]:
+			self.logger.warning(text)
+		if logLevel == logging.ERROR:
+			self.logger.error(text)
+
 
 	@decorators.BusyReady(MODEL_NAME)
 	def temperatureUnitsChange(self):
@@ -602,6 +609,7 @@ class ToastingGUI(ToastingBase):
 
 		# Show dialog and return if user didn't actually choose a file
 		if dialog.ShowModal() == wx.ID_CANCEL:
+			self.updateStatus("Save config operation cancelled", logLevel=logging.WARN)
 			return
 
 		# Extract file path from dialog and dump config
@@ -826,19 +834,25 @@ class ToastingGUI(ToastingBase):
 		)
 		# exit if user cancelled operation
 		if dialog.ShowModal() != wx.OK:
+			self.updateStatus("Save data/config operation cancelled", logLevel=logging.WARN)
 			return
 
 		csvPath = dialog.GetPath()
 		if self.toaster.dumpDataToCsv(csvPath):
-			self.updateStatus("CSV stored @ {}".format(csvPath))
+			status = "CSV stored @ {}".format(csvPath)
+			logLevel = None
 		else:
-			self.updateStatus("No data to dump")
+			status = "No data to dump"
+			logLevel = logging.WARN
+		self.updateStatus(status, logLevel)
 
 		# Dump config, too
 		directory = os.path.dirname(csvPath)
 		filename = os.path.basename(csvPath).replace(".csv", ".json")
 		configPath = os.path.join(directory, filename)
 		self.toaster.dumpConfig(configPath)
+		status = "Config stored @ {}".format(configPath)
+		self.updateStatus(status, logLevel=logging.INFO)
 
 	# endregion ToastingPage
 	# region Testing
