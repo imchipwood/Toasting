@@ -833,7 +833,7 @@ class ToastingGUI(ToastingBase):
 			style=wx.FD_SAVE
 		)
 		# exit if user cancelled operation
-		if dialog.ShowModal() != wx.OK:
+		if dialog.ShowModal() == wx.ID_CANCEL:
 			self.updateStatus("Save data/config operation cancelled", logLevel=logging.WARN)
 			return
 
