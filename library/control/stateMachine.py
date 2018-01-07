@@ -161,9 +161,10 @@ class ToastStateMachine(object):
 		self.timestamp = 0.0
 		self.lastControlLoopTimestamp = 0.0
 		self.stateIndex = 0
-		self.updateStateVariables()
 		self.lastTarget = 0.0
+		self.updateStateVariables()
 		self.data = []
+		self.soaking = False
 
 	def stop(self):
 		"""Stop the state machine"""
@@ -171,8 +172,8 @@ class ToastStateMachine(object):
 		self.stateIndex = 0
 		self.timestamp = 0.0
 		self.lastControlLoopTimestamp = 0.0
-		self.updateStateVariables()
 		self.lastTarget = 0.0
+		self.updateStateVariables()
 
 	def resume(self):
 		"""Resume a paused state machine"""
