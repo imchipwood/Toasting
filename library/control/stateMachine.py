@@ -10,6 +10,14 @@ from library.control.pid import PID
 from library.ui.visualizer_configuration import CONFIG_KEY_TARGET, CONFIG_KEY_DURATION
 
 
+class STATES:
+	RUNNING = 'Running'
+	STOPPED = 'Stopped'
+	PAUSED = 'Paused'
+	TESTING = 'Testing'
+	COMPLETE = 'Complete'
+
+
 class ToastStateMachine(object):
 	"""State Machine for Toasting2.0
 
@@ -41,8 +49,7 @@ class ToastStateMachine(object):
 		self.stateMachineCompleteCallback = stateMachineCompleteCallback
 
 		self.soaking = False
-		self.runningStates = ['Running', 'Paused', 'Stopped']
-		self.running = 'Stopped'
+		self.running = STATES.STOPPED
 
 		# Control loop
 		self.timestamp = 0.0
@@ -155,7 +162,7 @@ class ToastStateMachine(object):
 	def start(self):
 		"""Begin the state machine"""
 		self.logger.debug("Beginning state machine")
-		self.running = 'Running'
+		self.running = STATES.RUNNING
 		# reset all the state variables
 		self.pid.zeroierror()
 		self.timestamp = 0.0
@@ -168,7 +175,7 @@ class ToastStateMachine(object):
 
 	def stop(self):
 		"""Stop the state machine"""
-		self.running = 'Stopped'
+		self.running = STATES.STOPPED
 		self.stateIndex = 0
 		self.timestamp = 0.0
 		self.lastControlLoopTimestamp = 0.0
@@ -177,11 +184,11 @@ class ToastStateMachine(object):
 
 	def resume(self):
 		"""Resume a paused state machine"""
-		self.running = 'Running'
+		self.running = STATES.RUNNING
 
 	def pause(self):
 		"""Pause a currently running state machine"""
-		self.running = 'Paused'
+		self.running = STATES.PAUSED
 
 	def getRecentErrorCount(self):
 		"""Count # of recent errors
@@ -202,7 +209,7 @@ class ToastStateMachine(object):
 			self.logger.exception("Thermocouple read error")
 
 		# Don't do anything if we're not running
-		if self.running not in ['Running', 'Testing']:
+		if self.running not in [STATES.RUNNING, STATES.TESTING]:
 			if not testing:
 				self.relay.disable()
 			return
@@ -265,13 +272,13 @@ class ToastStateMachine(object):
 
 		# Check if state machine has reached the end
 		if self.stateIndex == len(self.states):
-			self.running = 'Complete'
+			self.running = STATES.COMPLETE
 			if self.stateMachineCompleteCallback:
 				self.stateMachineCompleteCallback()
 			return
 
 		# Update state variables if we're still running
-		if self.running == 'Running':
+		if self.running == STATES.RUNNING:
 			self.updateStateVariables()
 
 	def updateStateVariables(self):

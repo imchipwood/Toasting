@@ -15,7 +15,7 @@ import wx.grid
 from library.ui.ToastingGUIBase import ToastingBase
 from library.ui.visualizer_configuration import ConfigurationVisualizer, CONFIG_KEY_DURATION, CONFIG_KEY_TARGET
 from library.ui.visualizer_liveGraph import LiveVisualizer
-from library.control.stateMachine import ToastStateMachine
+from library.control.stateMachine import ToastStateMachine, STATES
 from library.other import decorators
 from library.other.setupLogging import getLogger
 from definitions import CONFIG_DIR, DATA_DIR
@@ -224,7 +224,7 @@ class ToastingGUI(ToastingBase):
 		self.executeConfigButton.Enable(enable)
 
 		# Temperature units radio boxes
-		if self.toaster.running in ['Running', 'Paused'] or self.testing:
+		if self.toaster.running in [STATES.RUNNING, STATES.PAUSED] or self.testing:
 			self.celciusRadioButton.Enable(False)
 			self.fahrenheitRadioButton.Enable(False)
 		else:
@@ -233,7 +233,7 @@ class ToastingGUI(ToastingBase):
 
 		# Save data button
 		try:
-			if self.toaster.running not in ['Stopped', 'Complete'] or self.toaster.data == []:
+			if self.toaster.running not in [STATES.STOPPED, STATES.COMPLETE] or self.toaster.data == []:
 				self.saveDataButton.Enable(False)
 			else:
 				self.saveDataButton.Enable(enable)
@@ -246,7 +246,7 @@ class ToastingGUI(ToastingBase):
 			self.pauseReflowButton.Enable(False)
 			self.startStopReflowButton.Enable(False)
 		else:
-			if self.toaster.running in ['Running', 'Paused']:
+			if self.toaster.running in [STATES.RUNNING, STATES.PAUSED]:
 				self.testButton.Enable(False)
 				self.pauseReflowButton.Enable(True)
 				self.startStopReflowButton.Enable(True)
@@ -371,10 +371,10 @@ class ToastingGUI(ToastingBase):
 		self.updateRelayStatus()
 
 		# status
-		status = 'Testing' if self.testing else self.toaster.running
-		if status in ['Stopped', 'Testing']:
+		status = STATES.TESTING if self.testing else self.toaster.running
+		if status in [STATES.STOPPED, STATES.TESTING]:
 			red, green, blue = 255, 100, 100
-		elif status == 'Paused':
+		elif status == STATES.PAUSED:
 			red, green, blue = 100, 100, 255
 		else:
 			red, green, blue = 100, 255, 100
@@ -382,7 +382,7 @@ class ToastingGUI(ToastingBase):
 		self.setStatusGridCellColour('status', red, green, blue)
 
 		# state
-		if self.toaster.running in ['Running', 'Paused']:
+		if self.toaster.running in [STATES.RUNNING, STATES.PAUSED]:
 			stateColor = self.liveVisualizer.getColor(
 				self.toaster.targetState,
 				self.toaster.lastTarget
@@ -397,9 +397,9 @@ class ToastingGUI(ToastingBase):
 			self.setStatusGridCellValue('state', self.toaster.currentState)
 			self.setStatusGridCellColour('state', red, green, blue)
 
-		elif self.toaster.running == 'Complete':
+		elif self.toaster.running == STATES.COMPLETE:
 			red, green, blue = 100, 255, 100
-			self.setStatusGridCellValue('state', 'Complete')
+			self.setStatusGridCellValue('state', STATES.COMPLETE)
 			self.setStatusGridCellColour('state', red, green, blue)
 		else:
 			red, green, blue = 255, 255, 255
@@ -860,7 +860,7 @@ class ToastingGUI(ToastingBase):
 	# @decorators.BusyReady(MODEL_NAME)
 	def testTick(self):
 		"""Fire this event to test relay"""
-		self.setStatusGridCellValue('status', 'Testing')
+		self.setStatusGridCellValue('status', STATES.TESTING)
 
 		# enable/disable relay at 1Hz
 		if self.testTimer % 1 == 0:
@@ -891,7 +891,7 @@ class ToastingGUI(ToastingBase):
 		event.Skip()
 
 		# handle progress gauge
-		if self.testing or self.toaster.running == 'Running':
+		if self.testing or self.toaster.running == STATES.RUNNING:
 			self.progressGauge.Pulse()
 			# disable other panels while running
 			self.configurationPanel.Enable(False)
@@ -919,7 +919,7 @@ class ToastingGUI(ToastingBase):
 			self.testTick()
 
 		# Update live visualization if we're running
-		if self.toaster.running == 'Running':
+		if self.toaster.running == STATES.RUNNING:
 			self.updateLiveVisualization()
 
 		# update status grid
