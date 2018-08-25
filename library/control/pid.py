@@ -33,26 +33,50 @@ class PID(object):
 
 	@property
 	def kP(self):
+		"""
+		@rtype: float
+		"""
 		return self._kP
 
 	@kP.setter
 	def kP(self, kP):
+		"""
+		Set the proportional gain
+		@param kP: new proportional gain
+		@type kP: str or int or float
+		"""
 		self._kP = float(kP)
 
 	@property
 	def kI(self):
+		"""
+		@rtype: float
+		"""
 		return self._kI
 
 	@kI.setter
 	def kI(self, kI):
+		"""
+		Set the integrated gain
+		@param kI: new integrated gain
+		@type kI: str or int or float
+		"""
 		self._kI = float(kI)
 
 	@property
 	def kD(self):
+		"""
+		@rtype: float
+		"""
 		return self._kD
 
 	@kD.setter
 	def kD(self, kD):
+		"""
+		Set the derivative gain
+		@param kD: new derivative gain
+		@type kD: str or int or float
+		"""
 		self._kD = float(kD)
 
 	# endregion Gains
@@ -60,10 +84,16 @@ class PID(object):
 		
 	@property
 	def state(self):
+		"""
+		@rtype: float
+		"""
 		return self._currentState
 
 	@property
 	def target(self):
+		"""
+		@rtype: float
+		"""
 		return self._targetState
 
 	@target.setter
@@ -72,27 +102,43 @@ class PID(object):
 
 	@property
 	def output(self):
+		"""
+		@rtype: float
+		"""
 		return self._output
 
 	@output.setter
 	def output(self, val):
-		"""Output Setter - apply limits"""
-		if val > self.max:
+		"""
+		Output Setter - apply limits
+		@param val: new output value
+		@type val: float or int
+		"""
+		if self.max is not None and val > self.max:
 			val = self.max
-		elif val < self.min:
+		elif self.min is not None and val < self.min:
 			val = self.min
 		self._output = val
 
 	@property
 	def error(self):
+		"""
+		@rtype: float
+		"""
 		return self._error
 
 	@property
 	def ierror(self):
+		"""
+		@rtype: float
+		"""
 		return self._iError
 
 	@property
 	def derror(self):
+		"""
+		@rtype: float
+		"""
 		return self._dError
 
 	# endregion States
@@ -100,10 +146,18 @@ class PID(object):
 
 	@property
 	def windupGuard(self):
+		"""
+		@rtype: float
+		"""
 		return self._windupGuard
 
 	@windupGuard.setter
 	def windupGuard(self, windupGuard):
+		"""
+		Set the Integrated error windup guard
+		@param windupGuard: new windup guard
+		@type windupGuard: str or int or float
+		"""
 		if windupGuard is not None:
 			self._windupGuard = float(windupGuard)
 		else:
@@ -111,14 +165,22 @@ class PID(object):
 
 	@property
 	def min(self):
+		"""
+		@rtype: float
+		"""
 		return self._min
 
 	@min.setter
 	def min(self, minVal):
-		"""Min Setter - force less than max"""
+		"""
+		Min Setter - force less than max
+		Raises exception if min is greater than max
+		@param minVal: new minimum output value
+		@type minVal: float or int
+		"""
 		if minVal is not None:
 			minVal = float(minVal)
-		if self.max:
+		if self.max is not None:
 			assert minVal < self.max
 		if minVal is not None:
 			self._min = minVal
@@ -127,14 +189,22 @@ class PID(object):
 
 	@property
 	def max(self):
+		"""
+		@rtype: float
+		"""
 		return self._max
 
 	@max.setter
 	def max(self, maxVal):
-		"""Max Setter - force greater than min"""
+		"""
+		Max Setter - force greater than min
+		Raises exception if max is lower than min
+		@param maxVal: new maximum output value
+		@type maxVal: float or int
+		"""
 		if maxVal is not None:
 			maxVal = float(maxVal)
-		if self.min:
+		if self.min is not None:
 			assert self.min < maxVal
 		if maxVal is not None:
 			self._max = maxVal
@@ -145,9 +215,10 @@ class PID(object):
 	# region Config
 
 	def setConfig(self, configDict):
-		"""Set new config for PID controller
-
+		"""
+		Set new config for PID controller
 		@param configDict: dict of PID parameters
+		@type configDict: dict[str, float]
 		"""
 		self.kP = configDict['kP']
 		self.kI = configDict['kI']
@@ -158,7 +229,9 @@ class PID(object):
 		self.zeroierror()
 
 	def getConfig(self):
-		"""Return current PID settings as dict"""
+		"""
+		Return current PID settings as dict
+		"""
 		config = OrderedDict()
 		config['kP'] = self.kP
 		config['kI'] = self.kI
@@ -172,14 +245,14 @@ class PID(object):
 	# region Execution
 
 	def compute(self, currenttime, currentstate=None, newState=False):
-		"""Compute the output of the PID controller based on the elapsed time and the current target
-
+		"""
+		Compute the output of the PID controller based on the elapsed time and the current target
 		@param currenttime: the time at which the latest input was sampled
 		@type currenttime: float
 		@param currentstate: (Optional) current state of device PID controller is controlling. otherwise uses self._currentState
 		@type currentstate: float
-
-		@return: float
+		@return: output of PID computation
+		@rtype: float
 		"""
 		if not self.target:
 			raise Exception("No target state set, cannot compute PID output")
@@ -204,7 +277,7 @@ class PID(object):
 				self._iError = self.windupGuard
 
 		# derivative of error from target
-		if newState:
+		if newState or self._deltaTime == 0:
 			# force derivative to 0 if we just changed states
 			self._dError = 0.0
 		else:
@@ -212,7 +285,7 @@ class PID(object):
 			self._dError = (self.error - self._lastError) / self._deltaTime
 
 		# apply gains to error values
-		self._output = self.kP * self.error + self.kI * self.ierror + self.kD * self.derror
+		self.output = self.kP * self.error + self.kI * self.ierror + self.kD * self.derror
 
 		self._lastTime = currenttime
 		self._lastError = self.error
@@ -220,6 +293,9 @@ class PID(object):
 		return self.output
 
 	def zeroierror(self):
+		"""
+		Zero out the integrated error
+		"""
 		self._iError = 0.0
 
 	# endregion Execution
