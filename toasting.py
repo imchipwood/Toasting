@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import wx
 from library.ui.ToastingGUI import ToastingGUI
-from definitions import getBaseConfigurationFilePath
+from definitions import GetBaseConfigurationFilePath
 
 
 if __name__ == "__main__":
@@ -11,7 +11,7 @@ if __name__ == "__main__":
 	# Create GUI frame
 	view = ToastingGUI(
 		parent=None,
-		baseConfigurationPath=getBaseConfigurationFilePath()
+		baseConfigurationPath=GetBaseConfigurationFilePath()
 	)
 	view.Show()
 	app.SetTopWindow(view)

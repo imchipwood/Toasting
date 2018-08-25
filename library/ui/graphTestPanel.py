@@ -147,8 +147,8 @@ if __name__ == "__main__":
 	app = wx.App()
 
 	# Open a fake config
-	from definitions import getBaseConfigurationFilePath
-	with open(getBaseConfigurationFilePath()) as inf:
+	from definitions import GetBaseConfigurationFilePath
+	with open(GetBaseConfigurationFilePath()) as inf:
 		config = json.load(inf, object_pairs_hook=OrderedDict)
 		config = config['states']
 

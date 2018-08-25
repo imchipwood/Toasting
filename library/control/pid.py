@@ -98,6 +98,11 @@ class PID(object):
 
 	@target.setter
 	def target(self, target):
+		"""
+		Set a new target state
+		@param target: new target state
+		@type target: str or int or float
+		"""
 		self._targetState = float(target)
 
 	@property

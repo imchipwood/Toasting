@@ -19,15 +19,23 @@ class STATES:
 
 
 class ToastStateMachine(object):
-	"""State Machine for Toasting2.0
-
+	"""
+	State Machine for Toasting2.0
 	Two types of states:
 	1. Heating/Cooling - state is complete when target temperature is reached, regardless of duration
 	2. Soaking - state is complete when duration expires, regardless of target temperature
 		Soaking states hold the same temperature reached at the end of the previous state
-
 	"""
 	def __init__(self, jsonConfigPath, stateMachineCompleteCallback=None, debugLevel=logging.INFO):
+		"""
+		ToastStateMachine Constructor
+		@param jsonConfigPath: path to JSON configuration file
+		@type jsonConfigPath: str
+		@param stateMachineCompleteCallback: callback to use for UI update on reflow completion
+		@type stateMachineCompleteCallback: func
+		@param debugLevel: logging level
+		@type debugLevel: int
+		"""
 		super(ToastStateMachine, self).__init__()
 
 		self.logger = getLogger('ToastStateMachine', debugLevel)
@@ -75,47 +83,101 @@ class ToastStateMachine(object):
 
 	@property
 	def stateConfiguration(self):
+		"""
+		Get the current state configuration
+		@return: current state configuration
+		@rtype: OrderedDict
+		"""
 		return self._config['states']
 
 	@stateConfiguration.setter
 	def stateConfiguration(self, configDict):
+		"""
+		Set a new state configuration
+		@param configDict: new state configuration
+		@type configDict: OrderedDict
+		"""
 		self._config['states'] = configDict
 		self.states = list(self.stateConfiguration.keys())
 
 	@property
 	def targetState(self):
+		"""
+		Get the current target state
+		@return: current target state
+		@rtype: float
+		"""
 		return self.pid.target
 
 	@targetState.setter
 	def targetState(self, newTarget):
+		"""
+		Set a new target state
+		@param newTarget: new target state
+		@type newTarget: str or int or float
+		"""
 		self.pid.target = newTarget
 
 	@property
 	def temperature(self):
+		"""
+		Get the current thermocouple temperature
+		@return: current thermocouple temperature
+		@rtype: float
+		"""
 		return self.thermocouple.temperature
 
 	@property
 	def refTemperature(self):
+		"""
+		Get the current reference temperature
+		@return: current reference temperature
+		@rtype: float
+		"""
 		return self.thermocouple.refTemperature
 
 	@property
 	def relayState(self):
+		"""
+		Get the current relay state
+		@return: current relay state
+		@rtype: bool
+		"""
 		return self.relay.state
 
 	@property
 	def units(self):
+		"""
+		Get the current units
+		@return: current units
+		@rtype: str
+		"""
 		return self._config['units']
 
 	@units.setter
 	def units(self, units):
+		"""
+		Set the current units
+		@param units: new units
+		@type units: str
+		"""
 		self._config['units'] = units
 
 	@property
 	def config(self):
+		"""
+		Get the current config
+		@rtype: dict
+		"""
 		return self._config
 
 	@config.setter
 	def config(self, configDict):
+		"""
+		Set the configuration
+		@param configDict: new config dict
+		@type configDict: dict
+		"""
 		self._config = configDict
 
 		# State config
@@ -139,19 +201,21 @@ class ToastStateMachine(object):
 
 	@staticmethod
 	def getConfigFromJsonFile(jsonFile):
-		"""Get config from a JSON file
-
-		@param jsonFile: file path
+		"""
+		Get config from a JSON file
+		@param jsonFile: Path to config file
 		@type jsonFile: str
-		@return: OrderedDict
+		@return: new config dict
+		@rtype: OrderedDict
 		"""
 		with open(jsonFile) as inf:
 			return json.load(inf, object_pairs_hook=OrderedDict)
 
 	def dumpConfig(self, filePath):
-		"""Dump configuration to file
-
-		@param filePath: str path to dump JSON config to
+		"""
+		Dump configuration to file
+		@param filePath: path to dump JSON config to
+		@type filePath: str
 		"""
 		with open(filePath, 'w') as oup:
 			json.dump(self.config, oup, indent=4)
@@ -160,7 +224,9 @@ class ToastStateMachine(object):
 	# region StateMachine
 
 	def start(self):
-		"""Begin the state machine"""
+		"""
+		Begin the state machine
+		"""
 		self.logger.debug("Beginning state machine")
 		self.running = STATES.RUNNING
 		# reset all the state variables
@@ -174,31 +240,43 @@ class ToastStateMachine(object):
 		self.soaking = False
 
 	def stop(self):
-		"""Stop the state machine"""
-		self.running = STATES.STOPPED
-		self.stateIndex = 0
-		self.timestamp = 0.0
-		self.lastControlLoopTimestamp = 0.0
-		self.lastTarget = 0.0
-		self.updateStateVariables()
+		"""
+		Stop the state machine
+		"""
+		if self.running != STATES.STOPPED:
+			self.running = STATES.STOPPED
+			self.stateIndex = 0
+			self.timestamp = 0.0
+			self.lastControlLoopTimestamp = 0.0
+			self.lastTarget = 0.0
+			self.updateStateVariables()
 
 	def resume(self):
-		"""Resume a paused state machine"""
+		"""
+		Resume a paused state machine
+		"""
 		self.running = STATES.RUNNING
 
 	def pause(self):
-		"""Pause a currently running state machine"""
+		"""
+		Pause a currently running state machine
+		"""
 		self.running = STATES.PAUSED
 
 	def getRecentErrorCount(self):
-		"""Count # of recent errors
-
-		@return: int
+		"""
+		Get the number of recent errors
+		@return: number of recent errors
+		@rtype: int
 		"""
 		return len([error for error in self.recentTCErrors if error is not None])
 
 	def tick(self, testing=False):
-		"""Call every tick of clock/timer to increment timestamp"""
+		"""
+		Call every tick of clock/timer to increment timestamp
+		@param testing: flag to disable relay control
+		@type testing: bool (default = False)
+		"""
 		# read the thermocouple
 		try:
 			self.recentTCErrors.pop(0)
@@ -245,28 +323,35 @@ class ToastStateMachine(object):
 			self.updateData()
 
 	def readyForNextState(self):
-		"""Check if we're ready to move to the next state
-
+		"""
+		Check if we're ready to move to the next state
 		@return: bool
 		"""
 		if self.soaking:
 			if self.timestamp >= self.currentStateEnd:
+				# self.logger.debug("{} state ending due to duration".format(self.currentState))
 				return True
 		else:
 			# Not soaking - have we reached the target temp?
 			# +/- 3.0 as a buffer (yeah doesn't change for Fahrenheit WHATEVER)
 			buffer = 3.0 if self.units == 'celcius' else 3.0 * 9.0/5.0 + 32.0
+			returnVal = False
 			if self.targetState > self.lastTarget:
-				return self.temperature >= self.targetState - 3.0
+				returnVal = self.temperature >= self.targetState - 3.0
 			elif self.targetState < self.lastTarget:
-				return self.temperature <= self.targetState + 3.0
+				returnVal = self.temperature <= self.targetState + 3.0
+			# if self.currentState == self.states[-1]:
+			# 	self.logger.debug("{}: temp target met: {}".format(self.currentState, returnVal))
+			return returnVal
 
 		# Nope, not ready
 		return False
 
 	def nextState(self):
-		"""Move state machine to next state"""
-		self.logger.debug("moving to next state")
+		"""
+		Move state machine to next state
+		"""
+		self.logger.debug("{} - moving to next state".format(self.timestamp))
 		# Increment state index
 		self.stateIndex += 1
 
@@ -275,14 +360,15 @@ class ToastStateMachine(object):
 			self.running = STATES.COMPLETE
 			if self.stateMachineCompleteCallback:
 				self.stateMachineCompleteCallback()
-			return
 
 		# Update state variables if we're still running
 		if self.running == STATES.RUNNING:
 			self.updateStateVariables()
 
 	def updateStateVariables(self):
-		"""Update the current state variables"""
+		"""
+		Update the current state variables
+		"""
 		self.currentState = self.states[self.stateIndex]
 
 		self.lastTarget = self.targetState
@@ -311,7 +397,9 @@ class ToastStateMachine(object):
 	# region Data
 
 	def debugPrint(self):
-		"""Print debug info to screen"""
+		"""
+		Print debug info to screen
+		"""
 		self.logger.debug(
 			"{:7.2f}, {}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}".format(
 				self.timestamp,
@@ -326,7 +414,9 @@ class ToastStateMachine(object):
 		)
 
 	def updateData(self):
-		"""Update data tracking"""
+		"""
+		Update data tracking
+		"""
 		# Build data dict
 		data = {
 			'Timestamp': self.timestamp,
@@ -342,11 +432,12 @@ class ToastStateMachine(object):
 		self.data.append(data)
 
 	def dumpDataToCsv(self, csvPath):
-		"""Dump data to a CSV file
-
+		"""
+		Dump data to a CSV file
 		@param csvPath: path to CSV file to dump data to
 		@type csvPath: str
-		@return: bool - True if successful, False otherwise
+		@return: True if successful, False otherwise
+		@rtype: bool
 		"""
 		if not self.data:
 			return False
@@ -374,7 +465,9 @@ class ToastStateMachine(object):
 	# region GPIO
 
 	def cleanup(self):
-		"""Clean up all GPIO"""
+		"""
+		Clean up all GPIO
+		"""
 		self.relay.disable()
 		self.thermocouple.cleanup()
 		self.relay.cleanup()
