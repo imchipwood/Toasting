@@ -12,7 +12,9 @@ def setmode(mode):
 	pass
 
 
-def setup(pin, type):
+def setup(pin, type, initial=LOW):
+	global STATE
+	STATE = initial
 	pass
 
 
@@ -26,5 +28,5 @@ def cleanup(pin):
 
 
 def input(pin):
-	global STATE
+	# global STATE
 	return STATE

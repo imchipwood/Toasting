@@ -116,10 +116,12 @@ class PID(object):
 	@min.setter
 	def min(self, minVal):
 		"""Min Setter - force less than max"""
-		if self.max:
-			assert self.min < self.max
 		if minVal is not None:
-			self._min = float(minVal)
+			minVal = float(minVal)
+		if self.max:
+			assert minVal < self.max
+		if minVal is not None:
+			self._min = minVal
 		else:
 			self._min = minVal
 
@@ -130,10 +132,12 @@ class PID(object):
 	@max.setter
 	def max(self, maxVal):
 		"""Max Setter - force greater than min"""
-		if self.min:
-			assert self.min < self.max
 		if maxVal is not None:
-			self._max = float(maxVal)
+			maxVal = float(maxVal)
+		if self.min:
+			assert self.min < maxVal
+		if maxVal is not None:
+			self._max = maxVal
 		else:
 			self._max = maxVal
 
