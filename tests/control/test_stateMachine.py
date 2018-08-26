@@ -130,9 +130,9 @@ def test_RunFree_PauseResume():
 
 def test_DumpDataToCsv():
 	"""
-
+	Test that dumping data to CSV works
 	"""
-	sm = GetStateMachine(new=True, debugLevel=logging.DEBUG)
+	sm = GetStateMachine(new=True)
 	sm.stateConfiguration['cooling']['target'] = -5
 	try:
 		# start the state machine
@@ -157,6 +157,7 @@ def test_DumpDataToCsv():
 
 		thread.stop()
 
+		# Remove dump file if it exists
 		dumpPath = GetDataFilePath("testData.csv")
 		if os.path.exists(dumpPath):
 			try:
@@ -165,14 +166,17 @@ def test_DumpDataToCsv():
 				print("Failed to remove test data file - moving on")
 				raise
 
+		# Dump to CSV
 		sm.dumpDataToCsv(dumpPath)
 		assert os.path.exists(dumpPath)
 
+		# Check that the first and last lines in the dump file match the states
 		with open(dumpPath, 'r') as inf:
 			lines = inf.readlines()
-			assert "cooling" in lines[-1]
+			assert sm.states[0] in lines[1]
+			assert sm.states[-1] in lines[-1]
 
-		# Remove the file
+		# Remove the test dump file
 		try:
 			os.remove(dumpPath)
 		except:
