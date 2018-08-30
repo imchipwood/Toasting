@@ -5,7 +5,7 @@ from library.control.pid import PID
 
 
 class ToasterConfig(object):
-	BASE_UNITS = "celcius"
+	BASE_UNITS = "celsius"
 
 	BASE_PINS = {
 		"SPI_CS": 0,
@@ -89,7 +89,7 @@ class ToasterConfig(object):
 
 	@spiCsPin.setter
 	def spiCsPin(self, pin):
-		self._pins['SPI_CS'] = pin
+		self._pins['SPI_CS'] = int(pin)
 
 	@property
 	def relayPin(self):
@@ -97,7 +97,7 @@ class ToasterConfig(object):
 
 	@relayPin.setter
 	def relayPin(self, pin):
-		self._pins['relay'] = pin
+		self._pins['relay'] = int(pin)
 
 	@property
 	def pids(self):
@@ -117,8 +117,8 @@ class ToasterConfig(object):
 
 	@clockPeriod.setter
 	def clockPeriod(self, period):
-		self._clockPeriod = period
-		self._config['tuning']['timerPeriod'] = period
+		self._clockPeriod = float(period)
+		self._config['tuning']['timerPeriod'] = self._clockPeriod
 
 	@property
 	def states(self):
@@ -128,3 +128,12 @@ class ToasterConfig(object):
 	def states(self, states):
 		self._states = states
 		self._config['states'] = states
+
+	def dumpConfig(self, filePath):
+		"""
+		Dump the current config to a file
+		@param filePath: target file path
+		@type filePath: str
+		"""
+		with open(filePath, 'w') as oup:
+			json.dump(self._config, oup, indent=2)

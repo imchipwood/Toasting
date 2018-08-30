@@ -1,15 +1,14 @@
-import os
-
-from library.control.stateMachine import ToastStateMachine
+from library.other.config import ToasterConfig
 from library.sensors.sensor_relay import Relay
+from definitions import GetBaseConfigurationFilePath
 
 global RELAY_PIN
 
 
 def setup_module(module):
 	global RELAY_PIN
-	configPath = os.path.join(os.path.dirname(__file__), "..", "..", "config", "baseConfig.json")
-	RELAY_PIN = ToastStateMachine.getConfigFromJsonFile(configPath).get("pins", {}).get("relay", -1)
+	config = ToasterConfig(GetBaseConfigurationFilePath())
+	RELAY_PIN = config.relayPin
 
 
 def teardown_module(module):

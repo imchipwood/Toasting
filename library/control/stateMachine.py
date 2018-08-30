@@ -4,6 +4,7 @@ import logging
 from collections import OrderedDict
 
 from library.other.setupLogging import getLogger
+from library.other.config import ToasterConfig
 from library.sensors.sensor_relay import Relay
 from library.sensors.sensor_thermocouple import Thermocouple
 from library.control.pid import PID
@@ -38,15 +39,17 @@ class ToastStateMachine(object):
 		"""
 		super(ToastStateMachine, self).__init__()
 
-		self.logger = getLogger('ToastStateMachine', debugLevel)
+		self.debugLevel = debugLevel
+		self.logger = getLogger('ToastStateMachine', self.debugLevel)
 
 		# Config
-		self._config = self.getConfigFromJsonFile(jsonConfigPath)
-		self.pid = PID()
+		self._config = None
+		self.pins = None
+		self.relay = None
+		self.thermocouple = None
+		self._config = None
 
 		# Basics of state machine
-		self.states = None
-		self._stateConfiguration = self.config['states']
 		self.stateIndex = 0
 
 		self.currentState = None
@@ -62,19 +65,15 @@ class ToastStateMachine(object):
 		# Control loop
 		self.timestamp = 0.0
 		self.lastControlLoopTimestamp = 0.0
-		self.timerPeriod = self.config['tuning']['timerPeriod']
 
 		# Sensors
-		self.pins = self.config['pins']
-		self.relay = Relay(self.pins['relay'], debugLevel=debugLevel)
-		self.thermocouple = Thermocouple(self.pins['SPI_CS'], debugLevel=debugLevel)
 		self.maxTCErrorHistory = 10
 		self.recentTCErrors = [None] * self.maxTCErrorHistory
 
 		# PID Controller
 		# self.pid = PID(configDict=self.config['tuning']['pid'])
 
-		self.config = self._config
+		self.config = jsonConfigPath
 
 		# Data tracking
 		self.data = []
@@ -88,7 +87,7 @@ class ToastStateMachine(object):
 		@return: current state configuration
 		@rtype: OrderedDict
 		"""
-		return self._config['states']
+		return self._config.states
 
 	@stateConfiguration.setter
 	def stateConfiguration(self, configDict):
@@ -97,8 +96,44 @@ class ToastStateMachine(object):
 		@param configDict: new state configuration
 		@type configDict: OrderedDict
 		"""
-		self._config['states'] = configDict
-		self.states = list(self.stateConfiguration.keys())
+		self._config.states = configDict
+
+	@property
+	def states(self):
+		if self.stateConfiguration:
+			return list(self.stateConfiguration.keys())
+		else:
+			return []
+
+	@property
+	def pid(self):
+		"""
+		Get the PID object
+		@return: the current PID object
+		@rtype: PID
+		"""
+		if hasattr(self.config, 'pids') and isinstance(self.config.pids, PID):
+			return self._config.pids
+		else:
+			return None
+
+	@property
+	def timerPeriod(self):
+		"""
+		Get the current timer period
+		@return: current timer period
+		@rtype: float
+		"""
+		return self._config.clockPeriod
+
+	@timerPeriod.setter
+	def timerPeriod(self, period):
+		"""
+		Setter for timer clock period
+		@param period: new timer clock period
+		@type period: str or int or float
+		"""
+		self._config.clockPeriod = float(period)
 
 	@property
 	def targetState(self):
@@ -107,7 +142,7 @@ class ToastStateMachine(object):
 		@return: current target state
 		@rtype: float
 		"""
-		return self.pid.target
+		return self._config.pids.target
 
 	@targetState.setter
 	def targetState(self, newTarget):
@@ -116,7 +151,7 @@ class ToastStateMachine(object):
 		@param newTarget: new target state
 		@type newTarget: str or int or float
 		"""
-		self.pid.target = newTarget
+		self._config.pids.target = newTarget
 
 	@property
 	def temperature(self):
@@ -152,7 +187,7 @@ class ToastStateMachine(object):
 		@return: current units
 		@rtype: str
 		"""
-		return self._config['units']
+		return self._config.units
 
 	@units.setter
 	def units(self, units):
@@ -161,55 +196,36 @@ class ToastStateMachine(object):
 		@param units: new units
 		@type units: str
 		"""
-		self._config['units'] = units
+		self._config.units = units
 
 	@property
 	def config(self):
 		"""
 		Get the current config
-		@rtype: dict
+		@rtype: ToasterConfig
 		"""
 		return self._config
 
 	@config.setter
-	def config(self, configDict):
+	def config(self, configPath):
 		"""
 		Set the configuration
-		@param configDict: new config dict
-		@type configDict: dict
 		"""
-		self._config = configDict
-
-		# State config
-		self.stateConfiguration = configDict['states']
-
-		# PID tuning
-		self.pid.setConfig(configDict['tuning']['pid'])
-
-		# Units
-		self.units = configDict['units']
+		self._config = ToasterConfig(configPath)
 
 		# Pins
-		self.relay.pin = configDict['pins']['relay']
-		self.thermocouple.csPin = configDict['pins']['SPI_CS']
-
-		# Clock period
-		self.timerPeriod = configDict['tuning']['timerPeriod']
+		self.pins = self._config.pins
+		if not self.relay:
+			self.relay = Relay(self.pins['relay'], debugLevel=self.debugLevel)
+		else:
+			self.relay.pin = self._config.relayPin
+		if not self.thermocouple:
+			self.thermocouple = Thermocouple(self.pins['SPI_CS'], debugLevel=self.debugLevel)
+		else:
+			self.thermocouple.csPin = self._config.spiCsPin
 
 	# endregion Properties
 	# region Configuration
-
-	@staticmethod
-	def getConfigFromJsonFile(jsonFile):
-		"""
-		Get config from a JSON file
-		@param jsonFile: Path to config file
-		@type jsonFile: str
-		@return: new config dict
-		@rtype: OrderedDict
-		"""
-		with open(jsonFile) as inf:
-			return json.load(inf, object_pairs_hook=OrderedDict)
 
 	def dumpConfig(self, filePath):
 		"""
@@ -217,8 +233,7 @@ class ToastStateMachine(object):
 		@param filePath: path to dump JSON config to
 		@type filePath: str
 		"""
-		with open(filePath, 'w') as oup:
-			json.dump(self.config, oup, indent=4)
+		self._config.dumpConfig(filePath)
 
 	# endregion Configuration
 	# region StateMachine
@@ -334,7 +349,7 @@ class ToastStateMachine(object):
 		else:
 			# Not soaking - have we reached the target temp?
 			# +/- 3.0 as a buffer (yeah doesn't change for Fahrenheit WHATEVER)
-			buffer = 3.0 if self.units == 'celcius' else 3.0 * 9.0/5.0 + 32.0
+			buffer = 3.0 if self.units == 'celsius' else 3.0 * 9.0/5.0 + 32.0
 			returnVal = False
 			if self.targetState > self.lastTarget:
 				returnVal = self.temperature >= self.targetState - 3.0
@@ -371,9 +386,10 @@ class ToastStateMachine(object):
 		"""
 		self.currentState = self.states[self.stateIndex]
 
+		# Get next state info
 		self.lastTarget = self.targetState
-		self.targetState = float(self._stateConfiguration[self.currentState][CONFIG_KEY_TARGET])
-		self.currentStateDuration = float(self._stateConfiguration[self.currentState][CONFIG_KEY_DURATION])
+		self.targetState = float(self.stateConfiguration[self.currentState][CONFIG_KEY_TARGET])
+		self.currentStateDuration = float(self.stateConfiguration[self.currentState][CONFIG_KEY_DURATION])
 
 		# Soaking stages simply maintain a steady temperature for a certain duration
 		# Heating/Cooling stages have no duration
@@ -384,7 +400,7 @@ class ToastStateMachine(object):
 		self.pid.zeroierror()
 		self.stateChanged = True
 
-		if self.stateIndex != 0:
+		if self.running not in [STATES.STOPPED, STATES.PAUSED]:
 			self.logger.debug(
 				"New state, target, end timestamp: {}, {:7.2f}, {}".format(
 					self.currentState,
@@ -401,15 +417,10 @@ class ToastStateMachine(object):
 		Print debug info to screen
 		"""
 		self.logger.debug(
-			"{:7.2f}, {}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}".format(
+			"{:7.2f}, {}, {}".format(
 				self.timestamp,
 				"{:7.2f}".format(self.currentStateEnd) if self.soaking else "    n/a",
-				self.pid.state,
-				self.pid.target,
-				self.pid.error,
-				self.pid.ierror,
-				self.pid.derror,
-				self.pid.output
+				self.pid.currentStateToString()
 			)
 		)
 

@@ -20,9 +20,13 @@ def teardown_function(function):
 
 
 def test_ToasterConfig():
+	"""
+	Test that loading a config at least stores the proper types
+	"""
 	config = ToasterConfig(GetBaseConfigurationFilePath())
 	assert isinstance(config.pids, PID)
 	assert isinstance(config.pids.kP, (float, int))
+	assert isinstance(config.pins, dict)
 	assert isinstance(config.spiCsPin, int)
 	assert isinstance(config.relayPin, int)
 	assert isinstance(config.clockPeriod, (float, int))
@@ -31,7 +35,8 @@ def test_ToasterConfig():
 def test_NonDefaults(monkeypatch):
 	"""
 	Test that the configuration was actually loaded by monkeypatching a bunch of
-	crap into the ToasterConfig class
+	crap into the ToasterConfig class. Check that the config was loaded by ensuring the
+	fake data is not returned when we access config attributes
 	"""
 	fakeUnits = "some fake value"
 	fakePins = {

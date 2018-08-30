@@ -37,7 +37,7 @@ class TCError(ExceptionTemplate):
 
 class Thermocouple(object):
 
-	VALID_UNITS = ["celcius", "fahrenheit"]
+	VALID_UNITS = ["celsius", "fahrenheit"]
 	# RPi has a single SPI bus (0)
 	SPI_BUS = 0
 
@@ -55,14 +55,14 @@ class Thermocouple(object):
 	# set MSB first (only way RPi can transfer)
 	SPI_LSB_FIRST = False
 
-	def __init__(self, csPin=0, units='celcius', debugLevel=logging.INFO):
+	def __init__(self, csPin=0, units='celsius', debugLevel=logging.INFO):
 		super(Thermocouple, self).__init__()
 
 		self.logger = getLogger('Thermocouple', debugLevel)
 
 		self._units = units
 
-		# Temperature is always stored in celcius
+		# Temperature is always stored in celsius
 		self._temp = 0.0
 		self._refTemp = 0.0
 
@@ -74,11 +74,11 @@ class Thermocouple(object):
 
 	@property
 	def temperature(self):
-		return self._temp if self.units == 'celcius' else self.ConvertCelciusToFahrenheit(self._temp)
+		return self._temp if self.units == 'celsius' else self.ConvertCelsiusToFahrenheit(self._temp)
 
 	@property
 	def refTemperature(self):
-		return self._refTemp if self.units == 'celcius' else self.ConvertCelciusToFahrenheit(self._refTemp)
+		return self._refTemp if self.units == 'celsius' else self.ConvertCelsiusToFahrenheit(self._refTemp)
 
 	@property
 	def units(self):
@@ -170,15 +170,15 @@ class Thermocouple(object):
 		return self.temperature
 
 	@staticmethod
-	def ConvertCelciusToFahrenheit(celcius):
+	def ConvertCelsiusToFahrenheit(celsius):
 		"""
 		Convert a temp to the specified units
-		@param celcius: Temperature in Celcius
-		@type celcius: float
+		@param celsius: Temperature in Celsius
+		@type celsius: float
 		@return: Converted temperature
 		@rtype: float
 		"""
-		return celcius * 9.0 / 5.0 + 32.0
+		return celsius * 9.0 / 5.0 + 32.0
 
 	@staticmethod
 	def CheckSPIReadForErrors(spiReadResult):
@@ -229,7 +229,7 @@ class Thermocouple(object):
 		Calculate the reference temperature from the SPI read
 		@param spiReadResult: Result of SPI read
 		@type spiReadResult: int
-		@return: Reference temperature in Celcius
+		@return: Reference temperature in Celsius
 		@rtype: float
 		"""
 		# Get rid of fault bits (shift off bottom byte)
@@ -243,30 +243,30 @@ class Thermocouple(object):
 			# refTemp *= -1.0
 			refTemp = (0x7FF + 1 - refTemp) * -1.0
 
-		# Scale value: LSB = 2^(-4) (0.0625 degrees Celcius)
+		# Scale value: LSB = 2^(-4) (0.0625 degrees Celsius)
 		return refTemp * 0.0625
 
 	@staticmethod
 	def CalculateThermocoupleTemperature(spiReadResult):
 		"""
-		Given the full SPI read result integer, calculate the temp in celcius
+		Given the full SPI read result integer, calculate the temp in celsius
 		@param spiReadResult: Result of SPI read
 		@type spiReadResult: int
-		@return: Thermocouple temperature in Celcius
+		@return: Thermocouple temperature in Celsius
 		@rtype: float
 		"""
 		# Shift the bottom 18 bits out, leaving only 14 bit thermocouple data
 		spiReadResult >>= 18
 
 		# Pull off bottom 13 bits
-		tcelcius = spiReadResult & 0x3FFF
+		tcelsius = spiReadResult & 0x3FFF
 
 		# Check sign bit and switch sign if necessary
 		if spiReadResult & 0x2000:
-			tcelcius = (0x3FFF + 1 - tcelcius) * -1.0
+			tcelsius = (0x3FFF + 1 - tcelsius) * -1.0
 
-		# Scale value: LSB = 2^(-2) (0.25 degrees Celcius)
-		return tcelcius * 0.25
+		# Scale value: LSB = 2^(-2) (0.25 degrees Celsius)
+		return tcelsius * 0.25
 
 	def cleanup(self):
 		"""

@@ -2,30 +2,40 @@ from collections import OrderedDict
 
 
 class PID(object):
+
 	def __init__(self, configDict=None):
+		"""
+		Constructor for PID object
+		@param configDict: Configuration dict of PID parameters
+		@type configDict: dict
+		"""
 		super(PID, self).__init__()
 
+		# Gains
 		self._kP = 0.0
 		self._kI = 0.0
 		self._kD = 0.0
-
 		self._windupGuard = 0.0
 
+		# State
 		self._currentState = 0.0
 		self._targetState = 0.0
-
 		self._output = 0.0
+
+		# Error variables
 		self._error = 0.0
 		self._lastError = 0.0
 		self._iError = 0.0
 		self._dError = 0.0
 
-		self._deltaTime = 0.0
-		self._lastTime = 0.0
-
+		# Limits
 		self._min = None
 		self._max = None
 
+		# Time
+		self._lastTime = 0.0
+
+		# Load the config
 		if configDict:
 			self.setConfig(configDict)
 
@@ -39,13 +49,13 @@ class PID(object):
 		return self._kP
 
 	@kP.setter
-	def kP(self, kP):
+	def kP(self, kp):
 		"""
 		Set the proportional gain
-		@param kP: new proportional gain
-		@type kP: str or int or float
+		@param kp: new proportional gain
+		@type kp: str or int or float
 		"""
-		self._kP = float(kP)
+		self._kP = float(kp)
 
 	@property
 	def kI(self):
@@ -55,13 +65,13 @@ class PID(object):
 		return self._kI
 
 	@kI.setter
-	def kI(self, kI):
+	def kI(self, ki):
 		"""
 		Set the integrated gain
-		@param kI: new integrated gain
-		@type kI: str or int or float
+		@param ki: new integrated gain
+		@type ki: str or int or float
 		"""
-		self._kI = float(kI)
+		self._kI = float(ki)
 
 	@property
 	def kD(self):
@@ -71,13 +81,13 @@ class PID(object):
 		return self._kD
 
 	@kD.setter
-	def kD(self, kD):
+	def kD(self, kd):
 		"""
 		Set the derivative gain
-		@param kD: new derivative gain
-		@type kD: str or int or float
+		@param kd: new derivative gain
+		@type kd: str or int or float
 		"""
-		self._kD = float(kD)
+		self._kD = float(kd)
 
 	# endregion Gains
 	# region States
@@ -139,6 +149,17 @@ class PID(object):
 		"""
 		return self._iError
 
+	@ierror.setter
+	def ierror(self, ierror):
+		"""
+		Setter for integrated error
+		Applies windup guard automatically
+		@param ierror: new integrated error
+		@type ierror: float
+		"""
+		self._iError = ierror
+		self.applyWindup()
+
 	@property
 	def derror(self):
 		"""
@@ -164,7 +185,7 @@ class PID(object):
 		@type windupGuard: str or int or float
 		"""
 		if windupGuard is not None:
-			self._windupGuard = float(windupGuard)
+			self._windupGuard = abs(float(windupGuard))
 		else:
 			self._windupGuard = None
 
@@ -176,21 +197,27 @@ class PID(object):
 		return self._min
 
 	@min.setter
-	def min(self, minVal):
+	def min(self, minLimit):
 		"""
 		Min Setter - force less than max
 		Raises exception if min is greater than max
-		@param minVal: new minimum output value
-		@type minVal: float or int
+		@param minLimit: new minimum output value
+		@type minLimit: float or int
 		"""
-		if minVal is not None:
-			minVal = float(minVal)
+		# Check for valid value
+		if minLimit in ['', None]:
+			self._min = None
+			return
+
+		# Convert to float
+		minLimit = float(minLimit)
+
+		# Check validity against max limit
 		if self.max is not None:
-			assert minVal < self.max
-		if minVal is not None:
-			self._min = minVal
-		else:
-			self._min = minVal
+			assert minLimit < self.max
+
+		# Apply
+		self._min = minLimit
 
 	@property
 	def max(self):
@@ -200,21 +227,27 @@ class PID(object):
 		return self._max
 
 	@max.setter
-	def max(self, maxVal):
+	def max(self, maxLimit):
 		"""
 		Max Setter - force greater than min
 		Raises exception if max is lower than min
-		@param maxVal: new maximum output value
-		@type maxVal: float or int
+		@param maxLimit: new maximum output value
+		@type maxLimit: float or int
 		"""
-		if maxVal is not None:
-			maxVal = float(maxVal)
+		# Check for valid value
+		if maxLimit in ['', None]:
+			self._max = None
+			return
+
+		# Convert to float
+		maxLimit = float(maxLimit)
+
+		# Check validity against max limit
 		if self.min is not None:
-			assert self.min < maxVal
-		if maxVal is not None:
-			self._max = maxVal
-		else:
-			self._max = maxVal
+			assert self.min < maxLimit
+
+		# Apply
+		self._max = maxLimit
 
 	# endregion Limits
 	# region Config
@@ -225,12 +258,12 @@ class PID(object):
 		@param configDict: dict of PID parameters
 		@type configDict: dict[str, float]
 		"""
-		self.kP = configDict['kP']
-		self.kI = configDict['kI']
-		self.kD = configDict['kD']
-		self.min = configDict['min'] if configDict['min'] != "" else None
-		self.max = configDict['max'] if configDict['max'] != "" else None
-		self.windupGuard = configDict['windupGuard'] if configDict['windupGuard'] != "" else None
+		self.kP = configDict.get('kP', self.kP)
+		self.kI = configDict.get('kI', self.kI)
+		self.kD = configDict.get('kD', self.kD)
+		self.min = configDict.get('min', self.min)
+		self.max = configDict.get('max', self.max)
+		self.windupGuard = configDict.get('windupGuard', self.windupGuard)
 		self.zeroierror()
 
 	def getConfig(self):
@@ -262,32 +295,25 @@ class PID(object):
 		if not self.target:
 			raise Exception("No target state set, cannot compute PID output")
 
-		# calculate change in time
-		self._deltaTime = currenttime - self._lastTime
-
 		# update state if available
 		if currentstate:
 			self._currentState = currentstate
 
+		# calculate change in time
+		deltaTime = currenttime - self._lastTime
+
 		# proportional error from target
 		self._error = self.target - self.state
 		# integral of error from target
-		self._iError += self.error * self._deltaTime
-
-		# windup guard for integrated error
-		if self.windupGuard:
-			if self.ierror < -self.windupGuard:
-				self._iError = -self.windupGuard
-			if self.ierror > self.windupGuard:
-				self._iError = self.windupGuard
+		self.ierror += self.error * deltaTime
 
 		# derivative of error from target
-		if newState or self._deltaTime == 0:
+		if newState or deltaTime == 0:
 			# force derivative to 0 if we just changed states
 			self._dError = 0.0
 		else:
 			# derivative is slope of error over time
-			self._dError = (self.error - self._lastError) / self._deltaTime
+			self._dError = (self.error - self._lastError) / deltaTime
 
 		# apply gains to error values
 		self.output = self.kP * self.error + self.kI * self.ierror + self.kD * self.derror
@@ -297,10 +323,35 @@ class PID(object):
 
 		return self.output
 
+	def applyWindup(self):
+		"""
+		Apply the windup guard to the integrated error
+		"""
+		if self.windupGuard:
+			if self.ierror < -self.windupGuard:
+				self._iError = -self.windupGuard
+			if self.ierror > self.windupGuard:
+				self._iError = self.windupGuard
+
 	def zeroierror(self):
 		"""
 		Zero out the integrated error
 		"""
-		self._iError = 0.0
+		self.ierror = 0.0
+
+	def currentStateToString(self):
+		"""
+		Return the current state as a string
+		@return: string with current state, target state, all errors, and current output
+		@rtype: str
+		"""
+		return "{:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}, {:7.2f}".format(
+			self.state,
+			self.target,
+			self.error,
+			self.ierror,
+			self.derror,
+			self.output
+		)
 
 	# endregion Execution

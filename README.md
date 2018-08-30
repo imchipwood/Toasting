@@ -79,7 +79,7 @@ python3 /path/to/Toasting/toasting.py
 
 # Basic Tool Usage
 ## Basic Reflow Profile Configuration
-The basic configuration is designed for solder paste that reflows around 230 degrees celcius.
+The basic configuration is designed for solder paste that reflows around 230 degrees celsius.
 Stages:
 - ramp2soak - Ramp temperature to 150*C
 - preheat - Hold @ 150*C for 60 seconds to ensure all components have heated up

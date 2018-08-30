@@ -5,7 +5,7 @@ from library.ui.visualizer_configuration import ConfigurationVisualizer, CONFIG_
 
 
 class LiveVisualizer(ConfigurationVisualizer):
-	def __init__(self, stateConfiguration, units='celcius'):
+	def __init__(self, stateConfiguration, units='celsius'):
 		super(LiveVisualizer, self).__init__(stateConfiguration, doNotDraw=True, units=units)
 		
 		# State tracking

@@ -61,6 +61,31 @@ class ClockThread(Thread):
 		self.running = False
 
 
+def tickNTimes(sm, n):
+	for i in range(n):
+		sm.tick()
+
+
+def test_Tick():
+	"""
+	Test that the tick method stores data
+	"""
+	sm = GetStateMachine()
+
+	try:
+		sm.start()
+		assert sm.running == STATES.RUNNING
+
+		tickNTimes(sm, 5)
+
+		assert sm.running == STATES.RUNNING
+
+		assert sm.data
+
+	finally:
+		sm.cleanup()
+
+
 def test_NextState():
 	"""
 	Test that calling next state increments the state
@@ -83,7 +108,8 @@ def test_NextState():
 
 def test_RunFree_PauseResume():
 	"""
-	Test that the state machine can go its course
+	Test that the state machine can run its full course
+	Also test pausing & resuming
 	"""
 	sm = GetStateMachine()
 	try:
@@ -130,7 +156,7 @@ def test_RunFree_PauseResume():
 
 def test_DumpDataToCsv():
 	"""
-	Test that dumping data to CSV works
+	Test that dumping data after state machine fully completes works
 	"""
 	sm = GetStateMachine(new=True)
 	sm.stateConfiguration['cooling']['target'] = -5
@@ -170,7 +196,7 @@ def test_DumpDataToCsv():
 		sm.dumpDataToCsv(dumpPath)
 		assert os.path.exists(dumpPath)
 
-		# Check that the first and last lines in the dump file match the states
+		# Check that the first and last lines in the dump file match the expected states
 		with open(dumpPath, 'r') as inf:
 			lines = inf.readlines()
 			assert sm.states[0] in lines[1]

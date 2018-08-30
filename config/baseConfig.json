@@ -1,5 +1,5 @@
 {
-  "units": "celcius",
+  "units": "celsius",
   "pins": {
     "SPI_CS": 0,
     "relay": 4

@@ -14,7 +14,7 @@ COLORS = {
 
 
 class ConfigurationVisualizer(object):
-	def __init__(self, stateConfiguration, doNotDraw=False, units='celcius'):
+	def __init__(self, stateConfiguration, doNotDraw=False, units='celsius'):
 		super(ConfigurationVisualizer, self).__init__()
 		self.stateConfiguration = stateConfiguration
 
@@ -33,7 +33,7 @@ class ConfigurationVisualizer(object):
 			maxTimestamp=maxTimestamp
 		)
 
-	def createPlot(self, stateConfiguration=None, doNotDraw=False, units='celcius', maxTargetTemp=300, maxTimestamp=500):
+	def createPlot(self, stateConfiguration=None, doNotDraw=False, units='celsius', maxTargetTemp=300, maxTimestamp=500):
 		"""Create a plot and return it
 
 		@param configurationDict: Configuration info

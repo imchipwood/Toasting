@@ -122,7 +122,7 @@ class ToastingGUI(ToastingBase):
 	@property
 	def temperature(self):
 		"""Getter for current temperature"""
-		if self.units == 'celcius':
+		if self.units == 'celsius':
 			return self.toaster.temperature
 		else:
 			return self.convertTemp(self.toaster.temperature)
@@ -130,7 +130,7 @@ class ToastingGUI(ToastingBase):
 	@property
 	def refTemperature(self):
 		"""Getter for current reference temperature"""
-		if self.units == 'celcius':
+		if self.units == 'celsius':
 			return self.toaster.refTemperature
 		else:
 			return self.convertTemp(self.toaster.refTemperature)
@@ -144,7 +144,7 @@ class ToastingGUI(ToastingBase):
 	def units(self, units):
 		"""Setter for current temperature units
 
-		@param units: str 'fahrenheit' or 'celcius'
+		@param units: str 'fahrenheit' or 'celsius'
 		"""
 		self.toaster.units = units
 
@@ -225,10 +225,10 @@ class ToastingGUI(ToastingBase):
 
 		# Temperature units radio boxes
 		if self.toaster.running in [STATES.RUNNING, STATES.PAUSED] or self.testing:
-			self.celciusRadioButton.Enable(False)
+			self.celsiusRadioButton.Enable(False)
 			self.fahrenheitRadioButton.Enable(False)
 		else:
-			self.celciusRadioButton.Enable(enable)
+			self.celsiusRadioButton.Enable(enable)
 			self.fahrenheitRadioButton.Enable(enable)
 
 		# Save data button
@@ -355,8 +355,8 @@ class ToastingGUI(ToastingBase):
 		@type temp: float
 		@return: float
 		"""
-		if self.units == 'celcius':
-			# convert fahrenheit to celcius
+		if self.units == 'celsius':
+			# convert fahrenheit to celsius
 			return (temp - 32.0) * 5.0 / 9.0
 		else:
 			return temp * 9.0 / 5.0 + 32.0
@@ -648,7 +648,7 @@ class ToastingGUI(ToastingBase):
 	def updateGuiFieldsFromNewConfig(self):
 		"""Update all GUI fields pertaining to Toaster config"""
 		# Units
-		self.celciusRadioButton.SetValue(self.config['units'] == 'celcius')
+		self.celsiusRadioButton.SetValue(self.config['units'] == 'celsius')
 		self.fahrenheitRadioButton.SetValue(self.config['units'] == 'fahrenheit')
 
 		# Configuration grid
@@ -939,16 +939,16 @@ class ToastingGUI(ToastingBase):
 		@param event: wx.EVT_RADIO_BUTTON
 		"""
 		radioBox = event.GetEventObject()
-		if radioBox == self.celciusRadioButton and self.units == 'celcius':
+		if radioBox == self.celsiusRadioButton and self.units == 'celsius':
 			return
 		elif radioBox == self.fahrenheitRadioButton and self.units == 'fahrenheit':
 			return
 
-		if radioBox == self.celciusRadioButton:
+		if radioBox == self.celsiusRadioButton:
 			self.fahrenheitRadioButton.SetValue(False)
-			self.units = 'celcius'
+			self.units = 'celsius'
 		elif radioBox == self.fahrenheitRadioButton:
-			self.celciusRadioButton.SetValue(False)
+			self.celsiusRadioButton.SetValue(False)
 			self.units = 'fahrenheit'
 
 		self.temperatureUnitsChange()

@@ -55,8 +55,8 @@ class ToastingBase ( wx.Frame ):
 		
 		bSizer14 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.celciusRadioButton = wx.RadioButton( self.statusPanel, wx.ID_ANY, u"Celcius", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer14.Add( self.celciusRadioButton, 0, wx.ALL, 5 )
+		self.celsiusRadioButton = wx.RadioButton( self.statusPanel, wx.ID_ANY, u"Celsius", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer14.Add( self.celsiusRadioButton, 0, wx.ALL, 5 )
 		
 		self.fahrenheitRadioButton = wx.RadioButton( self.statusPanel, wx.ID_ANY, u"Fahrenheit", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer14.Add( self.fahrenheitRadioButton, 0, wx.ALL, 5 )
@@ -418,7 +418,7 @@ class ToastingBase ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.loadConfigMenuItemOnMenuSelection, id = self.loadConfigMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.onClose, id = self.exitMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.aboutMenuItemOnMenuSelection, id = self.aboutMenuItem.GetId() )
-		self.celciusRadioButton.Bind( wx.EVT_RADIOBUTTON, self.temperatureOnRadioButton )
+		self.celsiusRadioButton.Bind( wx.EVT_RADIOBUTTON, self.temperatureOnRadioButton )
 		self.fahrenheitRadioButton.Bind( wx.EVT_RADIOBUTTON, self.temperatureOnRadioButton )
 		self.baseNotebook.Bind( wx.EVT_NOTEBOOK_PAGE_CHANGED, self.baseNotebookOnNotebookPageChanged )
 		self.saveConfigButton.Bind( wx.EVT_BUTTON, self.saveConfigButtonOnButtonClick )
