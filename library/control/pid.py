@@ -289,6 +289,8 @@ class PID(object):
 		@type currenttime: float
 		@param currentstate: (Optional) current state of device PID controller is controlling. otherwise uses self._currentState
 		@type currentstate: float
+		@param newState: flag to indicate we're moving to a new state (resets derivative error)
+		@type newState: bool
 		@return: output of PID computation
 		@rtype: float
 		"""
@@ -296,7 +298,7 @@ class PID(object):
 			raise Exception("No target state set, cannot compute PID output")
 
 		# update state if available
-		if currentstate:
+		if currentstate is not None:
 			self._currentState = currentstate
 
 		# calculate change in time
@@ -322,6 +324,14 @@ class PID(object):
 		self._lastError = self.error
 
 		return self.output
+
+	def resetClock(self, targetTime=0.0):
+		"""
+		Reset the time
+		@param targetTime: new time to set (default 0.0)
+		@type targetTime: str or int or float
+		"""
+		self._lastTime = float(targetTime)
 
 	def applyWindup(self):
 		"""
