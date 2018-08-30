@@ -2,6 +2,7 @@ import json
 from collections import OrderedDict
 
 from library.control.pid import PID
+from library.sensors.sensor_thermocouple import Thermocouple
 
 
 class ToasterConfig(object):
@@ -56,19 +57,28 @@ class ToasterConfig(object):
 		@return:
 		@rtype:
 		"""
-		self._units = self._config.get("units", self.BASE_UNITS)
-		self._pins = self._config.get("pins", self.BASE_PINS)
+		self.units = self.config.get("units", self.BASE_UNITS)
+		self._pins = self.config.get("pins", self.BASE_PINS)
 
-		tuning = self._config.get("tuning")
+		tuning = self.config.get("tuning")
 		if tuning:
 			pids = tuning.get("pid")
 			if pids:
-				self._pids = PID(pids)
+				self.pids = PID(pids)
 			clockPeriod = tuning.get("timerPeriod")
 			if clockPeriod:
 				self._clockPeriod = clockPeriod
 
-		self._states = self._config.get("states", self.BASE_STATES)
+		self.states = self.config.get("states", self.BASE_STATES)
+
+	@property
+	def config(self):
+		return self._config
+
+	@config.setter
+	def config(self, configDict):
+		self._config = configDict
+		self.extractConfig()
 
 	@property
 	def units(self):
@@ -76,8 +86,11 @@ class ToasterConfig(object):
 
 	@units.setter
 	def units(self, units):
+		units = units.lower()
+		assert units in Thermocouple.VALID_UNITS, \
+			"Invalid units. Valid units are: {}".format(", ".join(Thermocouple.VALID_UNITS))
 		self._units = units
-		self._config['units'] = self._units
+		self.config['units'] = self._units
 
 	@property
 	def pins(self):
@@ -109,7 +122,7 @@ class ToasterConfig(object):
 			self._pids = pids
 		elif isinstance(pids, dict):
 			self._pids = PID(pids)
-		self._config['tuning']['pid'] = pids
+		self.config['tuning']['pid'] = self.pids.getConfig()
 
 	@property
 	def clockPeriod(self):
@@ -118,7 +131,7 @@ class ToasterConfig(object):
 	@clockPeriod.setter
 	def clockPeriod(self, period):
 		self._clockPeriod = float(period)
-		self._config['tuning']['timerPeriod'] = self._clockPeriod
+		self.config['tuning']['timerPeriod'] = self._clockPeriod
 
 	@property
 	def states(self):
@@ -126,8 +139,15 @@ class ToasterConfig(object):
 
 	@states.setter
 	def states(self, states):
+		"""
+		Set the states
+		@param states: dict of states
+		@type states: OrderedDict
+		"""
+		if not isinstance(states, OrderedDict):
+			raise TypeError("Incorrect type for states - must be OrderedDict")
 		self._states = states
-		self._config['states'] = states
+		self.config['states'] = states
 
 	def dumpConfig(self, filePath):
 		"""
@@ -136,4 +156,4 @@ class ToasterConfig(object):
 		@type filePath: str
 		"""
 		with open(filePath, 'w') as oup:
-			json.dump(self._config, oup, indent=2)
+			json.dump(self.config, oup, indent=2)

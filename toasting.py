@@ -9,10 +9,7 @@ if __name__ == "__main__":
 	app = wx.App()
 
 	# Create GUI frame
-	view = ToastingGUI(
-		parent=None,
-		baseConfigurationPath=GetBaseConfigurationFilePath()
-	)
+	view = ToastingGUI(baseConfigurationPath=GetBaseConfigurationFilePath())
 	view.Show()
 	app.SetTopWindow(view)
 

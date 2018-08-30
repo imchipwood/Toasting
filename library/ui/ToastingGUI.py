@@ -30,8 +30,13 @@ class ToastingGUI(ToastingBase):
 
 	# region Init
 
-	def __init__(self, parent, baseConfigurationPath):
-		ToastingBase.__init__(self, parent)
+	def __init__(self, baseConfigurationPath):
+		"""
+		Constructor for ToastingGUI
+		@param baseConfigurationPath: path to base configuration file to use
+		@type baseConfigurationPath: str
+		"""
+		super(ToastingGUI, self).__init__(None)
 
 		self.logger = getLogger('ToastingGUI', DEBUG_LEVEL)
 
@@ -122,18 +127,18 @@ class ToastingGUI(ToastingBase):
 	@property
 	def temperature(self):
 		"""Getter for current temperature"""
-		if self.units == 'celsius':
-			return self.toaster.temperature
-		else:
-			return self.convertTemp(self.toaster.temperature)
+		# if self.units == 'celsius':
+		return self.toaster.temperature
+		# else:
+		# 	return self.convertTemp(self.toaster.temperature)
 
 	@property
 	def refTemperature(self):
 		"""Getter for current reference temperature"""
-		if self.units == 'celsius':
-			return self.toaster.refTemperature
-		else:
-			return self.convertTemp(self.toaster.refTemperature)
+		# if self.units == 'celsius':
+		return self.toaster.refTemperature
+		# else:
+		# 	return self.convertTemp(self.toaster.refTemperature)
 
 	@property
 	def units(self):
@@ -186,8 +191,8 @@ class ToastingGUI(ToastingBase):
 		return self.toaster.config
 
 	@config.setter
-	def config(self, configDict):
-		self.toaster.config = configDict
+	def config(self, filePath):
+		self.toaster.config = filePath
 
 	@property
 	def pidConfig(self):
@@ -321,7 +326,6 @@ class ToastingGUI(ToastingBase):
 			self.logger.warning(text)
 		if logLevel == logging.ERROR:
 			self.logger.error(text)
-
 
 	@decorators.BusyReady(MODEL_NAME)
 	def temperatureUnitsChange(self):
@@ -623,7 +627,7 @@ class ToastingGUI(ToastingBase):
 		@param filePath: path to new JSON config file
 		@type filePath: str
 		"""
-		self.config = ToastStateMachine.getConfigFromJsonFile(filePath)
+		self.config = filePath
 
 		# Update the GUI
 		self.updateGuiFieldsFromNewConfig()
@@ -648,8 +652,8 @@ class ToastingGUI(ToastingBase):
 	def updateGuiFieldsFromNewConfig(self):
 		"""Update all GUI fields pertaining to Toaster config"""
 		# Units
-		self.celsiusRadioButton.SetValue(self.config['units'] == 'celsius')
-		self.fahrenheitRadioButton.SetValue(self.config['units'] == 'fahrenheit')
+		self.celsiusRadioButton.SetValue(self.config.units == 'celsius')
+		self.fahrenheitRadioButton.SetValue(self.config.units == 'fahrenheit')
 
 		# Configuration grid
 		self.initializeConfigurationPage()

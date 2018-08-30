@@ -1,3 +1,8 @@
+import os
+import json
+import pytest
+from collections import OrderedDict
+
 from library.other.config import ToasterConfig
 from library.control.pid import PID
 from definitions import GetBaseConfigurationFilePath
@@ -56,3 +61,71 @@ def test_NonDefaults(monkeypatch):
 	assert config.clockPeriod != fakePeriod
 	assert config.pids != fakePID
 	assert isinstance(config.pids, PID)
+
+
+def test_setters():
+	"""
+	Test all of the setters & getters
+	"""
+	config = ToasterConfig(GetBaseConfigurationFilePath())
+
+	config.relayPin = 50
+	assert config.relayPin == 50
+
+	config.spiCsPin = 100
+	assert config.spiCsPin == 100
+
+	config.units = 'fahrenheit'
+	assert config.units == 'fahrenheit'
+	config.units = 'celsius'
+	assert config.units == 'celsius'
+	with pytest.raises(Exception, message="Expected exception for invalid units"):
+		config.units = "FAKEUNITS"
+
+	config.pids = PID()
+	config.pids = {'kP': 1234}
+	assert config.pids.kP == 1234
+
+	config.clockPeriod = 0.25
+	assert config.clockPeriod == 0.25
+
+	testStates = OrderedDict()
+	testStates['firstState'] = {
+		"target": 999,
+		"duration": 999
+	}
+	config.states = testStates
+	assert config.states['firstState']['target'] == 999
+
+	with pytest.raises(Exception, message="Expected exception for invalid states type"):
+		config.states = ['bob', 'was', 'here']
+
+	# Test setting the config
+	assert config.units != 'fahrenheit'
+	config.config = {'units': 'fahrenheit'}
+	assert config.units == 'fahrenheit'
+
+
+def test_dumpConfig():
+	"""
+	Test dumping the config to a file works
+	"""
+	config = ToasterConfig(GetBaseConfigurationFilePath())
+
+	# make a test dump and clean up the old one if it's lying around
+	testDump = GetBaseConfigurationFilePath().replace(".json", "_test.json")
+	if os.path.exists(testDump):
+		os.remove(testDump)
+
+	# Dump our config and make sure it exists
+	config.dumpConfig(testDump)
+	assert os.path.exists(testDump)
+
+	# load the config we just dumped
+	with open(testDump, 'r') as inf:
+		testConfig = json.load(inf, object_pairs_hook=OrderedDict)
+
+	# remove the config
+	os.remove(testDump)
+
+	assert testConfig == config.config

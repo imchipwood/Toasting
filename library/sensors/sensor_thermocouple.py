@@ -77,8 +77,16 @@ class Thermocouple(object):
 		return self._temp if self.units == 'celsius' else self.ConvertCelsiusToFahrenheit(self._temp)
 
 	@property
+	def rawTemperature(self):
+		return self._temp
+
+	@property
 	def refTemperature(self):
 		return self._refTemp if self.units == 'celsius' else self.ConvertCelsiusToFahrenheit(self._refTemp)
+
+	@property
+	def rawRefTemperature(self):
+		return self._refTemp
 
 	@property
 	def units(self):

@@ -1,5 +1,4 @@
 import csv
-import json
 import logging
 from collections import OrderedDict
 
@@ -50,16 +49,16 @@ class ToastStateMachine(object):
 
 		# Basics of state machine
 		self.stateIndex = 0
-
 		self.currentState = None
 		self.lastTarget = 0.0
 		self.currentStateDuration = 0.0
 		self.currentStateEnd = 0.0
 		self.stateChanged = False
-		self.stateMachineCompleteCallback = stateMachineCompleteCallback
-
 		self.soaking = False
 		self.running = STATES.STOPPED
+
+		# Callback
+		self.stateMachineCompleteCallback = stateMachineCompleteCallback
 
 		# Control loop
 		self.timestamp = 0.0
@@ -191,7 +190,7 @@ class ToastStateMachine(object):
 		@return: current units
 		@rtype: str
 		"""
-		return self.config.units
+		return self.thermocouple.units
 
 	@units.setter
 	def units(self, units):
@@ -200,6 +199,7 @@ class ToastStateMachine(object):
 		@param units: new units
 		@type units: str
 		"""
+		self.thermocouple.units = units
 		self.config.units = units
 
 	# endregion Properties
@@ -254,6 +254,7 @@ class ToastStateMachine(object):
 
 	# endregion Configuration
 	# region StateMachine
+		# region Control
 
 	def start(self):
 		"""
@@ -294,13 +295,8 @@ class ToastStateMachine(object):
 		"""
 		self.running = STATES.PAUSED
 
-	def getRecentErrorCount(self):
-		"""
-		Get the number of recent errors
-		@return: number of recent errors
-		@rtype: int
-		"""
-		return len([error for error in self.recentTCErrors if error is not None])
+		# endregion Control
+		# region Loop
 
 	def tick(self, testing=False):
 		"""
@@ -358,25 +354,25 @@ class ToastStateMachine(object):
 		Check if we're ready to move to the next state
 		@return: bool
 		"""
-		if self.soaking:
-			if self.timestamp >= self.currentStateEnd:
-				# self.logger.debug("{} state ending due to duration".format(self.currentState))
-				return True
+		if self.soaking and self.timestamp >= self.currentStateEnd:
+			# We're soaking and the state duration has completed
+			return True
 		else:
-			# Not soaking - have we reached the target temp?
-			# +/- 3.0 as a buffer (yeah doesn't change for Fahrenheit WHATEVER)
-			buffer = 3.0 if self.units == 'celsius' else 3.0 * 9.0/5.0 + 32.0
-			returnVal = False
-			if self.targetState > self.lastTarget:
-				returnVal = self.temperature >= self.targetState - 3.0
-			elif self.targetState < self.lastTarget:
-				returnVal = self.temperature <= self.targetState + 3.0
-			# if self.currentState == self.states[-1]:
-			# 	self.logger.debug("{}: temp target met: {}".format(self.currentState, returnVal))
-			return returnVal
+			# Not soaking - check if temp has reached target
+			return self.checkStateAgainstTarget()
 
-		# Nope, not ready
-		return False
+	def checkStateAgainstTarget(self):
+		"""
+		Check the current temperature against the target temperature based on whether we are ramping or cooling
+		@return: whether or not the temperature has reached the target state
+		@rtype: bool
+		"""
+		# +/- 3.0 as a buffer
+		buffer = 3.0  # if self.units == 'celsius' else 3.0 * 9.0/5.0 + 32.0
+		if self.targetState > self.lastTarget:
+			return self.temperature >= self.targetState - buffer
+		else:
+			return self.temperature <= self.targetState + buffer
 
 	def nextState(self):
 		"""
@@ -425,8 +421,17 @@ class ToastStateMachine(object):
 				)
 			)
 
+		# endregion Loop
 	# endregion StateMachine
 	# region Data
+
+	def getRecentErrorCount(self):
+		"""
+		Get the number of recent errors
+		@return: number of recent errors
+		@rtype: int
+		"""
+		return len([error for error in self.recentTCErrors if error is not None])
 
 	def debugPrint(self):
 		"""
