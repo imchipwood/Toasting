@@ -5,31 +5,22 @@ from library.control.pid import PID
 
 
 class ToasterConfig(object):
-	# BASE_UNITS = "celcius"
-	BASE_UNITS = "-celcius"
+	BASE_UNITS = "celcius"
 
 	BASE_PINS = {
-		# "SPI_CS": 0,
-		# "relay": 4
-		"SPI_CS": 0.1,
-		"relay": 4.1
+		"SPI_CS": 0,
+		"relay": 4
 	}
 
 	BASE_CLOCK_PERIOD = 0.5
 
 	BASE_PID = PID({
-		# "kP": 0.6,
-		# "kI": 0.005,
-		# "kD": 7.0,
-		# "min": "",
-		# "max": "",
-		# "windupGuard": 20.0,
-		"kP": -0.6,
-		"kI": -0.005,
-		"kD": -7.0,
-		"min": "-999999",
-		"max": "999999",
-		"windupGuard": -20.0,
+		"kP": 0.6,
+		"kI": 0.005,
+		"kD": 7.0,
+		"min": "",
+		"max": "",
+		"windupGuard": 20.0,
 	})
 
 	BASE_STATES = OrderedDict()
