@@ -36,8 +36,10 @@ class ToasterConfig(object):
 		self._clockPeriod = self.BASE_CLOCK_PERIOD
 		self._states = self.BASE_STATES
 
-		self._config = ToasterConfig.ReadConfig(configPath)
-		self.extractConfig()
+		self._config = OrderedDict()
+		if configPath:
+			self._config = ToasterConfig.ReadConfig(configPath)
+			self.extractConfig()
 
 	@staticmethod
 	def ReadConfig(configPath):
@@ -65,6 +67,7 @@ class ToasterConfig(object):
 			pids = tuning.get("pid")
 			if pids:
 				self.pids = PID(pids)
+
 			clockPeriod = tuning.get("timerPeriod")
 			if clockPeriod:
 				self._clockPeriod = clockPeriod
@@ -86,9 +89,7 @@ class ToasterConfig(object):
 
 	@units.setter
 	def units(self, units):
-		units = units.lower()
-		assert units in Thermocouple.VALID_UNITS, \
-			"Invalid units. Valid units are: {}".format(", ".join(Thermocouple.VALID_UNITS))
+		units = Thermocouple.CheckUnits(units)
 		self._units = units
 		self.config['units'] = self._units
 
@@ -98,19 +99,20 @@ class ToasterConfig(object):
 
 	@property
 	def spiCsPin(self):
-		return self._pins['SPI_CS']
+		return self.pins.get('SPI_CS')
 
 	@spiCsPin.setter
 	def spiCsPin(self, pin):
-		self._pins['SPI_CS'] = int(pin)
+		pin = Thermocouple.CheckSPICSPin(pin)
+		self.pins['SPI_CS'] = pin
 
 	@property
 	def relayPin(self):
-		return self._pins['relay']
+		return self.pins['relay']
 
 	@relayPin.setter
 	def relayPin(self, pin):
-		self._pins['relay'] = int(pin)
+		self.pins['relay'] = int(pin)
 
 	@property
 	def pids(self):
@@ -122,7 +124,10 @@ class ToasterConfig(object):
 			self._pids = pids
 		elif isinstance(pids, dict):
 			self._pids = PID(pids)
-		self.config['tuning']['pid'] = self.pids.getConfig()
+		if 'tuning' not in self.config:
+			self.config['tuning'] = {'pid': self.pids.getConfig()}
+		else:
+			self.config['tuning']['pid'] = self.pids.getConfig()
 
 	@property
 	def clockPeriod(self):
@@ -131,7 +136,10 @@ class ToasterConfig(object):
 	@clockPeriod.setter
 	def clockPeriod(self, period):
 		self._clockPeriod = float(period)
-		self.config['tuning']['timerPeriod'] = self._clockPeriod
+		if 'tuning' not in self.config:
+			self.config['tuning'] = {'timerPeriod': self.clockPeriod}
+		else:
+			self.config['tuning']['timerPeriod'] = self.clockPeriod
 
 	@property
 	def states(self):

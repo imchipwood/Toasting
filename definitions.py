@@ -7,13 +7,24 @@ DATA_DIR = os.path.join(ROOT_DIR, u'data')
 BASE_CONFIG_FILE_NAME = 'baseConfig.json'
 
 
+def GetConfigurationFilePath(filename):
+	"""
+	Get the absolute path to a file in the configuration directory
+	@param filename: name of file in config dir
+	@type filename: str
+	@return: path to config file
+	@rtype: str
+	"""
+	return os.path.join(CONFIG_DIR, filename)
+
+
 def GetBaseConfigurationFilePath():
 	"""
 	Get the absolute path to the base configuration file
 	@return: path to config file
 	@rtype: str
 	"""
-	return os.path.join(CONFIG_DIR, BASE_CONFIG_FILE_NAME)
+	return GetConfigurationFilePath(BASE_CONFIG_FILE_NAME)
 
 
 def GetDataFilePath(filename):

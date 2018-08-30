@@ -1,0 +1,40 @@
+{
+  "units": "fahrenheit",
+  "pins": {
+    "SPI_CS": 1,
+    "relay": 101
+  },
+  "tuning": {
+    "pid": {
+      "kP": 10.6,
+      "kI": 10.005,
+      "kD": 17.0,
+      "min": 0,
+      "max": 100,
+      "windupGuard": 21.0
+    },
+    "timerPeriod": 1
+  },
+  "states": {
+    "ramp2soak": {
+      "target": 125,
+      "duration": 12
+    },
+    "soak": {
+      "target": 125,
+      "duration": 50
+    },
+    "ramp2reflow": {
+      "target": 200,
+      "duration": 62
+    },
+    "reflow": {
+      "target": 200,
+      "duration": 10
+    },
+    "cooling": {
+      "target": 0,
+      "duration": 120
+    }
+  }
+}

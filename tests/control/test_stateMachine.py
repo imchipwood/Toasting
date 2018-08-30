@@ -1,10 +1,12 @@
 import os
 import time
 import logging
+import json
+from collections import OrderedDict
 from threading import Thread
 
 from library.control.stateMachine import STATES, ToastStateMachine
-from definitions import GetBaseConfigurationFilePath, GetDataFilePath
+from definitions import GetConfigurationFilePath, GetBaseConfigurationFilePath, GetDataFilePath
 
 global TOASTER
 TOASTER = None
@@ -30,12 +32,12 @@ def teardown_function(function):
 	return
 
 
-def GetStateMachine(new=True, debugLevel=logging.INFO):
+def GetStateMachine(new=True, debugLevel=logging.INFO, configFile=GetBaseConfigurationFilePath()):
 	global TOASTER
 	if new:
 		if TOASTER:
 			TOASTER.cleanup()
-		TOASTER = ToastStateMachine(GetBaseConfigurationFilePath(), debugLevel=debugLevel)
+		TOASTER = ToastStateMachine(configFile, debugLevel=debugLevel)
 	return TOASTER
 
 
@@ -63,12 +65,14 @@ class ClockThread(Thread):
 
 def tickNTimes(sm, n):
 	for i in range(n):
+		print("tick {}".format(i))
 		sm.tick()
 
 
 def test_Tick():
 	"""
 	Test that the tick method stores data
+	Also test the __repr__ method
 	"""
 	sm = GetStateMachine()
 
@@ -77,11 +81,38 @@ def test_Tick():
 		assert sm.running == STATES.RUNNING
 
 		tickNTimes(sm, 5)
+		assert sm.relayState
+		print(sm.refTemperature)
+		print(sm.temperature)
 
 		assert sm.running == STATES.RUNNING
+		print("Calling next state")
+		sm.nextState()
+		print("Ticking more")
+		assert sm.currentState == sm.states[1]
+		tickNTimes(sm, 121)
+		assert str(sm) == "{}:{}".format(STATES.RUNNING, sm.states[2])
+		assert sm.currentState == sm.states[2]
 
 		assert sm.data
+		assert sm.getRecentErrorCount() == 0
 
+	finally:
+		sm.cleanup()
+
+
+def test_TickTest():
+	"""
+	Test that the 'testing' arg of ticking works
+	"""
+	sm = GetStateMachine()
+	try:
+		sm.start()
+		tickNTimes(sm, 10)
+		assert sm.relayState
+		sm.stop()
+		sm.tick(testing=True)
+		assert sm.relayState
 	finally:
 		sm.cleanup()
 
@@ -149,6 +180,9 @@ def test_RunFree_PauseResume():
 				assert False, "state machine never ended"
 
 		thread.stop()
+		sm.stop()
+		assert sm.running == STATES.STOPPED
+		assert sm.currentState == sm.states[0]
 
 	finally:
 		sm.cleanup()
@@ -160,6 +194,8 @@ def test_DumpDataToCsv():
 	"""
 	sm = GetStateMachine(new=True)
 	sm.stateConfiguration['cooling']['target'] = -5
+
+	assert not sm.dumpDataToCsv("somePath")
 	try:
 		# start the state machine
 		sm.start()
@@ -193,7 +229,7 @@ def test_DumpDataToCsv():
 				raise
 
 		# Dump to CSV
-		sm.dumpDataToCsv(dumpPath)
+		assert sm.dumpDataToCsv(dumpPath)
 		assert os.path.exists(dumpPath)
 
 		# Check that the first and last lines in the dump file match the expected states
@@ -208,5 +244,70 @@ def test_DumpDataToCsv():
 		except:
 			print("Failed to remove test data file at end of test- moving on")
 
+	finally:
+		sm.cleanup()
+
+
+def test_setAlternateConfig():
+	"""
+	Test setting an alternate config file after already creating the state machine works
+	"""
+	sm = GetStateMachine()
+	try:
+		sm.config = GetConfigurationFilePath("dummyConfig.json")
+		assert sm.relay.pin == 101
+		assert sm.timerPeriod == 1
+		assert sm.pid.kP == 10.6
+
+		testDump = GetConfigurationFilePath("testConfigDump.json")
+		if os.path.exists(testDump):
+			os.remove(testDump)
+
+		sm.dumpConfig(testDump)
+
+		with open(testDump, 'r') as inf:
+			testConfig = json.load(inf, object_pairs_hook=OrderedDict)
+
+		assert sm.config.config == testConfig
+		os.remove(testDump)
+	finally:
+		sm.cleanup()
+
+
+def test_settersGetters():
+	"""
+	Test some of the config setters & getters
+	"""
+	sm = GetStateMachine(configFile=None)
+	try:
+		sm.units = 'fahrenheit'
+		assert sm.units == 'fahrenheit'
+		sm.units = 'celsius'
+		assert sm.units == 'celsius'
+
+		assert sm.pid
+
+		sm.timerPeriod = 10
+		assert sm.timerPeriod == 10
+	finally:
+		sm.cleanup()
+
+
+def test_setStateConfiguration():
+	"""
+	Test setting the state configuration works
+	"""
+	sm = GetStateMachine(configFile=None)
+	try:
+		assert sm.states == []
+
+		with open(GetConfigurationFilePath("dummyConfig.json"), 'r') as inf:
+			tmpConfig = json.load(inf, object_pairs_hook=OrderedDict)
+
+		sm.stateConfiguration = tmpConfig['states']
+
+		assert sm.states
+		assert sm.states[0] == 'ramp2soak'
+		assert sm.stateConfiguration['ramp2soak']['target'] == 125
 	finally:
 		sm.cleanup()

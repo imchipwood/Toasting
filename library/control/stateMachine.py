@@ -76,6 +76,9 @@ class ToastStateMachine(object):
 		# Data tracking
 		self.data = []
 
+	def __repr__(self):
+		return "{}:{}".format(self.running, self.currentState)
+
 	# region Properties
 
 	@property
@@ -115,10 +118,7 @@ class ToastStateMachine(object):
 		@return: the current PID object
 		@rtype: PID
 		"""
-		if hasattr(self.config, 'pids') and isinstance(self.config.pids, PID):
-			return self.config.pids
-		else:
-			return None
+		return self.config.pids
 
 	@property
 	def timerPeriod(self):
@@ -354,9 +354,9 @@ class ToastStateMachine(object):
 		Check if we're ready to move to the next state
 		@return: bool
 		"""
-		if self.soaking and self.timestamp >= self.currentStateEnd:
-			# We're soaking and the state duration has completed
-			return True
+		if self.soaking:
+			# We're soaking - has the state duration completed?
+			return self.timestamp >= self.currentStateEnd
 		else:
 			# Not soaking - check if temp has reached target
 			return self.checkStateAgainstTarget()
@@ -368,7 +368,9 @@ class ToastStateMachine(object):
 		@rtype: bool
 		"""
 		# +/- 3.0 as a buffer
-		buffer = 3.0  # if self.units == 'celsius' else 3.0 * 9.0/5.0 + 32.0
+		celsiusBuffer = 3.0
+		fahrenheitBuffer = self.thermocouple.ConvertCelsiusToFahrenheit(celsiusBuffer)
+		buffer = celsiusBuffer if self.units == 'celsius' else fahrenheitBuffer
 		if self.targetState > self.lastTarget:
 			return self.temperature >= self.targetState - buffer
 		else:
