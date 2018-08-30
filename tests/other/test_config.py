@@ -72,8 +72,10 @@ def test_setters():
 	config.relayPin = 50
 	assert config.relayPin == 50
 
-	config.spiCsPin = 100
-	assert config.spiCsPin == 100
+	config.spiCsPin = 1
+	assert config.spiCsPin == 1
+	config.spiCsPin = 0
+	assert config.spiCsPin == 0
 
 	config.units = 'fahrenheit'
 	assert config.units == 'fahrenheit'

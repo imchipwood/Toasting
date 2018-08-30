@@ -65,7 +65,6 @@ class ClockThread(Thread):
 
 def tickNTimes(sm, n):
 	for i in range(n):
-		print("tick {}".format(i))
 		sm.tick()
 
 
@@ -82,8 +81,6 @@ def test_Tick():
 
 		tickNTimes(sm, 5)
 		assert sm.relayState
-		print(sm.refTemperature)
-		print(sm.temperature)
 
 		assert sm.running == STATES.RUNNING
 		print("Calling next state")

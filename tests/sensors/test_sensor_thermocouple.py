@@ -1,3 +1,5 @@
+import pytest
+
 from library.sensors.sensor_thermocouple import Thermocouple, TCNoTCError, TCGndShortError, TCVccShortError, TCError
 
 
@@ -55,7 +57,7 @@ def test_CheckSPIReadForErrors():
 		0x31113: TCNoTCError,
 		0x10006: TCGndShortError,
 		0x50004: TCVccShortError,
-		0x30008: TCError,
+		0x60008: TCError,
 		0x30009: TCNoTCError,
 	}
 	for val, expectedException in tests.items():
@@ -116,4 +118,20 @@ def test_Thermocouple():
 	tc = Thermocouple()
 	assert isinstance(tc.read(), (float, int))
 	assert isinstance(tc.temperature, (float, int))
+	assert isinstance(tc.refTemperature, (float, int))
 	tc.cleanup()
+
+
+def test_csPin():
+	"""
+	Test that setting the CS pin works as intended
+	"""
+	tc = Thermocouple()
+	assert tc.csPin == 0
+	tc.csPin = 1
+	tc.csPin = 1
+	tc.csPin = 1
+	tc.csPin = 1
+	assert tc.csPin == 1
+	with pytest.raises(Exception, message="Expected exception for invalid CS pin"):
+		tc.csPin = 10
