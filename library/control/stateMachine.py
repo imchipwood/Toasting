@@ -47,7 +47,6 @@ class ToastStateMachine(object):
 		self.pins = None
 		self.relay = None
 		self.thermocouple = None
-		self._config = None
 
 		# Basics of state machine
 		self.stateIndex = 0
@@ -87,7 +86,7 @@ class ToastStateMachine(object):
 		@return: current state configuration
 		@rtype: OrderedDict
 		"""
-		return self._config.states
+		return self.config.states
 
 	@stateConfiguration.setter
 	def stateConfiguration(self, configDict):
@@ -96,10 +95,15 @@ class ToastStateMachine(object):
 		@param configDict: new state configuration
 		@type configDict: OrderedDict
 		"""
-		self._config.states = configDict
+		self.config.states = configDict
 
 	@property
 	def states(self):
+		"""
+		Get the names of the configured states
+		@return: List of state names
+		@rtype: list[str]
+		"""
 		if self.stateConfiguration:
 			return list(self.stateConfiguration.keys())
 		else:
@@ -113,7 +117,7 @@ class ToastStateMachine(object):
 		@rtype: PID
 		"""
 		if hasattr(self.config, 'pids') and isinstance(self.config.pids, PID):
-			return self._config.pids
+			return self.config.pids
 		else:
 			return None
 
@@ -124,7 +128,7 @@ class ToastStateMachine(object):
 		@return: current timer period
 		@rtype: float
 		"""
-		return self._config.clockPeriod
+		return self.config.clockPeriod
 
 	@timerPeriod.setter
 	def timerPeriod(self, period):
@@ -133,7 +137,7 @@ class ToastStateMachine(object):
 		@param period: new timer clock period
 		@type period: str or int or float
 		"""
-		self._config.clockPeriod = float(period)
+		self.config.clockPeriod = float(period)
 
 	@property
 	def targetState(self):
@@ -142,7 +146,7 @@ class ToastStateMachine(object):
 		@return: current target state
 		@rtype: float
 		"""
-		return self._config.pids.target
+		return self.config.pids.target
 
 	@targetState.setter
 	def targetState(self, newTarget):
@@ -151,7 +155,7 @@ class ToastStateMachine(object):
 		@param newTarget: new target state
 		@type newTarget: str or int or float
 		"""
-		self._config.pids.target = newTarget
+		self.config.pids.target = newTarget
 
 	@property
 	def temperature(self):
@@ -187,7 +191,7 @@ class ToastStateMachine(object):
 		@return: current units
 		@rtype: str
 		"""
-		return self._config.units
+		return self.config.units
 
 	@units.setter
 	def units(self, units):
@@ -196,7 +200,10 @@ class ToastStateMachine(object):
 		@param units: new units
 		@type units: str
 		"""
-		self._config.units = units
+		self.config.units = units
+
+	# endregion Properties
+	# region Configuration
 
 	@property
 	def config(self):
@@ -209,23 +216,33 @@ class ToastStateMachine(object):
 	@config.setter
 	def config(self, configPath):
 		"""
-		Set the configuration
+		Setup a new configuration
+		@param configPath: path to new config file
+		@type configPath: str
 		"""
+		# First attempt to clean up
+		try:
+			self.cleanup()
+		except:
+			pass
+
+		# Load in the config file. Most stuff is accessed directly from the configuration
 		self._config = ToasterConfig(configPath)
 
 		# Pins
-		self.pins = self._config.pins
+		self.pins = self.config.pins
+
+		# Relay
 		if not self.relay:
 			self.relay = Relay(self.pins['relay'], debugLevel=self.debugLevel)
 		else:
-			self.relay.pin = self._config.relayPin
+			self.relay.pin = self.config.relayPin
+
+		# Thermocouple
 		if not self.thermocouple:
 			self.thermocouple = Thermocouple(self.pins['SPI_CS'], debugLevel=self.debugLevel)
 		else:
-			self.thermocouple.csPin = self._config.spiCsPin
-
-	# endregion Properties
-	# region Configuration
+			self.thermocouple.csPin = self.config.spiCsPin
 
 	def dumpConfig(self, filePath):
 		"""
@@ -233,7 +250,7 @@ class ToastStateMachine(object):
 		@param filePath: path to dump JSON config to
 		@type filePath: str
 		"""
-		self._config.dumpConfig(filePath)
+		self.config.dumpConfig(filePath)
 
 	# endregion Configuration
 	# region StateMachine
@@ -258,13 +275,12 @@ class ToastStateMachine(object):
 		"""
 		Stop the state machine
 		"""
-		if self.running != STATES.STOPPED:
-			self.running = STATES.STOPPED
-			self.stateIndex = 0
-			self.timestamp = 0.0
-			self.lastControlLoopTimestamp = 0.0
-			self.lastTarget = 0.0
-			self.updateStateVariables()
+		self.running = STATES.STOPPED
+		self.stateIndex = 0
+		self.timestamp = 0.0
+		self.lastControlLoopTimestamp = 0.0
+		self.lastTarget = 0.0
+		self.updateStateVariables()
 
 	def resume(self):
 		"""
