@@ -24,6 +24,9 @@ def teardown_function(function):
 
 
 def test_Relay_initDisable():
+	"""
+	Test that creating a relay with startingState False does just that
+	"""
 	try:
 		relay = Relay(pin=RELAY_PIN, startingState=False)
 		assert relay.pin == RELAY_PIN
@@ -39,6 +42,9 @@ def test_Relay_initDisable():
 
 
 def test_Relay_initEnable():
+	"""
+	Test that creating a relay with startingState True does just that
+	"""
 	try:
 		relay = Relay(pin=RELAY_PIN, startingState=True)
 		assert relay.pin == RELAY_PIN
