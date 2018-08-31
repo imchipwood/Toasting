@@ -3,8 +3,7 @@ matplotlib.use("WXAgg")
 import matplotlib.lines as mlines
 from matplotlib.figure import Figure
 
-CONFIG_KEY_TARGET = "target"
-CONFIG_KEY_DURATION = "duration"
+from definitions import CONFIG_KEY_TARGET, CONFIG_KEY_DURATION
 
 COLORS = {
 	'+': 'red',

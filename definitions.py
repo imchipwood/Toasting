@@ -1,4 +1,11 @@
 import os
+import logging
+
+MODEL_NAME = "Toasting"
+
+CONFIG_KEY_TARGET = "target"
+CONFIG_KEY_DURATION = "duration"
+DEBUG_LEVEL = logging.DEBUG
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_DIR = os.path.join(ROOT_DIR, u'config')

@@ -13,17 +13,12 @@ import wx.grid
 
 # Application imports
 from library.ui.ToastingGUIBase import ToastingBase
-from library.ui.visualizer_configuration import ConfigurationVisualizer, CONFIG_KEY_DURATION, CONFIG_KEY_TARGET
+from library.ui.panels.StateConfigurationPanel import StateConfigurationPanel
 from library.ui.visualizer_liveGraph import LiveVisualizer
 from library.control.stateMachine import ToastStateMachine, STATES
 from library.other import decorators
 from library.other.setupLogging import getLogger
-from definitions import CONFIG_DIR, DATA_DIR
-
-MODEL_NAME = "Toasting"
-
-DEBUG_LEVEL = logging.INFO
-DEBUG_LEVEL = logging.DEBUG
+from definitions import CONFIG_DIR, DATA_DIR, MODEL_NAME, DEBUG_LEVEL, CONFIG_KEY_DURATION, CONFIG_KEY_TARGET
 
 
 class ToastingGUI(ToastingBase):
@@ -51,20 +46,30 @@ class ToastingGUI(ToastingBase):
 		self.liveVisualizer = None
 		self.liveCanvas = None
 
-		# Notebook pages
-		self.notebookPages = ['Configuration', 'Tuning', 'Toasting!']
-		self.pageInitFunctions = {
-			'Configuration': self.initializeConfigurationPage,
-			'Tuning': self.initializeTuningPage,
-			'Toasting!': self.initializeToastingPage
-		}
-
 		# Create the state machine
 		self.toaster = ToastStateMachine(
 			jsonConfigPath=baseConfigurationPath,
 			stateMachineCompleteCallback=self.toastingComplete,
 			debugLevel=DEBUG_LEVEL
 		)
+
+		# Notebook pages
+		self.stateConfigPanel = StateConfigurationPanel(
+			self.baseNotebook,
+			self.toaster,
+			# configChangeCallback=None,
+			executeCallback=self.executeFromConfig
+		)
+		self.notebookPages = {
+			'Configuration': self.stateConfigPanel,
+			'Tuning': None,
+			'Toasting!': None
+		}
+		self.pageInitFunctions = {
+			'Configuration': self.stateConfigPanel.initializeConfigurationPage,
+			'Tuning': self.initializeTuningPage,
+			'Toasting!': self.initializeToastingPage
+		}
 
 		# state machine update
 		self.testing = False
@@ -93,6 +98,13 @@ class ToastingGUI(ToastingBase):
 		# Start the timer (period stored in seconds, Start() takes period in mS)
 		self.timer.Start(self.timerPeriod * 1000)
 
+		for panelName, panel in self.notebookPages.items():
+			if not panel:
+				continue
+			if panelName == 'Configuration':
+				self.baseNotebook.InsertPage(0, panel, panelName)
+		self.baseNotebook.SetSelection(0)
+
 		# Initialize all the pages
 		self.updateGuiFieldsFromNewConfig()
 
@@ -101,12 +113,6 @@ class ToastingGUI(ToastingBase):
 		# Busy/Ready decorators
 		decorators.subscribeToBusySignal(self.busy, MODEL_NAME)
 		decorators.subscribeToReadySignal(self.ready, MODEL_NAME)
-
-		# Grid events
-		self.configurationGrid.Bind(
-			wx.grid.EVT_GRID_CELL_CHANGED,
-			self.configurationGridOnGridCellChange
-		)
 
 		# Timer
 		self.Bind(wx.EVT_TIMER, self.timerHandler)
@@ -117,8 +123,8 @@ class ToastingGUI(ToastingBase):
 	def initCurrentPage(self):
 		"""Initialize the currently selected notebook page"""
 		if self.baseNotebook:
-			currentPageIndex = self.baseNotebook.GetSelection()
-			currentPageName = self.notebookPages[currentPageIndex]
+			currentPageName = self.baseNotebook.GetPageText(self.baseNotebook.GetSelection())
+			# currentPageName = self.notebookPages[currentPageIndex]
 			self.pageInitFunctions[currentPageName]()
 
 	# endregion Init
@@ -224,9 +230,12 @@ class ToastingGUI(ToastingBase):
 		@param enable: to enable or disable, that is the question
 		@type enable: bool
 		"""
-		self.configurationGrid.Enable(enable)
-		self.saveConfigButton.Enable(enable)
-		self.executeConfigButton.Enable(enable)
+		for panel in self.notebookPages.values():
+			if panel:
+				panel.Enable(enable)
+		# self.stateConfigPanel.Enable(enable)
+		# self.saveConfigButton.Enable(enable)
+		# self.executeConfigButton.Enable(enable)
 
 		# Temperature units radio boxes
 		if self.toaster.running in [STATES.RUNNING, STATES.PAUSED] or self.testing:
@@ -262,24 +271,6 @@ class ToastingGUI(ToastingBase):
 
 	# endregion BusyReady
 	# region Visualization
-
-	# @decorators.BusyReady(MODEL_NAME)
-	def redrawConfigurationVisualization(self):
-		"""Add a new configurationVisualizer to the configuration panel
-
-		@param visualizer: matplotlib configurationVisualizer for displaying config setup
-		@type visualizer: ConfigurationVisualizer
-		"""
-		# Clear out existing configurationVisualizer
-		sizer = self.configurationVisualizerPanel.GetSizer()
-		sizer.Clear()
-		sizer.Layout()
-
-		# Create and add the configurationVisualizer canvas to the sizer
-		visualizer = ConfigurationVisualizer(self.stateConfiguration, units=self.units)
-		canvas = FigureCanvas(self.configurationVisualizerPanel, -1, visualizer.fig)
-		sizer.Add(canvas, 1, wx.EXPAND)
-		self.configurationVisualizerPanel.Layout()
 
 	@decorators.BusyReady(MODEL_NAME)
 	def redrawLiveVisualization(self):
@@ -331,7 +322,7 @@ class ToastingGUI(ToastingBase):
 	def temperatureUnitsChange(self):
 		"""Update config/graphs/etc. when user changes units"""
 		# Get the current config
-		tempConfiguration = self.convertConfigGridToStateConfig()
+		tempConfiguration = self.stateConfigPanel.convertConfigGridToStateConfig()
 
 		# Create a new config based on the current config, but convert temps
 		newConfiguration = OrderedDict()
@@ -542,112 +533,12 @@ class ToastingGUI(ToastingBase):
 	# endregion DialogHelpers
 	# region ConfigurationPage
 
-	@decorators.BusyReady(MODEL_NAME)
-	def initializeConfigurationPage(self):
-		"""Set up the configuration grid based on current state config"""
-		# clear out all columns and rows
-		if self.configurationGrid.GetNumberCols():
-			self.configurationGrid.DeleteCols(0, self.configurationGrid.GetNumberCols())
-			self.configurationGrid.DeleteRows(0, self.configurationGrid.GetNumberRows())
-
-		# Set up the rows
-		self.configurationGrid.AppendRows(2)
-		self.configurationGrid.SetRowLabelValue(0, "Target Temp")
-		self.configurationGrid.SetRowLabelValue(1, "Step Duration")
-		self.configurationGrid.SetRowLabelSize(110)
-
-		# Set up the columns and insert the values from the config dict
-		for colNum, stepName in enumerate(self.stateConfiguration.keys()):
-			# Add a column
-			self.configurationGrid.AppendCols(1)
-
-			# Set column label (step name)
-			self.configurationGrid.SetColLabelValue(colNum, stepName)
-			self.configurationGrid.SetColSize(colNum, 95)
-
-			# Insert config values
-			targetTemp = str(self.stateConfiguration[stepName][CONFIG_KEY_TARGET])
-			stepDuration = str(self.stateConfiguration[stepName][CONFIG_KEY_DURATION])
-			self.configurationGrid.SetCellValue(col=colNum, row=0, s=targetTemp)
-			self.configurationGrid.SetCellValue(col=colNum, row=1, s=stepDuration)
-
-			# Set cell alignment to center
-			for rowNum in range(self.configurationGrid.GetNumberRows()):
-				self.configurationGrid.SetCellAlignment(wx.ALIGN_CENTER, rowNum, colNum)
-
-		self.redrawConfigurationVisualization()
-
-	@decorators.BusyReady(MODEL_NAME)
-	def configurationGridOnGridCellChange(self, event):
-		"""Event handler for cell value changing
-
-		@param event: wx.grid.EVT_GRID_CELL_CHANGED
+	def executeFromConfig(self):
 		"""
-		event.Skip()
-
-		# Get the state config
-		self.stateConfiguration = self.convertConfigGridToStateConfig()
-
-		# Update the config visualization
-		self.redrawConfigurationVisualization()
-
-	def executeConfigButtonOnButtonClick(self, event):
-		"""Event handler for execution button
-
-		@param event: wx.EVT_BUTTON
+		Event handler for execution button
 		"""
-		event.Skip()
 		self.baseNotebook.SetSelection(2)
-
-	@decorators.BusyReady(MODEL_NAME)
-	def saveConfigDialog(self):
-		"""Save current config to JSON file"""
-		# Create file save dialog
-		dialog = wx.FileDialog(
-			parent=self,
-			message="Save Config to JSON File",
-			defaultDir=CONFIG_DIR,
-			defaultFile="toast_config.json",
-			style=wx.FD_SAVE
-		)
-
-		# Show dialog and return if user didn't actually choose a file
-		if dialog.ShowModal() == wx.ID_CANCEL:
-			self.updateStatus("Save config operation cancelled", logLevel=logging.WARN)
-			return
-
-		# Extract file path from dialog and dump config
-		filePath = dialog.GetPath()
-		self.toaster.dumpConfig(filePath)
-		self.updateStatus("Config saved to {}".format(filePath))
-
-	def loadConfigFromFile(self, filePath):
-		"""Load in a new config from a JSON file path
-
-		@param filePath: path to new JSON config file
-		@type filePath: str
-		"""
-		self.config = filePath
-
-		# Update the GUI
-		self.updateGuiFieldsFromNewConfig()
-
-	def loadConfigDialog(self):
-		"""Show user a load file dialog and update configuration accordingly"""
-		dialog = wx.FileDialog(
-			parent=self,
-			message="Load JSON Config File",
-			defaultDir=CONFIG_DIR,
-			defaultFile="toast_config.json",
-			style=wx.FD_OPEN
-		)
-
-		# Do nothing if user exited dialog
-		if dialog.ShowModal() == wx.ID_CANCEL:
-			return
-
-		# Extract file path from dialog and load it
-		self.loadConfigFromFile(dialog.GetPath())
+		self.startStopReflowButtonOnButtonClick(None)
 
 	def updateGuiFieldsFromNewConfig(self):
 		"""Update all GUI fields pertaining to Toaster config"""
@@ -656,35 +547,13 @@ class ToastingGUI(ToastingBase):
 		self.fahrenheitRadioButton.SetValue(self.config.units == 'fahrenheit')
 
 		# Configuration grid
-		self.initializeConfigurationPage()
+		self.stateConfigPanel.initializeConfigurationPage()
 
 		# Tuning page
 		self.initializeTuningPage()
 
 		# Live graph page
 		self.initializeToastingPage()
-
-	def convertConfigGridToStateConfig(self):
-		"""Put values from grid into dictionary
-
-		@return: OrderedDict
-		"""
-		configDict = OrderedDict()
-
-		# Loop over columns
-		for colNum in range(0, self.configurationGrid.GetNumberCols()):
-			# Get step name and associated values
-			stepName = self.configurationGrid.GetColLabelValue(col=colNum)
-			targetTemp = self.configurationGrid.GetCellValue(col=colNum, row=0)
-			stepDuration = self.configurationGrid.GetCellValue(col=colNum, row=1)
-
-			# add step to dict
-			configDict[stepName] = {
-				CONFIG_KEY_TARGET: float(targetTemp),
-				CONFIG_KEY_DURATION: int(stepDuration)
-			}
-
-		return configDict
 
 	# endregion ConfigurationPage
 	# region TuningPage
@@ -779,7 +648,8 @@ class ToastingGUI(ToastingBase):
 
 		@param event: wx.BUTTON
 		"""
-		event.Skip()
+		if event:
+			event.Skip()
 		if self.startStopReflowButton.GetLabel() == 'Start Reflow':
 			# re-init the page to reset the live visualization
 			self.initializeToastingPage()
@@ -820,6 +690,7 @@ class ToastingGUI(ToastingBase):
 		self.testTimer = 0.0
 		self.testing = True
 		self.updateStatus("Testing relay")
+		self.enableFields(False)
 
 	@decorators.BusyReady(MODEL_NAME)
 	def toastingComplete(self):
@@ -883,6 +754,7 @@ class ToastingGUI(ToastingBase):
 			self.testing = False
 			self.toaster.relay.disable()
 			self.updateStatus("Relay test complete")
+			self.enableFields(True)
 
 	# endregion Testing
 	# region GeneralEventHandlers
@@ -898,11 +770,11 @@ class ToastingGUI(ToastingBase):
 		if self.testing or self.toaster.running == STATES.RUNNING:
 			self.progressGauge.Pulse()
 			# disable other panels while running
-			self.configurationPanel.Enable(False)
+			self.stateConfigPanel.Enable(False)
 			self.tuningPanel.Enable(False)
 		else:
 			self.progressGauge.SetValue(100)
-			self.configurationPanel.Enable(True)
+			self.stateConfigPanel.Enable(True)
 			self.tuningPanel.Enable(True)
 
 		# tell control to read thermocouple, etc.
@@ -966,29 +838,13 @@ class ToastingGUI(ToastingBase):
 		event.Skip()
 		self.writeDataAndConfigToDisk()
 
-	def saveConfigButtonOnButtonClick(self, event):
-		"""Event handler for save config button
-
-		@param event: wx.EVT_BUTTON
-		"""
-		event.Skip()
-		self.saveConfigDialog()
-
-	def loadConfigButtonOnButtonClick(self, event):
-		"""Event handler for load config button
-
-		@param event: wx.EVT_BUTTON
-		"""
-		event.Skip()
-		self.loadConfigDialog()
-
 	def saveConfigMenuItemOnMenuSelection(self, event):
 		"""Event handler for save config menu item
 
 		@param event: wx.EVT_MENU
 		"""
 		event.Skip()
-		self.saveConfigDialog()
+		self.stateConfigPanel.saveConfigDialog()
 
 	def loadConfigMenuItemOnMenuSelection(self, event):
 		"""Event handler for load config menu item
@@ -996,7 +852,7 @@ class ToastingGUI(ToastingBase):
 		@param event: wx.EVT_MENU
 		"""
 		event.Skip()
-		self.loadConfigDialog()
+		self.stateConfigPanel.loadConfigDialog()
 
 	def onClose(self, event):
 		"""Event handler for exit

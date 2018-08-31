@@ -8,6 +8,7 @@ from library.sensors.sensor_relay import Relay
 from library.sensors.sensor_thermocouple import Thermocouple
 from library.control.pid import PID
 from library.ui.visualizer_configuration import CONFIG_KEY_TARGET, CONFIG_KEY_DURATION
+from definitions import GetBaseConfigurationFilePath
 
 
 class STATES:
@@ -26,7 +27,7 @@ class ToastStateMachine(object):
 	2. Soaking - state is complete when duration expires, regardless of target temperature
 		Soaking states hold the same temperature reached at the end of the previous state
 	"""
-	def __init__(self, jsonConfigPath, stateMachineCompleteCallback=None, debugLevel=logging.INFO):
+	def __init__(self, jsonConfigPath=GetBaseConfigurationFilePath(), stateMachineCompleteCallback=None, debugLevel=logging.INFO):
 		"""
 		ToastStateMachine Constructor
 		@param jsonConfigPath: path to JSON configuration file
