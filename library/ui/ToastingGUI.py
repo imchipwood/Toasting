@@ -66,11 +66,11 @@ class ToastingGUI(ToastingBase):
 			timerChangeCallback=self.timerChangeCallback
 		)
 
-		self.notebookPages = {
-			'Configuration': self.stateConfigPanel,
-			'Tuning': self.tuningConfigPanel,
-			'Toasting!': None
-		}
+		self.notebookPages = OrderedDict()
+		self.notebookPages['Configuration'] = self.stateConfigPanel
+		self.notebookPages['Tuning'] = self.tuningConfigPanel
+		self.notebookPages['Toasting!'] = None
+
 		self.pageInitFunctions = {
 			'Configuration': self.stateConfigPanel.initializeConfigurationPage,
 			'Tuning': self.tuningConfigPanel.initializeTuningPage,
@@ -128,10 +128,11 @@ class ToastingGUI(ToastingBase):
 		self.Bind(wx.EVT_CLOSE, self.onClose)
 
 	def initCurrentPage(self):
-		"""Initialize the currently selected notebook page"""
+		"""
+		Initialize the currently selected notebook page
+		"""
 		if self.baseNotebook:
 			currentPageName = self.baseNotebook.GetPageText(self.baseNotebook.GetSelection())
-			# currentPageName = self.notebookPages[currentPageIndex]
 			self.pageInitFunctions[currentPageName]()
 
 	# endregion Init
@@ -139,7 +140,11 @@ class ToastingGUI(ToastingBase):
 
 	@property
 	def temperature(self):
-		"""Getter for current temperature"""
+		"""
+		Getter for current temperature
+		@return: current temperature
+		@rtype: float
+		"""
 		# if self.units == 'celsius':
 		return self.toaster.temperature
 		# else:
@@ -147,7 +152,11 @@ class ToastingGUI(ToastingBase):
 
 	@property
 	def refTemperature(self):
-		"""Getter for current reference temperature"""
+		"""
+		Getter for current reference temperature
+		@return: current referencetemperature
+		@rtype: float
+		"""
 		# if self.units == 'celsius':
 		return self.toaster.refTemperature
 		# else:
@@ -155,101 +164,127 @@ class ToastingGUI(ToastingBase):
 
 	@property
 	def units(self):
-		"""Getter for current temperature units"""
+		"""
+		Getter for current temperature units
+		@return: current units
+		@rtype: str
+		"""
 		return self.toaster.units
 
 	@units.setter
 	def units(self, units):
-		"""Setter for current temperature units
-
+		"""
+		Setter for current temperature units
 		@param units: str 'fahrenheit' or 'celsius'
+		@type units: str
 		"""
 		self.toaster.units = units
 
 	@property
 	def stateConfiguration(self):
-		"""Getter for state configuration"""
+		"""
+		Getter for state configuration
+		@return: current state config
+		@rtype: OrderedDict
+		"""
 		return self.toaster.stateConfiguration
 
 	@stateConfiguration.setter
 	def stateConfiguration(self, config):
-		"""Setter for state config
-
+		"""
+		Setter for state config
 		@param config: state configuration
-		@type config: dict
+		@type config: OrderedDict
 		"""
 		self.toaster.stateConfiguration = config
 
 	@property
 	def timerPeriod(self):
-		"""Getter for current clock timer period"""
-		return self.toaster.timerPeriod
-
-	@timerPeriod.setter
-	def timerPeriod(self, periodInSeconds):
-		"""Setter for timer period. Reset timer on value change
-
-		@param periodInSeconds: desired timer period in seconds
-		@type periodInSeconds: float
 		"""
-		# self.logger.debug("timerPeriod set: {}".format(periodInSeconds))
-		if periodInSeconds != self.timerPeriod:
-			self.updateStatus("Timer period updated: {}".format(periodInSeconds))
-			self.timer.Stop()
-			self.toaster.timerPeriod = periodInSeconds
-			self.timer.Start(self.timerPeriod * 1000.0)
+		Getter for current clock timer period
+		@return: current clock timer period
+		@rtype: float
+		"""
+		return self.toaster.timerPeriod
 
 	@property
 	def config(self):
+		"""
+		Get full config dict
+		@return: full configuration dict
+		@rtype: dict
+		"""
 		return self.toaster.config
 
 	@config.setter
 	def config(self, filePath):
+		"""
+		Set new config from file on disk
+		@param filePath: path to config file
+		@type filePath: str
+		"""
 		self.toaster.config = filePath
 
 	@property
 	def pidConfig(self):
+		"""
+		Get current PID config
+		@return: pid config dict
+		@rtype: dict[str, float]
+		"""
 		return self.toaster.pid.getConfig()
 
 	@pidConfig.setter
 	def pidConfig(self, configDict):
+		"""
+		Set new PID config dict
+		@param configDict: PID configuration dict
+		@type configDict: dict[str, float]
+		"""
 		self.toaster.pid.setConfig(configDict)
 
 	# endregion Properties
 	# region BusyReady
 
 	def busy(self):
-		"""Busy signal handler"""
+		"""
+		Busy signal handler
+		"""
 		self.isBusy = True
-		self.enableFields(False)
+		self.Enable(False)
 		self.progressGauge.Pulse()
 
 	def ready(self):
-		"""Ready signal handler"""
+		"""
+		Ready signal handler
+		"""
 		if not self.testing:
 			self.isBusy = False
-			self.enableFields()
+			self.Enable()
 			self.progressGauge.SetValue(100)
 
-	def enableFields(self, enable=True):
-		"""Enable/Disable GUI fields
-
+	def Enable(self, enable=True):
+		"""
+		Enable/Disable GUI fields
 		@param enable: to enable or disable, that is the question
 		@type enable: bool
 		"""
+		super(ToastingGUI, self).Enable(enable)
 		for panel in self.notebookPages.values():
 			if panel:
 				panel.Enable(enable)
 
-		# Temperature units radio boxes
-		if self.toaster.running in [STATES.RUNNING, STATES.PAUSED] or self.testing:
-			self.celsiusRadioButton.Enable(False)
-			self.fahrenheitRadioButton.Enable(False)
-		else:
-			self.celsiusRadioButton.Enable(enable)
-			self.fahrenheitRadioButton.Enable(enable)
+		self.enableUnitsRadioBox(enable)
 
-		# Save data button
+		self.enableControlButtons(enable)
+
+	def enableControlButtons(self, enable):
+		"""
+		Enable/disable the control buttons
+		@param enable: enable/disable flag
+		@type enable: bool
+		"""
+		# Save button
 		try:
 			if self.toaster.running not in [STATES.STOPPED, STATES.COMPLETE] or self.toaster.data == []:
 				self.saveDataButton.Enable(False)
@@ -257,7 +292,6 @@ class ToastingGUI(ToastingBase):
 				self.saveDataButton.Enable(enable)
 		except:
 			self.saveDataButton.Enable(False)
-
 		# Reflow/relay control buttons
 		if self.testing:
 			self.testButton.Enable(False)
@@ -272,6 +306,20 @@ class ToastingGUI(ToastingBase):
 				self.testButton.Enable(enable)
 				self.pauseReflowButton.Enable(False)
 				self.startStopReflowButton.Enable(enable)
+
+	def enableUnitsRadioBox(self, enable):
+		"""
+		Enable the radio box in the status bar
+		@param enable: enable/disable flag
+		@type enable: bool
+		"""
+		# Temperature units radio boxes
+		if self.toaster.running in [STATES.RUNNING, STATES.PAUSED] or self.testing:
+			self.celsiusRadioButton.Enable(False)
+			self.fahrenheitRadioButton.Enable(False)
+		else:
+			self.celsiusRadioButton.Enable(enable)
+			self.fahrenheitRadioButton.Enable(enable)
 
 	# endregion BusyReady
 	# region Visualization
@@ -566,14 +614,6 @@ class ToastingGUI(ToastingBase):
 
 		for func in self.pageInitFunctions.values():
 			func()
-		# # Configuration grid
-		# self.stateConfigPanel.initializeConfigurationPage()
-		#
-		# # Tuning page
-		# self.initializeTuningPage()
-		#
-		# # Live graph page
-		# self.initializeToastingPage()
 
 	# endregion ConfigurationPage
 	# region TuningPage
@@ -589,14 +629,15 @@ class ToastingGUI(ToastingBase):
 	# region ToastingPage
 
 	def initializeToastingPage(self):
-		"""Draw the basic live-graph for the Toasting page"""
+		"""
+		Draw the basic live-graph for the Toasting page
+		"""
 		self.redrawLiveVisualization()
 
 	@decorators.BusyReady(MODEL_NAME)
 	def startStopReflowButtonOnButtonClick(self, event):
-		"""Event handler for start/stop reflow button
-
-		@param event: wx.BUTTON
+		"""
+		Event handler for start/stop reflow button
 		"""
 		if event:
 			event.Skip()
@@ -617,9 +658,8 @@ class ToastingGUI(ToastingBase):
 		self.pauseReflowButton.SetLabel('Pause Reflow')
 
 	def pauseReflowButtonOnButtonClick(self, event):
-		"""Event handler for pause/resume reflow button
-
-		@param event: wx.BUTTON
+		"""
+		Event handler for pause/resume reflow button
 		"""
 		event.Skip()
 		if self.pauseReflowButton.GetLabel() == "Pause Reflow":
@@ -632,9 +672,8 @@ class ToastingGUI(ToastingBase):
 			self.updateStatus("Reflow process resumed")
 
 	def testButtonOnButtonClick(self, event):
-		"""Event handler for test button
-
-		@param event: wx.BUTTON
+		"""
+		Event handler for test button
 		"""
 		event.Skip()
 		self.testTimer = 0.0
@@ -644,12 +683,16 @@ class ToastingGUI(ToastingBase):
 
 	@decorators.BusyReady(MODEL_NAME)
 	def toastingComplete(self):
-		"""Do some stuff once reflow is complete"""
+		"""
+		Do some stuff once reflow is complete
+		"""
 		self.startStopReflowButton.SetLabel("Start Reflow")
 		self.writeDataAndConfigToDisk()
 
 	def writeDataAndConfigToDisk(self):
-		"""Dump collected data to CSV"""
+		"""
+		Dump collected data to CSV
+		"""
 		dialog = wx.FileDialog(
 			parent=self,
 			message="Save Data & Configuration",
@@ -684,7 +727,9 @@ class ToastingGUI(ToastingBase):
 
 	# @decorators.BusyReady(MODEL_NAME)
 	def testTick(self):
-		"""Fire this event to test relay"""
+		"""
+		Fire this event to test relay
+		"""
 		self.setStatusGridCellValue('status', STATES.TESTING)
 
 		# enable/disable relay at 1Hz
@@ -710,9 +755,8 @@ class ToastingGUI(ToastingBase):
 	# region GeneralEventHandlers
 
 	def timerHandler(self, event):
-		"""Event handler for wx.Timer
-		
-		@param event: wx.EVT_TIMER
+		"""
+		Event handler for wx.Timer
 		"""
 		event.Skip()
 
@@ -752,17 +796,15 @@ class ToastingGUI(ToastingBase):
 		self.updateStatusGrid()
 
 	def baseNotebookOnNotebookPageChanged(self, event):
-		"""Event handler for notebook page change
-
-		@param event: wx.EVT_NOTEBOOK_PAGE_CHANGED
+		"""
+		Event handler for notebook page change
 		"""
 		event.Skip()
 		self.initCurrentPage()
 
 	def temperatureOnRadioButton(self, event):
-		"""Event handler for temperature radio buttons
-
-		@param event: wx.EVT_RADIO_BUTTON
+		"""
+		Event handler for temperature radio buttons
 		"""
 		radioBox = event.GetEventObject()
 		if radioBox == self.celsiusRadioButton and self.units == 'celsius':
@@ -781,36 +823,32 @@ class ToastingGUI(ToastingBase):
 		self.updateTemperatureStatus()
 
 	def saveDataButtonOnButtonClick(self, event):
-		"""Event handler for save to CSV button
-
-		@param event: wx.EVT_BUTTON
+		"""
+		Event handler for save to CSV button
 		"""
 		event.Skip()
 		self.writeDataAndConfigToDisk()
 
 	def saveConfigMenuItemOnMenuSelection(self, event):
-		"""Event handler for save config menu item
-
-		@param event: wx.EVT_MENU
+		"""
+		Event handler for save config menu item
 		"""
 		event.Skip()
 		self.stateConfigPanel.saveConfigDialog()
 
 	def loadConfigMenuItemOnMenuSelection(self, event):
-		"""Event handler for load config menu item
-
-		@param event: wx.EVT_MENU
+		"""
+		Event handler for load config menu item
 		"""
 		event.Skip()
 		self.stateConfigPanel.loadConfigDialog()
 
 	def onClose(self, event):
-		"""Event handler for exit
-
-		@param event: wx.EVT_CLOSE
+		"""
+		Event handler for exit
 		"""
 		event.Skip()
 		self.toaster.cleanup()
 		self.Destroy()
 		
-	# endregion GeneralEventHandlers
+		# endregion GeneralEventHandlers
