@@ -137,143 +137,6 @@ class ToastingBase ( wx.Frame ):
 		baseSizer.Add( bSizer13, 0, wx.EXPAND, 5 )
 		
 		self.baseNotebook = wx.Notebook( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.tuningPanel = wx.Panel( self.baseNotebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		tuningBaseSizer = wx.BoxSizer( wx.VERTICAL )
-		
-		bSizer26 = wx.BoxSizer( wx.HORIZONTAL )
-		
-		pidTuningStaticBoxSizer = wx.StaticBoxSizer( wx.StaticBox( self.tuningPanel, wx.ID_ANY, u"PIDs" ), wx.HORIZONTAL )
-		
-		bSizer18 = wx.BoxSizer( wx.VERTICAL )
-		
-		self.pidPStaticText = wx.StaticText( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Proportional Gain (kP)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
-		self.pidPStaticText.Wrap( -1 )
-		bSizer18.Add( self.pidPStaticText, 1, wx.ALL|wx.EXPAND, 5 )
-		
-		self.pidIStaticText = wx.StaticText( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Integral Gain (kI)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
-		self.pidIStaticText.Wrap( -1 )
-		bSizer18.Add( self.pidIStaticText, 1, wx.ALL|wx.EXPAND, 5 )
-		
-		self.pidDStaticText = wx.StaticText( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Derivative Gain (kD)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
-		self.pidDStaticText.Wrap( -1 )
-		bSizer18.Add( self.pidDStaticText, 1, wx.ALL|wx.EXPAND, 5 )
-		
-		self.pidMinStaticText = wx.StaticText( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"PID Output Min Limit", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
-		self.pidMinStaticText.Wrap( -1 )
-		bSizer18.Add( self.pidMinStaticText, 1, wx.ALL|wx.EXPAND, 5 )
-		
-		self.pidMaxOutLimitStaticText = wx.StaticText( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"PID Output Max Limit", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
-		self.pidMaxOutLimitStaticText.Wrap( -1 )
-		bSizer18.Add( self.pidMaxOutLimitStaticText, 1, wx.ALL|wx.EXPAND, 5 )
-		
-		self.pidWindupGuardStaticText = wx.StaticText( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"PID Windup Guard", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
-		self.pidWindupGuardStaticText.Wrap( -1 )
-		bSizer18.Add( self.pidWindupGuardStaticText, 1, wx.ALL|wx.EXPAND, 5 )
-		
-		
-		pidTuningStaticBoxSizer.Add( bSizer18, 0, wx.EXPAND, 5 )
-		
-		bSizer181 = wx.BoxSizer( wx.VERTICAL )
-		
-		self.pidPTextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer181.Add( self.pidPTextCtrl, 1, wx.ALL, 5 )
-		
-		self.pidITextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer181.Add( self.pidITextCtrl, 1, wx.ALL, 5 )
-		
-		self.pidDTextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer181.Add( self.pidDTextCtrl, 1, wx.ALL, 5 )
-		
-		self.pidMinOutLimitTextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer181.Add( self.pidMinOutLimitTextCtrl, 1, wx.ALL, 5 )
-		
-		self.pidMaxOutLimitTextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer181.Add( self.pidMaxOutLimitTextCtrl, 1, wx.ALL, 5 )
-		
-		self.pidWindupGuardTextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer181.Add( self.pidWindupGuardTextCtrl, 1, wx.ALL, 5 )
-		
-		
-		pidTuningStaticBoxSizer.Add( bSizer181, 0, wx.EXPAND, 5 )
-		
-		bSizer182 = wx.BoxSizer( wx.VERTICAL )
-		
-		self.savePIDButton = wx.Button( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Save PID Tuning", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer182.Add( self.savePIDButton, 0, wx.ALL, 5 )
-		
-		
-		pidTuningStaticBoxSizer.Add( bSizer182, 0, wx.EXPAND, 5 )
-		
-		
-		bSizer26.Add( pidTuningStaticBoxSizer, 0, wx.EXPAND, 0 )
-		
-		otherTuningStaticBoxSizer = wx.StaticBoxSizer( wx.StaticBox( self.tuningPanel, wx.ID_ANY, u"Other" ), wx.HORIZONTAL )
-		
-		bSizer27 = wx.BoxSizer( wx.VERTICAL )
-		
-		self.timerPeriodStaticText = wx.StaticText( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Timer Period (s)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
-		self.timerPeriodStaticText.Wrap( -1 )
-		bSizer27.Add( self.timerPeriodStaticText, 1, wx.ALL|wx.EXPAND, 5 )
-		
-		
-		bSizer27.AddSpacer( 1 )
-		
-		self.relayPinStaticText = wx.StaticText( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Relay Pin (BCM)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
-		self.relayPinStaticText.Wrap( -1 )
-		bSizer27.Add( self.relayPinStaticText, 1, wx.ALL|wx.EXPAND, 5 )
-		
-		
-		bSizer27.AddSpacer( 1 )
-		
-		self.spiCsPinStaticText = wx.StaticText( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"SPI CS Pin (0, 1)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
-		self.spiCsPinStaticText.Wrap( -1 )
-		bSizer27.Add( self.spiCsPinStaticText, 1, wx.ALL|wx.EXPAND, 5 )
-		
-		
-		otherTuningStaticBoxSizer.Add( bSizer27, 0, wx.EXPAND, 5 )
-		
-		bSizer28 = wx.BoxSizer( wx.VERTICAL )
-		
-		self.timerPeriodTextCtrl = wx.TextCtrl( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer28.Add( self.timerPeriodTextCtrl, 1, wx.ALL|wx.EXPAND, 5 )
-		
-		
-		bSizer28.AddSpacer( 1 )
-		
-		self.relayPinTextCtrl = wx.TextCtrl( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer28.Add( self.relayPinTextCtrl, 1, wx.ALL|wx.EXPAND, 5 )
-		
-		
-		bSizer28.AddSpacer( 1 )
-		
-		self.spiCsPinTextCtrl = wx.TextCtrl( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer28.Add( self.spiCsPinTextCtrl, 1, wx.ALL|wx.EXPAND, 5 )
-		
-		
-		otherTuningStaticBoxSizer.Add( bSizer28, 0, wx.EXPAND, 5 )
-		
-		bSizer30 = wx.BoxSizer( wx.VERTICAL )
-		
-		self.saveOtherTuningButton = wx.Button( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Save Other Tuning", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer30.Add( self.saveOtherTuningButton, 0, wx.ALL|wx.EXPAND, 5 )
-		
-		
-		otherTuningStaticBoxSizer.Add( bSizer30, 0, wx.EXPAND, 5 )
-		
-		
-		bSizer26.Add( otherTuningStaticBoxSizer, 1, wx.EXPAND, 5 )
-		
-		
-		tuningBaseSizer.Add( bSizer26, 0, wx.EXPAND, 5 )
-		
-		
-		tuningBaseSizer.AddSpacer( 1 )
-		
-		
-		self.tuningPanel.SetSizer( tuningBaseSizer )
-		self.tuningPanel.Layout()
-		tuningBaseSizer.Fit( self.tuningPanel )
-		self.baseNotebook.AddPage( self.tuningPanel, u"Tuning", False )
 		self.executionPanel = wx.Panel( self.baseNotebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		executionBaseSizer = wx.BoxSizer( wx.VERTICAL )
 		
@@ -348,8 +211,6 @@ class ToastingBase ( wx.Frame ):
 		self.celsiusRadioButton.Bind( wx.EVT_RADIOBUTTON, self.temperatureOnRadioButton )
 		self.fahrenheitRadioButton.Bind( wx.EVT_RADIOBUTTON, self.temperatureOnRadioButton )
 		self.baseNotebook.Bind( wx.EVT_NOTEBOOK_PAGE_CHANGED, self.baseNotebookOnNotebookPageChanged )
-		self.savePIDButton.Bind( wx.EVT_BUTTON, self.savePIDButtonOnButtonClick )
-		self.saveOtherTuningButton.Bind( wx.EVT_BUTTON, self.saveOtherTuningButtonOnButtonClick )
 		self.saveDataButton.Bind( wx.EVT_BUTTON, self.saveDataButtonOnButtonClick )
 		self.testButton.Bind( wx.EVT_BUTTON, self.testButtonOnButtonClick )
 		self.startStopReflowButton.Bind( wx.EVT_BUTTON, self.startStopReflowButtonOnButtonClick )
@@ -377,12 +238,6 @@ class ToastingBase ( wx.Frame ):
 	
 	
 	def baseNotebookOnNotebookPageChanged( self, event ):
-		event.Skip()
-	
-	def savePIDButtonOnButtonClick( self, event ):
-		event.Skip()
-	
-	def saveOtherTuningButtonOnButtonClick( self, event ):
 		event.Skip()
 	
 	def saveDataButtonOnButtonClick( self, event ):

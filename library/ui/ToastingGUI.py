@@ -14,6 +14,7 @@ import wx.grid
 # Application imports
 from library.ui.ToastingGUIBase import ToastingBase
 from library.ui.panels.StateConfigurationPanel import StateConfigurationPanel
+from library.ui.panels.TuningConfigurationPanel import TuningConfigurationPanel
 from library.ui.visualizer_liveGraph import LiveVisualizer
 from library.control.stateMachine import ToastStateMachine, STATES
 from library.other import decorators
@@ -57,17 +58,22 @@ class ToastingGUI(ToastingBase):
 		self.stateConfigPanel = StateConfigurationPanel(
 			self.baseNotebook,
 			self.toaster,
-			# configChangeCallback=None,
 			executeCallback=self.executeFromConfig
 		)
+		self.tuningConfigPanel = TuningConfigurationPanel(
+			self.baseNotebook,
+			self.toaster,
+			timerChangeCallback=self.timerChangeCallback
+		)
+
 		self.notebookPages = {
 			'Configuration': self.stateConfigPanel,
-			'Tuning': None,
+			'Tuning': self.tuningConfigPanel,
 			'Toasting!': None
 		}
 		self.pageInitFunctions = {
 			'Configuration': self.stateConfigPanel.initializeConfigurationPage,
-			'Tuning': self.initializeTuningPage,
+			'Tuning': self.tuningConfigPanel.initializeTuningPage,
 			'Toasting!': self.initializeToastingPage
 		}
 
@@ -88,7 +94,9 @@ class ToastingGUI(ToastingBase):
 		self.ready()
 
 	def initializeGuiObjects(self):
-		"""Initialize the base GUI objects"""
+		"""
+		Initialize the base GUI objects
+		"""
 		# Progress bar setup
 		self.progressGauge.SetRange(100)
 
@@ -98,11 +106,10 @@ class ToastingGUI(ToastingBase):
 		# Start the timer (period stored in seconds, Start() takes period in mS)
 		self.timer.Start(self.timerPeriod * 1000)
 
-		for panelName, panel in self.notebookPages.items():
+		for i, (panelName, panel) in enumerate(self.notebookPages.items()):
 			if not panel:
 				continue
-			if panelName == 'Configuration':
-				self.baseNotebook.InsertPage(0, panel, panelName)
+			self.baseNotebook.InsertPage(i, panel, panelName)
 		self.baseNotebook.SetSelection(0)
 
 		# Initialize all the pages
@@ -233,9 +240,6 @@ class ToastingGUI(ToastingBase):
 		for panel in self.notebookPages.values():
 			if panel:
 				panel.Enable(enable)
-		# self.stateConfigPanel.Enable(enable)
-		# self.saveConfigButton.Enable(enable)
-		# self.executeConfigButton.Enable(enable)
 
 		# Temperature units radio boxes
 		if self.toaster.running in [STATES.RUNNING, STATES.PAUSED] or self.testing:
@@ -274,8 +278,8 @@ class ToastingGUI(ToastingBase):
 
 	@decorators.BusyReady(MODEL_NAME)
 	def redrawLiveVisualization(self):
-		"""Add a new LiveVisualizer to the execution panel
-
+		"""
+		Add a new LiveVisualizer to the execution panel
 		@param visualizer: matplotlib LiveVisualizer for displaying config & live data
 		@type visualizer: LiveVisualizer
 		"""
@@ -289,7 +293,9 @@ class ToastingGUI(ToastingBase):
 		self.liveVisualizationPanel.Layout()
 
 	def updateLiveVisualization(self):
-		"""Add the latest data points to the live visualization"""
+		"""
+		Add the latest data points to the live visualization
+		"""
 		# Add data to the graph
 		self.liveVisualizer.addDataPoint(
 			self.toaster.timestamp,
@@ -305,8 +311,8 @@ class ToastingGUI(ToastingBase):
 	# region Helpers
 
 	def updateStatus(self, text, logLevel=None):
-		"""Convenience function for updating status bar
-
+		"""
+		Convenience function for updating status bar
 		@param text: text to put on status bar
 		@type text: str
 		"""
@@ -320,7 +326,9 @@ class ToastingGUI(ToastingBase):
 
 	@decorators.BusyReady(MODEL_NAME)
 	def temperatureUnitsChange(self):
-		"""Update config/graphs/etc. when user changes units"""
+		"""
+		Update config/graphs/etc. when user changes units
+		"""
 		# Get the current config
 		tempConfiguration = self.stateConfigPanel.convertConfigGridToStateConfig()
 
@@ -344,8 +352,8 @@ class ToastingGUI(ToastingBase):
 		self.initCurrentPage()
 
 	def convertTemp(self, temp):
-		"""Convert a temp to the currently set units
-
+		"""
+		Convert a temp to the currently set units
 		@param temp: temperature value to convert
 		@type temp: float
 		@return: float
@@ -360,7 +368,9 @@ class ToastingGUI(ToastingBase):
 	# region StatusGrid
 
 	def updateStatusGrid(self):
-		"""Update status grid with latest info"""
+		"""
+		Update status grid with latest info
+		"""
 		# temps & relay
 		self.updateTemperatureStatus()
 		self.updateRelayStatus()
@@ -402,7 +412,9 @@ class ToastingGUI(ToastingBase):
 			self.setStatusGridCellColour('state', red, green, blue)
 
 	def setupStatusGrid(self):
-		"""Basic setup of status grid = cell width, color, etc."""
+		"""
+		Basic setup of status grid = cell width, color, etc.
+		"""
 		baseColumnWidth = 50
 
 		# relay state
@@ -439,8 +451,8 @@ class ToastingGUI(ToastingBase):
 		self.statusGrid.GetContainingSizer().Layout()
 
 	def setStatusGridCellColour(self, statusName, red=0, green=0, blue=0):
-		"""Updates the color of the box corresponding to the input statusName
-
+		"""
+		Updates the color of the box corresponding to the input statusName
 		@param statusName: name of status grid cell to update
 		@type statusName: str
 		@param red: how much red
@@ -455,8 +467,8 @@ class ToastingGUI(ToastingBase):
 		self.statusGrid.Refresh()
 
 	def setStatusGridCellValue(self, statusName, val):
-		"""Set value of status grid cell
-
+		"""
+		Set value of status grid cell
 		@param statusName: name of status grid cell to update
 		@type statusName: str
 		@param val: value to set in cell
@@ -470,12 +482,16 @@ class ToastingGUI(ToastingBase):
 			self.statusGrid.SetCellValue(0, index, "{}".format(val))
 
 	def updateTemperatureStatus(self):
-		"""Update the status grid with the latest temperature values"""
+		"""
+		Update the status grid with the latest temperature values
+		"""
 		self.setStatusGridCellValue('temp', self.temperature)
 		self.setStatusGridCellValue('reftemp', self.refTemperature)
 
 	def updateRelayStatus(self):
-		"""Update relay status grid cell based on current relay state"""
+		"""
+		Update relay status grid cell based on current relay state
+		"""
 		state = self.toaster.relayState
 		self.setStatusGridCellValue('relay', 'ON' if state else 'OFF')
 		if state:
@@ -541,99 +557,33 @@ class ToastingGUI(ToastingBase):
 		self.startStopReflowButtonOnButtonClick(None)
 
 	def updateGuiFieldsFromNewConfig(self):
-		"""Update all GUI fields pertaining to Toaster config"""
+		"""
+		Update all GUI fields pertaining to Toaster config
+		"""
 		# Units
 		self.celsiusRadioButton.SetValue(self.config.units == 'celsius')
 		self.fahrenheitRadioButton.SetValue(self.config.units == 'fahrenheit')
 
-		# Configuration grid
-		self.stateConfigPanel.initializeConfigurationPage()
-
-		# Tuning page
-		self.initializeTuningPage()
-
-		# Live graph page
-		self.initializeToastingPage()
+		for func in self.pageInitFunctions.values():
+			func()
+		# # Configuration grid
+		# self.stateConfigPanel.initializeConfigurationPage()
+		#
+		# # Tuning page
+		# self.initializeTuningPage()
+		#
+		# # Live graph page
+		# self.initializeToastingPage()
 
 	# endregion ConfigurationPage
 	# region TuningPage
 
-	def initializeTuningPage(self):
-		"""Initialize PID page with values from PID controller"""
-		#
-		pid = self.toaster.pid
-
-		# Gains
-		self.pidPTextCtrl.SetValue(str(pid.kP))
-		self.pidITextCtrl.SetValue(str(pid.kI))
-		self.pidDTextCtrl.SetValue(str(pid.kD))
-
-		# Limits
-		if pid.min is not None:
-			self.pidMinOutLimitTextCtrl.SetValue(str(pid.min))
-		if pid.max is not None:
-			self.pidMaxOutLimitTextCtrl.SetValue(str(pid.max))
-		if pid.windupGuard is not None:
-			self.pidWindupGuardTextCtrl.SetValue(str(pid.windupGuard))
-
-		# Timer period & sensor pins
-		self.timerPeriodTextCtrl.SetValue(str(self.timerPeriod))
-		self.relayPinTextCtrl.SetValue(str(self.toaster.relay.pin))
-		self.spiCsPinTextCtrl.SetValue(str(self.toaster.thermocouple.csPin))
-
-	def updatePIDsFromFields(self):
-		"""Update PID controller tuning from values in PID page"""
-		self.pidConfig = {
-			'kP': self.pidPTextCtrl.GetValue(),
-			'kI': self.pidITextCtrl.GetValue(),
-			'kD': self.pidDTextCtrl.GetValue(),
-			'min': self.pidMinOutLimitTextCtrl.GetValue(),
-			'max': self.pidMaxOutLimitTextCtrl.GetValue(),
-			'windupGuard': self.pidWindupGuardTextCtrl.GetValue(),
-		}
-
-	def updateOtherTuning(self):
-		"""Update various tuning variables from tuning page"""
-		# relay pin
-		try:
-			self.toaster.relay.pin = int(self.relayPinTextCtrl.GetValue())
-		except:
-			self.errorMessage("Invalid pin # for relay control", "Invalid Relay Pin #")
-			return
-
-		# SPI CS pin
-		try:
-			self.toaster.thermocouple.csPin = int(self.spiCsPinTextCtrl.GetValue())
-		except:
-			self.errorMessage("Invalid pin # for SPI CS (enable)", "Invalid SPI CS Pin #")
-			return
-
-		try:
-			self.timerPeriod = float(self.timerPeriodTextCtrl.GetValue())
-		except:
-			self.errorMessage(
-				"Invalid value for clock timer period. Please enter a float >= 0.5 (max of 2Hz refresh)",
-				"Invalid Timer Period"
-			)
-			return
-
-	def savePIDButtonOnButtonClick(self, event):
-		"""Event handler for PID save button
-
-		@param event: wx.EVT_BUTTON
+	def timerChangeCallback(self):
 		"""
-		event.Skip()
-		self.updatePIDsFromFields()
-		self.updateStatus("PID tuning updated")
-
-	def saveOtherTuningButtonOnButtonClick(self, event):
-		"""Event handler for Other tuning save button
-
-		@param event: wx.EVT_BUTTON
+		Callback from tuning page for timer period changed
 		"""
-		event.Skip()
-		self.updateOtherTuning()
-		self.updateStatus("Pin & Timing tuning updated")
+		self.timer.Stop()
+		self.timer.Start(self.timerPeriod * 1000.0)
 
 	# endregion TuningPage
 	# region ToastingPage
@@ -771,11 +721,11 @@ class ToastingGUI(ToastingBase):
 			self.progressGauge.Pulse()
 			# disable other panels while running
 			self.stateConfigPanel.Enable(False)
-			self.tuningPanel.Enable(False)
+			self.tuningConfigPanel.Enable(False)
 		else:
 			self.progressGauge.SetValue(100)
 			self.stateConfigPanel.Enable(True)
-			self.tuningPanel.Enable(True)
+			self.tuningConfigPanel.Enable(True)
 
 		# tell control to read thermocouple, etc.
 		self.toaster.tick(self.testing)
