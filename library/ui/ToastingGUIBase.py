@@ -20,25 +20,25 @@ class ToastingBase ( wx.Frame ):
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Toasting", pos = wx.DefaultPosition, size = wx.Size( 800,700 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
-		self.SetSizeHintsSz( wx.Size( 786,600 ), wx.DefaultSize )
+		self.SetSizeHints( wx.Size( 786,600 ), wx.DefaultSize )
 		
 		self.statusBar = self.CreateStatusBar( 1, 0, wx.ID_ANY )
 		self.menuBar = wx.MenuBar( 0 )
 		self.fileMenu = wx.Menu()
 		self.saveConfigMenuItem = wx.MenuItem( self.fileMenu, wx.ID_ANY, u"Save Config", wx.EmptyString, wx.ITEM_NORMAL )
-		self.fileMenu.AppendItem( self.saveConfigMenuItem )
+		self.fileMenu.Append( self.saveConfigMenuItem )
 		
 		self.loadConfigMenuItem = wx.MenuItem( self.fileMenu, wx.ID_ANY, u"Load Config", wx.EmptyString, wx.ITEM_NORMAL )
-		self.fileMenu.AppendItem( self.loadConfigMenuItem )
+		self.fileMenu.Append( self.loadConfigMenuItem )
 		
 		self.exitMenuItem = wx.MenuItem( self.fileMenu, wx.ID_ANY, u"Exit", wx.EmptyString, wx.ITEM_NORMAL )
-		self.fileMenu.AppendItem( self.exitMenuItem )
+		self.fileMenu.Append( self.exitMenuItem )
 		
 		self.menuBar.Append( self.fileMenu, u"File" ) 
 		
 		self.helpMenu = wx.Menu()
 		self.aboutMenuItem = wx.MenuItem( self.helpMenu, wx.ID_ANY, u"About", wx.EmptyString, wx.ITEM_NORMAL )
-		self.helpMenu.AppendItem( self.aboutMenuItem )
+		self.helpMenu.Append( self.aboutMenuItem )
 		
 		self.menuBar.Append( self.helpMenu, u"Help" ) 
 		
@@ -262,7 +262,7 @@ class GraphTestFrame ( wx.Frame ):
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Graph Test", pos = wx.DefaultPosition, size = wx.Size( 500,300 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
-		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		
 		graphTestBaseSizer = wx.BoxSizer( wx.VERTICAL )
 		
@@ -636,7 +636,7 @@ class PanelTestFrame ( wx.Frame ):
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 800,500 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
-		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		
 		baseSizer = wx.BoxSizer( wx.VERTICAL )
 		
