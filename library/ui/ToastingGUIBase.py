@@ -65,7 +65,7 @@ class ToastingBase ( wx.Frame ):
 		bSizer261.Add( bSizer14, 1, wx.EXPAND, 5 )
 		
 		
-		bSizer261.AddSpacer( 0)
+		bSizer261.AddSpacer( 1 )
 		
 		bSizer15 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -216,14 +216,14 @@ class ToastingBase ( wx.Frame ):
 		bSizer27.Add( self.timerPeriodStaticText, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
-		bSizer27.AddSpacer( 0)
+		bSizer27.AddSpacer( 1 )
 		
 		self.relayPinStaticText = wx.StaticText( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Relay Pin (BCM)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
 		self.relayPinStaticText.Wrap( -1 )
 		bSizer27.Add( self.relayPinStaticText, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
-		bSizer27.AddSpacer( 0)
+		bSizer27.AddSpacer( 1 )
 		
 		self.spiCsPinStaticText = wx.StaticText( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"SPI CS Pin (0, 1)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
 		self.spiCsPinStaticText.Wrap( -1 )
@@ -238,13 +238,13 @@ class ToastingBase ( wx.Frame ):
 		bSizer28.Add( self.timerPeriodTextCtrl, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
-		bSizer28.AddSpacer( 0)
+		bSizer28.AddSpacer( 1 )
 		
 		self.relayPinTextCtrl = wx.TextCtrl( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer28.Add( self.relayPinTextCtrl, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
-		bSizer28.AddSpacer( 0)
+		bSizer28.AddSpacer( 1 )
 		
 		self.spiCsPinTextCtrl = wx.TextCtrl( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer28.Add( self.spiCsPinTextCtrl, 1, wx.ALL|wx.EXPAND, 5 )
@@ -267,7 +267,7 @@ class ToastingBase ( wx.Frame ):
 		tuningBaseSizer.Add( bSizer26, 0, wx.EXPAND, 5 )
 		
 		
-		tuningBaseSizer.AddSpacer( 0)
+		tuningBaseSizer.AddSpacer( 1 )
 		
 		
 		self.tuningPanel.SetSizer( tuningBaseSizer )
@@ -285,13 +285,13 @@ class ToastingBase ( wx.Frame ):
 		sbSizer3.Add( self.saveDataButton, 0, wx.ALL, 5 )
 		
 		
-		sbSizer3.AddSpacer( 0)
+		sbSizer3.AddSpacer( 1 )
 		
 		self.testButton = wx.Button( sbSizer3.GetStaticBox(), wx.ID_ANY, u"Test Relay", wx.DefaultPosition, wx.DefaultSize, 0 )
 		sbSizer3.Add( self.testButton, 0, wx.ALL, 5 )
 		
 		
-		sbSizer3.AddSpacer( 0)
+		sbSizer3.AddSpacer( 1 )
 		
 		self.startStopReflowButton = wx.Button( sbSizer3.GetStaticBox(), wx.ID_ANY, u"Start Reflow", wx.DefaultPosition, wx.DefaultSize, 0 )
 		sbSizer3.Add( self.startStopReflowButton, 0, wx.ALL, 5 )
@@ -619,14 +619,14 @@ class ControlTuningPanelBase ( wx.Panel ):
 		bSizer27.Add( self.timerPeriodStaticText, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
-		bSizer27.AddSpacer( 0)
+		bSizer27.AddSpacer( 1 )
 		
 		self.relayPinStaticText = wx.StaticText( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Relay Pin (BCM)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
 		self.relayPinStaticText.Wrap( -1 )
 		bSizer27.Add( self.relayPinStaticText, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
-		bSizer27.AddSpacer( 0)
+		bSizer27.AddSpacer( 1 )
 		
 		self.spiCsPinStaticText = wx.StaticText( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"SPI CS Pin (0, 1)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
 		self.spiCsPinStaticText.Wrap( -1 )
@@ -641,13 +641,13 @@ class ControlTuningPanelBase ( wx.Panel ):
 		bSizer28.Add( self.timerPeriodTextCtrl, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
-		bSizer28.AddSpacer( 0)
+		bSizer28.AddSpacer( 1 )
 		
 		self.relayPinTextCtrl = wx.TextCtrl( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer28.Add( self.relayPinTextCtrl, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
-		bSizer28.AddSpacer( 0)
+		bSizer28.AddSpacer( 1 )
 		
 		self.spiCsPinTextCtrl = wx.TextCtrl( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer28.Add( self.spiCsPinTextCtrl, 1, wx.ALL|wx.EXPAND, 5 )
@@ -670,7 +670,7 @@ class ControlTuningPanelBase ( wx.Panel ):
 		tuningBaseSizer1.Add( bSizer26, 0, wx.EXPAND, 5 )
 		
 		
-		tuningBaseSizer1.AddSpacer( 0)
+		tuningBaseSizer1.AddSpacer( 1 )
 		
 		
 		self.SetSizer( tuningBaseSizer1 )
@@ -711,13 +711,13 @@ class ExecutionPanelBase ( wx.Panel ):
 		sbSizer3.Add( self.saveDataButton, 0, wx.ALL, 5 )
 		
 		
-		sbSizer3.AddSpacer( 0)
+		sbSizer3.AddSpacer( 1 )
 		
 		self.testButton = wx.Button( sbSizer3.GetStaticBox(), wx.ID_ANY, u"Test Relay", wx.DefaultPosition, wx.DefaultSize, 0 )
 		sbSizer3.Add( self.testButton, 0, wx.ALL, 5 )
 		
 		
-		sbSizer3.AddSpacer( 0)
+		sbSizer3.AddSpacer( 1 )
 		
 		self.startStopReflowButton = wx.Button( sbSizer3.GetStaticBox(), wx.ID_ANY, u"Start Reflow", wx.DefaultPosition, wx.DefaultSize, 0 )
 		sbSizer3.Add( self.startStopReflowButton, 0, wx.ALL, 5 )
