@@ -46,7 +46,9 @@ class ToastStateMachine(object):
 		self._config = None
 		self.pins = None
 		self.relay = None
+		""" @type: Relay """
 		self.thermocouple = None
+		""" @type: Thermocouple """
 
 		# Basics of state machine
 		self.stateIndex = 0
@@ -205,6 +207,24 @@ class ToastStateMachine(object):
 
 	# endregion Properties
 	# region Configuration
+
+	@property
+	def configPath(self):
+		"""
+		Get the current config path
+		@return: path to config file
+		@rtype: str
+		"""
+		return self.config.configPath
+
+	@configPath.setter
+	def configPath(self, filePath):
+		"""
+		Setter for config path
+		@param filePath: new config path
+		@type filePath: str
+		"""
+		self.config.configPath = filePath
 
 	@property
 	def config(self):

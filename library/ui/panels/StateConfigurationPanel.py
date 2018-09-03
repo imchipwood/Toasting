@@ -1,3 +1,4 @@
+import os
 import logging
 from collections import OrderedDict
 import matplotlib
@@ -17,13 +18,18 @@ from library.ui.visualizer_configuration import ConfigurationVisualizer
 
 
 class StateConfigurationPanel(StateConfigurationPanelBase):
-	def __init__(self, parent, toaster=None, configChangeCallback=None, executeCallback=None):
+
+	# region Initialization
+
+	def __init__(self, parent, toaster=None, executeCallback=None, configLoadCallback=None):
 		"""
 		Constructor for state config panel
 		@param parent: notebook to put panel in
 		@type parent: wx.Notebook
 		@param toaster: State machine
 		@type toaster: library.control.stateMachine.ToastStateMachine
+		@param executeCallback: callback for the execute button
+		@type executeCallback: function
 		"""
 		super(StateConfigurationPanel, self).__init__(parent)
 		self.toaster = toaster
@@ -35,8 +41,8 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 		self.configurationVisualizer = None
 
 		# Callbacks
-		# self.configUpdateCallback = configChangeCallback
 		self.executeCallback = executeCallback
+		self.configLoadCallback = configLoadCallback
 
 		# Grid events
 		self.configurationGrid.Bind(
@@ -47,28 +53,16 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 		self.initializeConfigurationPage()
 
 	def Enable(self, enable=True):
+		"""
+		Enable/disable this panel & all of its widgets
+		@param enable: enable/disable flag
+		@type enable: bool
+		"""
 		super(StateConfigurationPanel, self).Enable(enable)
 		self.saveConfigButton.Enable(enable)
 		self.loadConfigButton.Enable(enable)
 		self.executeConfigButton.Enable(enable)
 		self.configurationGrid.Enable(enable)
-
-	@property
-	def stateConfiguration(self):
-		if self.toaster:
-			return self.toaster.stateConfiguration
-		else:
-			return {}
-
-	@stateConfiguration.setter
-	def stateConfiguration(self, configDict):
-		self.toaster.stateConfiguration = configDict
-		# if self.configUpdateCallback:
-		# 	self.configUpdateCallback()
-
-	@property
-	def units(self):
-		return self.toaster.units
 
 	@BusyReady(MODEL_NAME)
 	def initializeConfigurationPage(self):
@@ -98,7 +92,7 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 
 			# Set column label (step name)
 			self.configurationGrid.SetColLabelValue(colNum, stepName)
-			self.configurationGrid.SetColSize(colNum, 95)
+			self.configurationGrid.SetColSize(colNum, 100)
 
 			# Insert config values
 			targetTemp = str(stepDict.get(CONFIG_KEY_TARGET, ""))
@@ -110,34 +104,13 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 			for rowNum in range(self.configurationGrid.GetNumberRows()):
 				self.configurationGrid.SetCellAlignment(wx.ALIGN_CENTER, rowNum, colNum)
 
-	# @decorators.BusyReady(MODEL_NAME)
-	def redrawConfigurationVisualization(self):
+	def updateGuiFieldsFromNewConfig(self):
 		"""
-		Add a new configurationVisualizer to the configuration panel
+		Update all GUI fields pertaining to Toaster config
 		"""
-		# Clear out existing configurationVisualizer
-		sizer = self.configurationVisualizerPanel.GetSizer()
-		sizer.Clear()
-		sizer.Layout()
-
-		# Create and add the configurationVisualizer canvas to the sizer
-		visualizer = ConfigurationVisualizer(self.stateConfiguration, units=self.units)
-		canvas = FigureCanvas(self.configurationVisualizerPanel, -1, visualizer.fig)
-		sizer.Add(canvas, 1, wx.EXPAND)
-		self.configurationVisualizerPanel.Layout()
-
-	@BusyReady(MODEL_NAME)
-	def configurationGridOnGridCellChange(self, event):
-		"""
-		Event handler for cell value changing
-		"""
-		event.Skip()
-
-		# Get the state config
-		self.stateConfiguration = self.convertConfigGridToStateConfig()
-
-		# Update the config visualization
-		self.redrawConfigurationVisualization()
+		self.initializeConfigurationPage()
+		if self.configLoadCallback:
+			self.configLoadCallback()
 
 	def convertConfigGridToStateConfig(self):
 		"""
@@ -161,6 +134,85 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 
 		return configDict
 
+	# endregion Initialization
+	# region Properties
+
+	@property
+	def stateConfiguration(self):
+		if self.toaster:
+			return self.toaster.stateConfiguration
+		else:
+			return {}
+
+	@stateConfiguration.setter
+	def stateConfiguration(self, configDict):
+		self.toaster.stateConfiguration = configDict
+
+	@property
+	def units(self):
+		return self.toaster.units
+
+	# endregion Properties
+	# region Visualization
+
+	# @decorators.BusyReady(MODEL_NAME)
+	def redrawConfigurationVisualization(self):
+		"""
+		Add a new configurationVisualizer to the configuration panel
+		"""
+		# Clear out existing configurationVisualizer
+		sizer = self.configurationVisualizerPanel.GetSizer()
+		sizer.Clear()
+		sizer.Layout()
+
+		# Create and add the configurationVisualizer canvas to the sizer
+		visualizer = ConfigurationVisualizer(self.stateConfiguration, units=self.units)
+		canvas = FigureCanvas(self.configurationVisualizerPanel, -1, visualizer.fig)
+		sizer.Add(canvas, 1, wx.EXPAND)
+		self.configurationVisualizerPanel.Layout()
+
+	# endregion Visualization
+	# region EventHandlers
+		# region Buttons
+
+	def saveConfigButtonOnButtonClick(self, event):
+		"""
+		Open the save config dialog
+		"""
+		event.Skip()
+		self.saveConfigDialog()
+
+	def loadConfigButtonOnButtonClick(self, event):
+		"""
+		Open the load config dialog
+		"""
+		event.Skip()
+		self.loadConfigDialog()
+
+	def executeConfigButtonOnButtonClick(self, event):
+		"""
+		Event handler for execution button
+		"""
+		event.Skip()
+		if self.executeCallback:
+			self.executeCallback()
+
+		# endregion Buttons
+		# region Grid
+
+	@BusyReady(MODEL_NAME)
+	def configurationGridOnGridCellChange(self, event):
+		"""
+		Redraw the reflow profile visualization when a value in the grid changes
+		"""
+		event.Skip()
+		self.stateConfiguration = self.convertConfigGridToStateConfig()
+		self.redrawConfigurationVisualization()
+
+		# endregion Grid
+	# endregion EventHandlers
+	# region SaveAndLoadConfig
+
 	def loadConfigFromFile(self, filePath):
 		"""
 		Load in a new config from a JSON file path
@@ -171,8 +223,6 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 
 		# Update the GUI
 		self.updateGuiFieldsFromNewConfig()
-		# if self.configUpdateCallback:
-		# 	self.configUpdateCallback()
 
 	def loadConfigDialog(self):
 		"""
@@ -193,32 +243,27 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 		# Extract file path from dialog and load it
 		self.loadConfigFromFile(dialog.GetPath())
 
-	def updateGuiFieldsFromNewConfig(self):
-		"""
-		Update all GUI fields pertaining to Toaster config
-		"""
-
-		# Configuration grid
-		self.initializeConfigurationPage()
-
-	def executeConfigButtonOnButtonClick(self, event):
-		"""Event handler for execution button
-
-		@param event: wx.EVT_BUTTON
-		"""
-		event.Skip()
-		if self.executeCallback:
-			self.executeCallback()
-
 	@BusyReady(MODEL_NAME)
 	def saveConfigDialog(self):
-		"""Save current config to JSON file"""
+		"""
+		Save current config to JSON file
+		"""
+
+		# Get the current config and use it as the target path
+		currentConfigPath = self.toaster.configPath
+		if currentConfigPath:
+			defaultDir = os.path.dirname(currentConfigPath)
+			defaultFile = os.path.basename(currentConfigPath)
+		else:
+			defaultDir = CONFIG_DIR
+			defaultFile = "toast_config.json"
+
 		# Create file save dialog
 		dialog = wx.FileDialog(
 			parent=self,
 			message="Save Config to JSON File",
-			defaultDir=CONFIG_DIR,
-			defaultFile="toast_config.json",
+			defaultDir=defaultDir,
+			defaultFile=defaultFile,
 			style=wx.FD_SAVE
 		)
 
@@ -230,7 +275,10 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 		# Extract file path from dialog and dump config
 		filePath = dialog.GetPath()
 		self.toaster.dumpConfig(filePath)
+		self.toaster.configPath = filePath
 		self.parentFrame.updateStatus("Config saved to {}".format(filePath))
+
+		# endregion SaveAndLoadConfig
 
 
 if __name__ == "__main__":

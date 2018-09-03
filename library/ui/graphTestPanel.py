@@ -27,15 +27,11 @@ class ConfigurationGraphTestPanel(GraphTestFrame):
 
 		# Config vars
 		if stateConfiguration:
-			self.stateConfiguration = stateConfiguration
-
-			self.visualizer = ConfigurationVisualizer(self.stateConfiguration)
-
-			self.addFigToPanel(fig=self.visualizer.fig)
+			self.updateConfiguration(stateConfiguration)
 
 	def updateConfiguration(self, newStateConfiguration):
-		"""Redraw state visualization
-
+		"""
+		Redraw state visualization
 		@param newStateConfiguration: new config to draw
 		@type newStateConfiguration: dict
 		"""

@@ -24,6 +24,8 @@ from definitions import CONFIG_DIR, DATA_DIR, MODEL_NAME, DEBUG_LEVEL, CONFIG_KE
 
 class ToastingGUI(ToastingBase):
 
+	RELAY_TEST_DURATION = 10.0
+
 	# region Init
 
 	def __init__(self, baseConfigurationPath):
@@ -58,7 +60,8 @@ class ToastingGUI(ToastingBase):
 		self.stateConfigPanel = StateConfigurationPanel(
 			self.baseNotebook,
 			self.toaster,
-			executeCallback=self.executeFromConfig
+			executeCallback=self.executeFromConfig,
+			configLoadCallback=self.updateGuiFieldsFromNewConfig
 		)
 		self.tuningConfigPanel = TuningConfigurationPanel(
 			self.baseNotebook,
@@ -609,8 +612,8 @@ class ToastingGUI(ToastingBase):
 		Update all GUI fields pertaining to Toaster config
 		"""
 		# Units
-		self.celsiusRadioButton.SetValue(self.config.units == 'celsius')
-		self.fahrenheitRadioButton.SetValue(self.config.units == 'fahrenheit')
+		self.celsiusRadioButton.SetValue(self.units == 'celsius')
+		self.fahrenheitRadioButton.SetValue(self.units == 'fahrenheit')
 
 		for func in self.pageInitFunctions.values():
 			func()
@@ -676,10 +679,10 @@ class ToastingGUI(ToastingBase):
 		Event handler for test button
 		"""
 		event.Skip()
+		self.Enable(False)
+		self.updateStatus("Testing relay")
 		self.testTimer = 0.0
 		self.testing = True
-		self.updateStatus("Testing relay")
-		self.enableFields(False)
 
 	@decorators.BusyReady(MODEL_NAME)
 	def toastingComplete(self):
@@ -734,22 +737,19 @@ class ToastingGUI(ToastingBase):
 
 		# enable/disable relay at 1Hz
 		if self.testTimer % 1 == 0:
-			# self.logger.debug("testTimer 1Hz tick")
-			if self.toaster.relayState:
-				self.toaster.relay.disable()
-			else:
-				self.toaster.relay.enable()
+			self.toaster.relay.toggle()
+			remainingTime = self.RELAY_TEST_DURATION - self.testTimer
+			self.updateStatus("Remaining relay test time: {} seconds".format(remainingTime))
 
 		# increment test timer
 		self.testTimer += self.timerPeriod
 
-		# Are we done testing?
-		if self.testTimer >= 10.0:
-			# Stop testing and ensure relay is off
+		# Stop testing and ensure relay is off after 10 seconds
+		if self.testTimer >= self.RELAY_TEST_DURATION:
 			self.testing = False
 			self.toaster.relay.disable()
 			self.updateStatus("Relay test complete")
-			self.enableFields(True)
+			self.Enable(True)
 
 	# endregion Testing
 	# region GeneralEventHandlers
@@ -842,6 +842,13 @@ class ToastingGUI(ToastingBase):
 		"""
 		event.Skip()
 		self.stateConfigPanel.loadConfigDialog()
+
+	def aboutMenuItemOnMenuSelection(self, event):
+		"""
+		Event handler for about menu item
+		"""
+		event.Skip()
+		self.infoMessage(message="See https://www.github.com/imchipwood/Toasting for more info", caption="About")
 
 	def onClose(self, event):
 		"""

@@ -28,6 +28,18 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 
 		self.timerChangeCallback = timerChangeCallback
 
+		self._textCtrlToNameMap = {
+			self.pidPTextCtrl: 'kP',
+			self.pidITextCtrl: 'kI',
+			self.pidDTextCtrl: 'kD',
+			self.pidMinOutLimitTextCtrl: 'Min Limit',
+			self.pidMaxOutLimitTextCtrl: 'Max Limit',
+			self.pidWindupGuardTextCtrl: 'Windup Guard',
+			self.timerPeriodTextCtrl: 'Timer Clock Period',
+			self.relayPinTextCtrl: 'Relay GPIO Pin',
+			self.spiCsPinTextCtrl: 'SPI CS Pin'
+		}
+
 	def initializeTuningPage(self):
 		"""
 		Initialize PID page with values from PID controller
@@ -94,7 +106,7 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		"""
 		self.toaster.pid.setConfig(configDict)
 
-	def updateOtherTuning(self):
+	def updateOtherTuningFromFields(self):
 		"""
 		Update various tuning variables from tuning page
 		"""
@@ -134,18 +146,22 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 			'windupGuard': self.pidWindupGuardTextCtrl.GetValue(),
 		}
 
-	def savePIDButtonOnButtonClick(self, event):
+	def pidOnTextEnter(self, event):
 		"""
-		Event handler for PID save button
+		Update PID values
 		"""
 		event.Skip()
 		self.updatePIDsFromFields()
 		self.parentFrame.updateStatus("PID tuning updated")
 
-	def saveOtherTuningButtonOnButtonClick(self, event):
+	def otherTuningOnTextEnter(self, event):
 		"""
-		Event handler for Other tuning save button
+		Update pins/etc.
 		"""
 		event.Skip()
-		self.updateOtherTuning()
+		self.updateOtherTuningFromFields()
+		textCtrl = event.GetEventObject()
+		newValue = textCtrl.GetValue()
+		parameter = self._textCtrlToNameMap[textCtrl]
 		self.parentFrame.updateStatus("Pin & Timing tuning updated")
+

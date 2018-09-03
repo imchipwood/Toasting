@@ -106,7 +106,6 @@ class Sensor(object):
 		"""
 		"Enable" the output based on the configured active high or low
 		"""
-		# GPIO.output(self.pin, self._positive)
 		GPIO.output(self.pin, self.HIGH())
 		self.state = True
 
@@ -114,9 +113,17 @@ class Sensor(object):
 		"""
 		"Disable" the output based on the configured active high or low
 		"""
-		# GPIO.output(self.pin, self._negative)
 		GPIO.output(self.pin, self.LOW())
 		self.state = False
+
+	def toggle(self):
+		"""
+		Toggle the relay - i.e. switch states
+		"""
+		if self.state:
+			self.disable()
+		else:
+			self.enable()
 
 	def cleanup(self):
 		"""

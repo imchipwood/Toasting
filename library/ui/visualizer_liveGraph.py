@@ -6,7 +6,14 @@ from library.ui.visualizer_configuration import ConfigurationVisualizer, CONFIG_
 
 class LiveVisualizer(ConfigurationVisualizer):
 	def __init__(self, stateConfiguration, units='celsius'):
-		super(LiveVisualizer, self).__init__(stateConfiguration, doNotDraw=True, units=units)
+		"""
+		Live visualizer (line graph) constructor
+		@param stateConfiguration: State config dict for reflow profile
+		@type stateConfiguration: collections.OrderedDict
+		@param units: Temperature units to display. Default: celsius
+		@type units: str
+		"""
+		super(LiveVisualizer, self).__init__(stateConfiguration, doNotDrawLines=True, units=units)
 		
 		# State tracking
 		self.lastState = None
@@ -20,14 +27,17 @@ class LiveVisualizer(ConfigurationVisualizer):
 
 		# Matplotlib plot data structs
 		self.stateDataPlots = {}
+		""" @type: dict[str, matplotlib.lines.Line2D] """
+		# dict[str, matplotlib.figure.Figure]
 		self.stateTargetPlots = {}
+		""" @type: dict[str, matplotlib.lines.Line2D] """
 		
 		# Actual data storage
 		self.liveData = []
 
 	def addDataPoint(self, x, y, currentTarget, stateName):
-		"""Add an X/Y point to the graph
-
+		"""
+		Add an X/Y point to the graph
 		@param x: x value
 		@type x: float
 		@param y: y value
@@ -44,7 +54,9 @@ class LiveVisualizer(ConfigurationVisualizer):
 		self.updateGraph()
 
 	def updateGraph(self):
-		"""Update the x/y data of the plots to reflect new data"""
+		"""
+		Update the x/y data of the plots to reflect new data
+		"""
 		# Create new plot with correct color if new state
 		if self.currentState != self.lastState:
 			# get the color for this state
@@ -81,16 +93,19 @@ class LiveVisualizer(ConfigurationVisualizer):
 		# Check if axes limits need to be adjusted
 		self.updateAxesLimits()
 
-		# update plot data for this state
-		self.stateDataPlots[self.currentState].set_xdata(timestamps)
-		self.stateDataPlots[self.currentState].set_ydata(temperatures)
-		self.stateTargetPlots[self.currentState].set_xdata(timestamps)
-		self.stateTargetPlots[self.currentState].set_ydata(targetTemperatures)
+		# For all of our plots, update the X/Y data sets, which forces the plots to re-draw themselves
+		self.stateDataPlots[self.currentState].set_data(timestamps, temperatures)
+		self.stateTargetPlots[self.currentState].set_data(timestamps, targetTemperatures)
+		# self.stateDataPlots[self.currentState].set_xdata(timestamps)
+		# self.stateDataPlots[self.currentState].set_ydata(temperatures)
+		# self.stateTargetPlots[self.currentState].set_xdata(timestamps)
+		# self.stateTargetPlots[self.currentState].set_ydata(targetTemperatures)
 
 	def getCurrentStateData(self):
-		"""Get lists of current state data for plotting
-
+		"""
+		Get lists of current state data for plotting
 		@return: tuple of lists of data - timestamps, current temperatures, target temperatures
+		@rtype: tuple[list[float], list[float], list[float]]
 		"""
 		timestamps = [timestamp for timestamp, currentTemperature, targetTemperature, state in self.liveData if state == self.currentState]
 		temperatures = [currentTemperature for x, currentTemperature, targetTemperature, state in self.liveData if state == self.currentState]
@@ -98,17 +113,17 @@ class LiveVisualizer(ConfigurationVisualizer):
 		return timestamps, temperatures, targetTemperatures
 
 	def updateAxesLimits(self):
-		"""Check that axes can display all data and adjust limits if necessary"""
-		# Timestamps
+		"""
+		Check that axes can display all data and adjust limits if necessary
+		"""
+		# Get the latest timestamp
 		maxTimestamp = [timestamp for timestamp, currentTemperature, targetTemperature, state in self.liveData][-1]
 
 		# Is the latest timestamp approaching the end of the X axis?
 		xMin, xMax = self.axes.get_xlim()
 		if maxTimestamp >= (xMax - 50):
-			xMax += 50
-
-		# Set the new x-axis limits
-		self.axes.set_xlim(xMin, xMax)
+			# Yes - increase x-axis limits
+			self.axes.set_xlim(xMin, xMax + 50)
 
 		# Temperatures
 		allTemperatures = [currentTemperature for timestamp, currentTemperature, targetTemperature, state in self.liveData]

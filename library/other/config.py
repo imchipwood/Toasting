@@ -29,6 +29,8 @@ class ToasterConfig(object):
 	def __init__(self, configPath):
 		super(ToasterConfig, self).__init__()
 
+		self.configPath = configPath
+
 		# The params we need to fill
 		self._units = self.BASE_UNITS
 		self._pins = self.BASE_PINS
