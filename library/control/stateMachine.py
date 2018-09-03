@@ -217,15 +217,6 @@ class ToastStateMachine(object):
 		"""
 		return self.config.configPath
 
-	@configPath.setter
-	def configPath(self, filePath):
-		"""
-		Setter for config path
-		@param filePath: new config path
-		@type filePath: str
-		"""
-		self.config.configPath = filePath
-
 	@property
 	def config(self):
 		"""

@@ -275,7 +275,7 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 		# Extract file path from dialog and dump config
 		filePath = dialog.GetPath()
 		self.toaster.dumpConfig(filePath)
-		self.toaster.configPath = filePath
+		self.toaster.config = filePath
 		self.parentFrame.updateStatus("Config saved to {}".format(filePath))
 
 		# endregion SaveAndLoadConfig

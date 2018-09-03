@@ -110,6 +110,7 @@ def test_TickTest():
 		sm.stop()
 		sm.tick(testing=True)
 		assert sm.relayState
+		sm.tick(testing=False)
 	finally:
 		sm.cleanup()
 
@@ -251,7 +252,8 @@ def test_setAlternateConfig():
 	"""
 	sm = GetStateMachine()
 	try:
-		sm.config = GetConfigurationFilePath("dummyConfig.json")
+		configFile = GetConfigurationFilePath("dummyConfig.json")
+		sm.config = configFile
 		assert sm.relay.pin == 101
 		assert sm.timerPeriod == 1
 		assert sm.pid.kP == 10.6
@@ -266,6 +268,7 @@ def test_setAlternateConfig():
 			testConfig = json.load(inf, object_pairs_hook=OrderedDict)
 
 		assert sm.config.config == testConfig
+		assert sm.configPath == configFile
 		os.remove(testDump)
 	finally:
 		sm.cleanup()
@@ -286,6 +289,7 @@ def test_settersGetters():
 
 		sm.timerPeriod = 10
 		assert sm.timerPeriod == 10
+		assert isinstance(sm.refTemperature, (int, float))
 	finally:
 		sm.cleanup()
 

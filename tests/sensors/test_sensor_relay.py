@@ -23,7 +23,7 @@ def teardown_function(function):
 	return
 
 
-def test_Relay_initDisable():
+def test_initDisable():
 	"""
 	Test that creating a relay with startingState False does just that
 	"""
@@ -41,7 +41,7 @@ def test_Relay_initDisable():
 		relay.cleanup()
 
 
-def test_Relay_initEnable():
+def test_initEnable():
 	"""
 	Test that creating a relay with startingState True does just that
 	"""
@@ -54,6 +54,24 @@ def test_Relay_initEnable():
 		assert relay.state is False
 
 		relay.enable()
+		assert relay.state is True
+	finally:
+		relay.cleanup()
+
+
+def test_toggle():
+	"""
+	Test that creating a relay with startingState True does just that
+	"""
+	try:
+		relay = Relay(pin=RELAY_PIN, startingState=True)
+		assert relay.pin == RELAY_PIN
+		assert relay.state is True
+
+		relay.toggle()
+		assert relay.state is False
+
+		relay.toggle()
 		assert relay.state is True
 	finally:
 		relay.cleanup()
