@@ -10,11 +10,16 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 import wx
 import wx.grid
 
-from definitions import CONFIG_DIR
 from library.other.decorators import BusyReady
 from library.ui.ToastingGUIBase import StateConfigurationPanelBase
 from definitions import CONFIG_KEY_DURATION, CONFIG_KEY_TARGET, DEBUG_LEVEL, MODEL_NAME
 from library.ui.visualizer_configuration import ConfigurationVisualizer
+
+
+class GRIDINFO:
+	ROW_NAME = 0
+	ROW_TARGET = 1
+	ROW_DURATION = 2
 
 
 class StateConfigurationPanel(StateConfigurationPanelBase):
@@ -59,9 +64,6 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 		@type enable: bool
 		"""
 		super(StateConfigurationPanel, self).Enable(enable)
-		self.saveConfigButton.Enable(enable)
-		self.loadConfigButton.Enable(enable)
-		self.executeConfigButton.Enable(enable)
 		self.configurationGrid.Enable(enable)
 
 	@BusyReady(MODEL_NAME)
@@ -89,28 +91,18 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 		for colNum, (stepName, stepDict) in enumerate(self.stateConfiguration.items()):
 			# Add a column
 			self.configurationGrid.AppendCols(1)
-
-			# Set column label (step name)
-			self.configurationGrid.SetColLabelValue(colNum, stepName)
 			self.configurationGrid.SetColSize(colNum, 100)
 
 			# Insert config values
 			targetTemp = str(stepDict.get(CONFIG_KEY_TARGET, ""))
 			stepDuration = str(stepDict.get(CONFIG_KEY_DURATION, ""))
-			self.configurationGrid.SetCellValue(0, colNum, targetTemp)
-			self.configurationGrid.SetCellValue(1, colNum, stepDuration)
+			self.configurationGrid.SetCellValue(GRIDINFO.ROW_NAME, colNum, stepName)
+			self.configurationGrid.SetCellValue(GRIDINFO.ROW_TARGET, colNum, targetTemp)
+			self.configurationGrid.SetCellValue(GRIDINFO.ROW_DURATION, colNum, stepDuration)
 
 			# Set cell alignment to center
 			for rowNum in range(self.configurationGrid.GetNumberRows()):
 				self.configurationGrid.SetCellAlignment(wx.ALIGN_CENTER, rowNum, colNum)
-
-	def updateGuiFieldsFromNewConfig(self):
-		"""
-		Update all GUI fields pertaining to Toaster config
-		"""
-		self.initializeConfigurationPage()
-		if self.configLoadCallback:
-			self.configLoadCallback()
 
 	def convertConfigGridToStateConfig(self):
 		"""
@@ -122,9 +114,12 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 		# Loop over columns
 		for colNum in range(self.configurationGrid.GetNumberCols()):
 			# Get step name and associated values
-			stepName = self.configurationGrid.GetColLabelValue(colNum)
-			targetTemp = self.configurationGrid.GetCellValue(0, colNum)
-			stepDuration = self.configurationGrid.GetCellValue(1, colNum)
+			stepName = self.configurationGrid.GetCellValue(GRIDINFO.ROW_NAME, colNum)
+			targetTemp = self.configurationGrid.GetCellValue(GRIDINFO.ROW_TARGET, colNum)
+			stepDuration = self.configurationGrid.GetCellValue(GRIDINFO.ROW_DURATION, colNum)
+
+			if "" in [stepName, targetTemp, stepDuration]:
+				raise Exception("Column '{}' is missing data. Cancelling operation.".format(colNum))
 
 			# add step to dict
 			configDict[stepName] = {
@@ -155,7 +150,6 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 	# endregion Properties
 	# region Visualization
 
-	# @decorators.BusyReady(MODEL_NAME)
 	def redrawConfigurationVisualization(self):
 		"""
 		Add a new configurationVisualizer to the configuration panel
@@ -175,27 +169,24 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 	# region EventHandlers
 		# region Buttons
 
-	def saveConfigButtonOnButtonClick(self, event):
+	def addStepButtonOnButtonClick(self, event):
 		"""
-		Open the save config dialog
+		Add a column to the grid
 		"""
 		event.Skip()
-		self.saveConfigDialog()
+		self.configurationGrid.AppendCols(1)
+		colNum = self.configurationGrid.GetNumberCols() - 1
+		self.configurationGrid.SetColSize(colNum, 100)
+		for rowNum in range(self.configurationGrid.GetNumberRows()):
+			self.configurationGrid.SetCellAlignment(wx.ALIGN_CENTER, rowNum, colNum)
 
-	def loadConfigButtonOnButtonClick(self, event):
+	def removeStepButtonOnButtonClick(self, event):
 		"""
-		Open the load config dialog
-		"""
-		event.Skip()
-		self.loadConfigDialog()
-
-	def executeConfigButtonOnButtonClick(self, event):
-		"""
-		Event handler for execution button
+		Remove a column from the grid
 		"""
 		event.Skip()
-		if self.executeCallback:
-			self.executeCallback()
+		self.configurationGrid.DeleteCols(self.configurationGrid.GetNumberCols() - 1, 1)
+		self.configurationGridOnGridCellChange(None)
 
 		# endregion Buttons
 		# region Grid
@@ -205,80 +196,17 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 		"""
 		Redraw the reflow profile visualization when a value in the grid changes
 		"""
-		event.Skip()
-		self.stateConfiguration = self.convertConfigGridToStateConfig()
-		self.redrawConfigurationVisualization()
+		if event:
+			event.Skip()
+		try:
+			self.stateConfiguration = self.convertConfigGridToStateConfig()
+			self.redrawConfigurationVisualization()
+		except Exception as e:
+			self.logger.debug("Failed to update config - ignoring.\n{}".format(e))
+			pass
 
 		# endregion Grid
-	# endregion EventHandlers
-	# region SaveAndLoadConfig
-
-	def loadConfigFromFile(self, filePath):
-		"""
-		Load in a new config from a JSON file path
-		@param filePath: path to new JSON config file
-		@type filePath: str
-		"""
-		self.toaster.config = filePath
-
-		# Update the GUI
-		self.updateGuiFieldsFromNewConfig()
-
-	def loadConfigDialog(self):
-		"""
-		Show user a load file dialog and update configuration accordingly
-		"""
-		dialog = wx.FileDialog(
-			parent=self,
-			message="Load JSON Config File",
-			defaultDir=CONFIG_DIR,
-			defaultFile="toast_config.json",
-			style=wx.FD_OPEN
-		)
-
-		# Do nothing if user exited dialog
-		if dialog.ShowModal() == wx.ID_CANCEL:
-			return
-
-		# Extract file path from dialog and load it
-		self.loadConfigFromFile(dialog.GetPath())
-
-	@BusyReady(MODEL_NAME)
-	def saveConfigDialog(self):
-		"""
-		Save current config to JSON file
-		"""
-
-		# Get the current config and use it as the target path
-		currentConfigPath = self.toaster.configPath
-		if currentConfigPath:
-			defaultDir = os.path.dirname(currentConfigPath)
-			defaultFile = os.path.basename(currentConfigPath)
-		else:
-			defaultDir = CONFIG_DIR
-			defaultFile = "toast_config.json"
-
-		# Create file save dialog
-		dialog = wx.FileDialog(
-			parent=self,
-			message="Save Config to JSON File",
-			defaultDir=defaultDir,
-			defaultFile=defaultFile,
-			style=wx.FD_SAVE
-		)
-
-		# Show dialog and return if user didn't actually choose a file
-		if dialog.ShowModal() == wx.ID_CANCEL:
-			self.parentFrame.updateStatus("Save config operation cancelled", logLevel=logging.WARN)
-			return
-
-		# Extract file path from dialog and dump config
-		filePath = dialog.GetPath()
-		self.toaster.dumpConfig(filePath)
-		self.toaster.config = filePath
-		self.parentFrame.updateStatus("Config saved to {}".format(filePath))
-
-		# endregion SaveAndLoadConfig
+		# endregion EventHandlers
 
 
 if __name__ == "__main__":

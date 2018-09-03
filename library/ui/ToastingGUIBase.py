@@ -53,19 +53,34 @@ class ToastingBase ( wx.Frame ):
 		
 		bSizer261 = wx.BoxSizer( wx.HORIZONTAL )
 		
-		bSizer14 = wx.BoxSizer( wx.VERTICAL )
+		bSizer39 = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.celsiusRadioButton = wx.RadioButton( self.statusPanel, wx.ID_ANY, u"Celsius", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer14.Add( self.celsiusRadioButton, 0, wx.TOP|wx.RIGHT|wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		self.loadConfigButton = wx.Button( self.statusPanel, wx.ID_ANY, u"Load Config", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer39.Add( self.loadConfigButton, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
-		self.fahrenheitRadioButton = wx.RadioButton( self.statusPanel, wx.ID_ANY, u"Fahrenheit", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer14.Add( self.fahrenheitRadioButton, 0, wx.BOTTOM|wx.RIGHT|wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		self.saveConfigButton = wx.Button( self.statusPanel, wx.ID_ANY, u"Save Config", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer39.Add( self.saveConfigButton, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.executeConfigButton = wx.Button( self.statusPanel, wx.ID_ANY, u"Execute", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer39.Add( self.executeConfigButton, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 		
 		
-		bSizer261.Add( bSizer14, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+		bSizer261.Add( bSizer39, 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		
 		bSizer261.AddStretchSpacer( 1 )
+		
+		bSizer14 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.celsiusRadioButton = wx.RadioButton( self.statusPanel, wx.ID_ANY, u"Celsius", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.celsiusRadioButton.SetValue( True ) 
+		bSizer14.Add( self.celsiusRadioButton, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL|wx.TOP|wx.LEFT, 5 )
+		
+		self.fahrenheitRadioButton = wx.RadioButton( self.statusPanel, wx.ID_ANY, u"Fahrenheit", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer14.Add( self.fahrenheitRadioButton, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM|wx.LEFT, 5 )
+		
+		
+		bSizer261.Add( bSizer14, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		bSizer15 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -189,6 +204,9 @@ class ToastingBase ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.loadConfigMenuItemOnMenuSelection, id = self.loadConfigMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.onClose, id = self.exitMenuItem.GetId() )
 		self.Bind( wx.EVT_MENU, self.aboutMenuItemOnMenuSelection, id = self.aboutMenuItem.GetId() )
+		self.loadConfigButton.Bind( wx.EVT_BUTTON, self.loadConfigButtonOnButtonClick )
+		self.saveConfigButton.Bind( wx.EVT_BUTTON, self.saveConfigButtonOnButtonClick )
+		self.executeConfigButton.Bind( wx.EVT_BUTTON, self.executeConfigButtonOnButtonClick )
 		self.celsiusRadioButton.Bind( wx.EVT_RADIOBUTTON, self.temperatureOnRadioButton )
 		self.fahrenheitRadioButton.Bind( wx.EVT_RADIOBUTTON, self.temperatureOnRadioButton )
 		self.baseNotebook.Bind( wx.EVT_NOTEBOOK_PAGE_CHANGED, self.baseNotebookOnNotebookPageChanged )
@@ -212,6 +230,15 @@ class ToastingBase ( wx.Frame ):
 		event.Skip()
 	
 	def aboutMenuItemOnMenuSelection( self, event ):
+		event.Skip()
+	
+	def loadConfigButtonOnButtonClick( self, event ):
+		event.Skip()
+	
+	def saveConfigButtonOnButtonClick( self, event ):
+		event.Skip()
+	
+	def executeConfigButtonOnButtonClick( self, event ):
 		event.Skip()
 	
 	def temperatureOnRadioButton( self, event ):
@@ -279,31 +306,32 @@ class StateConfigurationPanelBase ( wx.Panel ):
 		
 		configurationManagementSizer = wx.BoxSizer( wx.HORIZONTAL )
 		
-		configurationManagementSizer.SetMinSize( wx.Size( -1,90 ) ) 
+		configurationManagementSizer.SetMinSize( wx.Size( -1,120 ) ) 
 		configurationGridStaticBoxSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Configuration Setup" ), wx.HORIZONTAL )
 		
-		bSizer30 = wx.BoxSizer( wx.VERTICAL )
+		bSizer41 = wx.BoxSizer( wx.VERTICAL )
 		
 		self.configurationGrid = wx.grid.Grid( configurationGridStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL )
 		
 		# Grid
-		self.configurationGrid.CreateGrid( 2, 0 )
+		self.configurationGrid.CreateGrid( 3, 0 )
 		self.configurationGrid.EnableEditing( True )
 		self.configurationGrid.EnableGridLines( True )
 		self.configurationGrid.EnableDragGridSize( False )
-		self.configurationGrid.SetMargins( 0, 0 )
+		self.configurationGrid.SetMargins( 0, 10 )
 		
 		# Columns
 		self.configurationGrid.EnableDragColMove( False )
 		self.configurationGrid.EnableDragColSize( True )
-		self.configurationGrid.SetColLabelSize( 30 )
+		self.configurationGrid.SetColLabelSize( 1 )
 		self.configurationGrid.SetColLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
 		
 		# Rows
 		self.configurationGrid.EnableDragRowSize( True )
 		self.configurationGrid.SetRowLabelSize( 110 )
-		self.configurationGrid.SetRowLabelValue( 0, u"Target Temp" )
-		self.configurationGrid.SetRowLabelValue( 1, u"Step Duration" )
+		self.configurationGrid.SetRowLabelValue( 0, u"Step Name" )
+		self.configurationGrid.SetRowLabelValue( 1, u"Target Temp" )
+		self.configurationGrid.SetRowLabelValue( 2, u"Step Duration" )
 		self.configurationGrid.SetRowLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
 		
 		# Label Appearance
@@ -311,24 +339,21 @@ class StateConfigurationPanelBase ( wx.Panel ):
 		
 		# Cell Defaults
 		self.configurationGrid.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
-		bSizer30.Add( self.configurationGrid, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+		bSizer41.Add( self.configurationGrid, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
 		
 		
-		configurationGridStaticBoxSizer.Add( bSizer30, 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.LEFT, 5 )
+		configurationGridStaticBoxSizer.Add( bSizer41, 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
-		bSizer10 = wx.BoxSizer( wx.VERTICAL )
+		bSizer40 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.saveConfigButton = wx.Button( configurationGridStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Save", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer10.Add( self.saveConfigButton, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, 5 )
+		self.addStepButton = wx.Button( configurationGridStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Add Step", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer40.Add( self.addStepButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 		
-		self.loadConfigButton = wx.Button( configurationGridStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Load", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer10.Add( self.loadConfigButton, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
-		
-		self.executeConfigButton = wx.Button( configurationGridStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Execute", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer10.Add( self.executeConfigButton, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.TOP|wx.BOTTOM, 5 )
+		self.removeStepButton = wx.Button( configurationGridStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Remove Step", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer40.Add( self.removeStepButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 		
 		
-		configurationGridStaticBoxSizer.Add( bSizer10, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, 5 )
+		configurationGridStaticBoxSizer.Add( bSizer40, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		
 		configurationManagementSizer.Add( configurationGridStaticBoxSizer, 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.RIGHT|wx.LEFT, 5 )
@@ -355,22 +380,18 @@ class StateConfigurationPanelBase ( wx.Panel ):
 		self.Layout()
 		
 		# Connect Events
-		self.saveConfigButton.Bind( wx.EVT_BUTTON, self.saveConfigButtonOnButtonClick )
-		self.loadConfigButton.Bind( wx.EVT_BUTTON, self.loadConfigButtonOnButtonClick )
-		self.executeConfigButton.Bind( wx.EVT_BUTTON, self.executeConfigButtonOnButtonClick )
+		self.addStepButton.Bind( wx.EVT_BUTTON, self.addStepButtonOnButtonClick )
+		self.removeStepButton.Bind( wx.EVT_BUTTON, self.removeStepButtonOnButtonClick )
 	
 	def __del__( self ):
 		pass
 	
 	
 	# Virtual event handlers, overide them in your derived class
-	def saveConfigButtonOnButtonClick( self, event ):
+	def addStepButtonOnButtonClick( self, event ):
 		event.Skip()
 	
-	def loadConfigButtonOnButtonClick( self, event ):
-		event.Skip()
-	
-	def executeConfigButtonOnButtonClick( self, event ):
+	def removeStepButtonOnButtonClick( self, event ):
 		event.Skip()
 	
 

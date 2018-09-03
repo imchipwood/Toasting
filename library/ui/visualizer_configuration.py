@@ -27,9 +27,13 @@ class ConfigurationVisualizer(object):
 		super(ConfigurationVisualizer, self).__init__()
 		self.stateConfiguration = stateConfiguration
 
-		# Get the maximum temps & timestamps from the config and increase them by 50 to use as axes limits
-		maxTargetTemp = self.getMaxValueFromStateConfig(CONFIG_KEY_TARGET, method=max) + 50
-		maxTimestamp = self.getMaxValueFromStateConfig(CONFIG_KEY_TARGET, method=sum) + 50
+		if self.stateConfiguration:
+			# Get the maximum temps & timestamps from the config and increase them by 50 to use as axes limits
+			maxTargetTemp = self.getMaxValueFromStateConfig(CONFIG_KEY_TARGET, method=max) + 50
+			maxTimestamp = self.getMaxValueFromStateConfig(CONFIG_KEY_TARGET, method=sum) + 50
+		else:
+			maxTargetTemp = 300
+			maxTimestamp = 300
 
 		# Create a plot and save it for use later
 		self.fig = self.createPlot(

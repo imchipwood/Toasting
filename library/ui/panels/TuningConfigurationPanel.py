@@ -1,11 +1,7 @@
-import logging
-from library.other.setupLogging import getLogger
-
 import wx
 
-from definitions import CONFIG_DIR
+from library.other.setupLogging import getLogger
 
-from library.other.decorators import BusyReady
 from library.ui.ToastingGUIBase import ControlTuningPanelBase
 from definitions import DEBUG_LEVEL
 
@@ -190,6 +186,7 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 			self.parentFrame.updateStatus("Pin & Timing tuning updated")
 		except Exception as e:
 			self.parentFrame.errorMessage(str(e), "Failed to update tuning")
+			raise
 
 	def updatePIDsFromFields(self):
 		"""
@@ -207,6 +204,12 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 			self.parentFrame.updateStatus("PID tuning updated")
 		except Exception as e:
 			self.parentFrame.errorMessage(str(e), "Failed to update tuning")
+			raise
+
+	def updateAllSettings(self):
+		self.updatePIDsFromFields()
+		self.updateOtherTuningFromFields()
+		self.parentFrame.updateStatus("All settings updated")
 
 	def pidOnTextEnter(self, event):
 		"""
@@ -226,7 +229,5 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 
 	def updateAllSettingsButtonOnButtonClick(self, event):
 		event.Skip()
-		self.updatePIDsFromFields()
-		self.updateOtherTuningFromFields()
-		self.parentFrame.updateStatus("All settings updated")
+		self.updateAllSettings()
 

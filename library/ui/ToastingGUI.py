@@ -281,6 +281,17 @@ class ToastingGUI(ToastingBase):
 
 		self.enableControlButtons(enable)
 
+	def enableStatusBarButtons(self, enable):
+		"""
+		Enable the buttons in the status bar
+		@param enable: enable/disable flag
+		@type enable: bool
+		"""
+		self.saveConfigButton.Enable(enable)
+		self.loadConfigButton.Enable(enable)
+		canExecute = bool(self.toaster.running not in [STATES.RUNNING, STATES.PAUSED, STATES.TESTING])
+		self.executeConfigButton.Enable(enable & canExecute)
+
 	def enableControlButtons(self, enable):
 		"""
 		Enable/disable the control buttons
@@ -295,17 +306,21 @@ class ToastingGUI(ToastingBase):
 				self.saveDataButton.Enable(enable)
 		except:
 			self.saveDataButton.Enable(False)
+
 		# Reflow/relay control buttons
 		if self.testing:
+			self.enableStatusBarButtons(False)
 			self.testButton.Enable(False)
 			self.pauseReflowButton.Enable(False)
 			self.startStopReflowButton.Enable(False)
 		else:
 			if self.toaster.running in [STATES.RUNNING, STATES.PAUSED]:
+				self.enableStatusBarButtons(False)
 				self.testButton.Enable(False)
 				self.pauseReflowButton.Enable(True)
 				self.startStopReflowButton.Enable(True)
 			else:
+				self.enableStatusBarButtons(True)
 				self.testButton.Enable(enable)
 				self.pauseReflowButton.Enable(False)
 				self.startStopReflowButton.Enable(enable)
@@ -752,7 +767,101 @@ class ToastingGUI(ToastingBase):
 			self.Enable(True)
 
 	# endregion Testing
+	# region SaveAndLoadConfig
+
+	def loadConfigFromFile(self, filePath):
+		"""
+		Load in a new config from a JSON file path
+		@param filePath: path to new JSON config file
+		@type filePath: str
+		"""
+		self.toaster.config = filePath
+
+		# Update the GUI
+		self.updateGuiFieldsFromNewConfig()
+
+	def loadConfigDialog(self):
+		"""
+		Show user a load file dialog and update configuration accordingly
+		"""
+		dialog = wx.FileDialog(
+			parent=self,
+			message="Load JSON Config File",
+			defaultDir=CONFIG_DIR,
+			defaultFile="toast_config.json",
+			style=wx.FD_OPEN
+		)
+
+		# Do nothing if user exited dialog
+		if dialog.ShowModal() == wx.ID_CANCEL:
+			return
+
+		# Extract file path from dialog and load it
+		self.loadConfigFromFile(dialog.GetPath())
+
+	@decorators.BusyReady(MODEL_NAME)
+	def saveConfigDialog(self):
+		"""
+		Save current config to JSON file
+		"""
+		try:
+			self.stateConfiguration = self.stateConfigPanel.convertConfigGridToStateConfig()
+			self.tuningConfigPanel.updateAllSettings()
+		except:
+			return
+
+		# Get the current config and use it as the target path
+		currentConfigPath = self.toaster.configPath
+		if currentConfigPath:
+			defaultDir = os.path.dirname(currentConfigPath)
+			defaultFile = os.path.basename(currentConfigPath)
+		else:
+			defaultDir = CONFIG_DIR
+			defaultFile = "toast_config.json"
+
+		# Create file save dialog
+		dialog = wx.FileDialog(
+			parent=self,
+			message="Save Config to JSON File",
+			defaultDir=defaultDir,
+			defaultFile=defaultFile,
+			style=wx.FD_SAVE
+		)
+
+		# Show dialog and return if user didn't actually choose a file
+		if dialog.ShowModal() == wx.ID_CANCEL:
+			self.updateStatus("Save config operation cancelled", logLevel=logging.WARN)
+			return
+
+		# Extract file path from dialog and dump config
+		filePath = dialog.GetPath()
+		self.toaster.dumpConfig(filePath)
+		self.toaster.config = filePath
+		self.updateStatus("Config saved to {}".format(self.toaster.configPath))
+
+	# endregion SaveAndLoadConfig
 	# region GeneralEventHandlers
+
+	def saveConfigButtonOnButtonClick(self, event):
+		"""
+		Open the save config dialog
+		"""
+		event.Skip()
+		self.saveConfigDialog()
+
+	def loadConfigButtonOnButtonClick(self, event):
+		"""
+		Open the load config dialog
+		"""
+		event.Skip()
+		self.loadConfigDialog()
+
+	def executeConfigButtonOnButtonClick(self, event):
+		"""
+		Event handler for execution button
+		"""
+		event.Skip()
+		self.executeFromConfig()
 
 	def timerHandler(self, event):
 		"""
@@ -834,14 +943,14 @@ class ToastingGUI(ToastingBase):
 		Event handler for save config menu item
 		"""
 		event.Skip()
-		self.stateConfigPanel.saveConfigDialog()
+		self.saveConfigDialog()
 
 	def loadConfigMenuItemOnMenuSelection(self, event):
 		"""
 		Event handler for load config menu item
 		"""
 		event.Skip()
-		self.stateConfigPanel.loadConfigDialog()
+		self.loadConfigDialog()
 
 	def aboutMenuItemOnMenuSelection(self, event):
 		"""
