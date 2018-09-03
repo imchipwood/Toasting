@@ -214,7 +214,7 @@ class PID(object):
 
 		# Check validity against max limit
 		if self.max is not None:
-			assert minLimit < self.max
+			assert minLimit < self.max, "Min limit must be lower than max: {}".format(self.max)
 
 		# Apply
 		self._min = minLimit
@@ -244,7 +244,7 @@ class PID(object):
 
 		# Check validity against max limit
 		if self.min is not None:
-			assert self.min < maxLimit
+			assert self.min < maxLimit, "Max limit must be higher than min: {}".format(self.min)
 
 		# Apply
 		self._max = maxLimit

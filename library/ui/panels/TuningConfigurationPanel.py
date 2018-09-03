@@ -39,6 +39,19 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 			self.relayPinTextCtrl: 'Relay GPIO Pin',
 			self.spiCsPinTextCtrl: 'SPI CS Pin'
 		}
+		self._pidTextCtrlToUpdateMethodMap = {
+			self.pidPTextCtrl: self.updateProportionalGain,
+			self.pidITextCtrl: self.updateIntegralGain,
+			self.pidDTextCtrl: self.updateDerivativeGain,
+			self.pidMinOutLimitTextCtrl: self.updatePIDMinLimit,
+			self.pidMaxOutLimitTextCtrl: self.updatePIDMaxLimit,
+			self.pidWindupGuardTextCtrl: self.updateWindupGuard,
+		}
+		self._otherTextCtrlToUpdateMethodMap = {
+			self.timerPeriodTextCtrl: self.updateTimerPeriod,
+			self.relayPinTextCtrl: self.updateRelayPin,
+			self.spiCsPinTextCtrl: self.updateThermocoupleCSPin
+		}
 
 	def initializeTuningPage(self):
 		"""
@@ -106,62 +119,117 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		"""
 		self.toaster.pid.setConfig(configDict)
 
-	def updateOtherTuningFromFields(self):
-		"""
-		Update various tuning variables from tuning page
-		"""
-		# relay pin
+	def updateProportionalGain(self):
 		try:
-			self.toaster.relay.pin = int(self.relayPinTextCtrl.GetValue())
-		except:
-			self.parentFrame.errorMessage("Invalid pin # for relay control", "Invalid Relay Pin #")
-			return
+			self.pidConfig = {'kP': self.pidPTextCtrl.GetValue()}
+			self.parentFrame.updateStatus("kP updated to: {}".format(self.toaster.pid.kP))
+		except Exception as e:
+			self.parentFrame.errorMessage(str(e), "Invalid P-Gain Value")
 
-		# SPI CS pin
+	def updateIntegralGain(self):
 		try:
-			self.toaster.thermocouple.csPin = int(self.spiCsPinTextCtrl.GetValue())
-		except:
-			self.parentFrame.errorMessage("Invalid pin # for SPI CS (enable)", "Invalid SPI CS Pin #")
-			return
+			self.pidConfig = {'kI': self.pidITextCtrl.GetValue()}
+			self.parentFrame.updateStatus("kI updated to: {}".format(self.toaster.pid.kI))
+		except Exception as e:
+			self.parentFrame.errorMessage(str(e), "Invalid I-Gain Value")
 
+	def updateDerivativeGain(self):
 		try:
-			self.timerPeriod = float(self.timerPeriodTextCtrl.GetValue())
+			self.pidConfig = {'kD': self.pidDTextCtrl.GetValue()}
+			self.parentFrame.updateStatus("kD updated to: {}".format(self.toaster.pid.kD))
+		except Exception as e:
+			self.parentFrame.errorMessage(str(e), "Invalid D-Gain Value")
+
+	def updatePIDMinLimit(self):
+		try:
+			self.pidConfig = {'min': self.pidMinOutLimitTextCtrl.GetValue()}
+			self.parentFrame.updateStatus("PID min output limit updated to: {}".format(self.toaster.pid.min))
+		except Exception as e:
+			self.parentFrame.errorMessage(str(e), "Invalid PID Min Output Limit Value")
+
+	def updatePIDMaxLimit(self):
+		try:
+			self.pidConfig = {'max': self.pidMaxOutLimitTextCtrl.GetValue()}
+			self.parentFrame.updateStatus("PID max output limit updated to: {}".format(self.toaster.pid.max))
+		except Exception as e:
+			self.parentFrame.errorMessage(str(e), "Invalid PID Max Output Limit Value")
+
+	def updateWindupGuard(self):
+		try:
+			self.pidConfig = {'windupGuard': self.pidWindupGuardTextCtrl.GetValue()}
+			self.parentFrame.updateStatus("PID windup guard updated to: {}".format(self.toaster.pid.windupGuard))
+		except Exception as e:
+			self.parentFrame.errorMessage(str(e), "Invalid PID Windup Guard Value")
+
+	def updateRelayPin(self):
+		try:
+			self.toaster.relay.pin = self.relayPinTextCtrl.GetValue()
+		except Exception as e:
+			self.parentFrame.errorMessage(str(e), "Invalid Relay Pin #")
+
+	def updateThermocoupleCSPin(self):
+		try:
+			self.toaster.thermocouple.csPin = self.spiCsPinTextCtrl.GetValue()
+		except Exception as e:
+			self.parentFrame.errorMessage(str(e), "Invalid SPI CS Pin #")
+
+	def updateTimerPeriod(self):
+		try:
+			self.timerPeriod = self.timerPeriodTextCtrl.GetValue()
 		except:
 			self.parentFrame.errorMessage(
 				"Invalid value for clock timer period. Please enter a float >= 0.5 (max of 2Hz refresh)",
 				"Invalid Timer Period"
 			)
-			return
+
+	def updateOtherTuningFromFields(self):
+		"""
+		Update various tuning variables from tuning page
+		"""
+		try:
+			self.updateRelayPin()
+			self.updateThermocoupleCSPin()
+			self.updateTimerPeriod()
+			self.parentFrame.updateStatus("Pin & Timing tuning updated")
+		except Exception as e:
+			self.parentFrame.errorMessage(str(e), "Failed to update tuning")
 
 	def updatePIDsFromFields(self):
 		"""
 		Update PID controller tuning from values in PID page
 		"""
-		self.pidConfig = {
-			'kP': self.pidPTextCtrl.GetValue(),
-			'kI': self.pidITextCtrl.GetValue(),
-			'kD': self.pidDTextCtrl.GetValue(),
-			'min': self.pidMinOutLimitTextCtrl.GetValue(),
-			'max': self.pidMaxOutLimitTextCtrl.GetValue(),
-			'windupGuard': self.pidWindupGuardTextCtrl.GetValue(),
-		}
+		try:
+			self.pidConfig = {
+				'kP': self.pidPTextCtrl.GetValue(),
+				'kI': self.pidITextCtrl.GetValue(),
+				'kD': self.pidDTextCtrl.GetValue(),
+				'min': self.pidMinOutLimitTextCtrl.GetValue(),
+				'max': self.pidMaxOutLimitTextCtrl.GetValue(),
+				'windupGuard': self.pidWindupGuardTextCtrl.GetValue(),
+			}
+			self.parentFrame.updateStatus("PID tuning updated")
+		except Exception as e:
+			self.parentFrame.errorMessage(str(e), "Failed to update tuning")
 
 	def pidOnTextEnter(self, event):
 		"""
 		Update PID values
 		"""
 		event.Skip()
-		self.updatePIDsFromFields()
-		self.parentFrame.updateStatus("PID tuning updated")
+		textCtrl = event.GetEventObject()
+		self._pidTextCtrlToUpdateMethodMap[textCtrl]()
 
 	def otherTuningOnTextEnter(self, event):
 		"""
 		Update pins/etc.
 		"""
 		event.Skip()
-		self.updateOtherTuningFromFields()
 		textCtrl = event.GetEventObject()
-		newValue = textCtrl.GetValue()
-		parameter = self._textCtrlToNameMap[textCtrl]
-		self.parentFrame.updateStatus("Pin & Timing tuning updated")
+		self._otherTextCtrlToUpdateMethodMap[textCtrl]()
+
+	def updateAllSettingsButtonOnButtonClick(self, event):
+		event.Skip()
+		self.updatePIDsFromFields()
+		self.updateOtherTuningFromFields()
+		self.parentFrame.updateStatus("All settings updated")
 

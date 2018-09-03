@@ -479,8 +479,8 @@ class ControlTuningPanelBase ( wx.Panel ):
 		
 		tuningBaseSizer1.Add( bSizer26, 0, wx.EXPAND, 5 )
 		
-		
-		tuningBaseSizer1.AddStretchSpacer( 1 )
+		self.updateAllSettingsButton = wx.Button( self, wx.ID_ANY, u"Update All Settings", wx.DefaultPosition, wx.DefaultSize, 0 )
+		tuningBaseSizer1.Add( self.updateAllSettingsButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		
 		self.SetSizer( tuningBaseSizer1 )
@@ -496,6 +496,7 @@ class ControlTuningPanelBase ( wx.Panel ):
 		self.timerPeriodTextCtrl.Bind( wx.EVT_TEXT_ENTER, self.otherTuningOnTextEnter )
 		self.relayPinTextCtrl.Bind( wx.EVT_TEXT_ENTER, self.otherTuningOnTextEnter )
 		self.spiCsPinTextCtrl.Bind( wx.EVT_TEXT_ENTER, self.otherTuningOnTextEnter )
+		self.updateAllSettingsButton.Bind( wx.EVT_BUTTON, self.updateAllSettingsButtonOnButtonClick )
 	
 	def __del__( self ):
 		pass
@@ -514,6 +515,9 @@ class ControlTuningPanelBase ( wx.Panel ):
 		event.Skip()
 	
 	
+	
+	def updateAllSettingsButtonOnButtonClick( self, event ):
+		event.Skip()
 	
 
 ###########################################################################
