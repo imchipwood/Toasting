@@ -66,12 +66,9 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		self.pidDTextCtrl.SetValue(str(pid.kD))
 
 		# Limits
-		if pid.min is not None:
-			self.pidMinOutLimitTextCtrl.SetValue(str(pid.min))
-		if pid.max is not None:
-			self.pidMaxOutLimitTextCtrl.SetValue(str(pid.max))
-		if pid.windupGuard is not None:
-			self.pidWindupGuardTextCtrl.SetValue(str(pid.windupGuard))
+		self.pidMinOutLimitTextCtrl.SetValue(str(pid.min) if pid.min is not None else "")
+		self.pidMaxOutLimitTextCtrl.SetValue(str(pid.max) if pid.max is not None else "")
+		self.pidWindupGuardTextCtrl.SetValue(str(pid.windupGuard) if pid.windupGuard is not None else "")
 
 		# Timer period & sensor pins
 		self.timerPeriodTextCtrl.SetValue(str(self.timerPeriod))
