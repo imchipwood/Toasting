@@ -3,10 +3,14 @@ import wx
 from library.other.setupLogging import getLogger
 
 from library.ui.ToastingGUIBase import ControlTuningPanelBase
+from library.ui.Dialogs import ErrorMessage
 from definitions import DEBUG_LEVEL
 
 
 class TuningConfigurationPanel(ControlTuningPanelBase):
+
+	# region Initialization
+
 	def __init__(self, parent, toaster=None, timerChangeCallback=None):
 		"""
 		Constructor for tuning config panel
@@ -63,6 +67,23 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		self.relayPinTextCtrl.SetValue(str(self.toaster.relay.pin))
 		self.spiCsPinTextCtrl.SetValue(str(self.toaster.thermocouple.csPin))
 
+	# endregion Initialization
+	# region ParentMethods
+
+	def updateStatus(self, text, logLevel=None):
+		"""
+		Interface to parent frame status update method
+		@param text: text to put on status bar
+		@type text: str
+		@param logLevel: desired logging level. Default: None (no logging)
+		@type logLevel: int
+		"""
+		self.parentFrame.updateStatus(text, logLevel)
+
+	# endregion ParentMethods
+	# region Configuration
+		# region Properties
+
 	@property
 	def timerPeriod(self):
 		"""
@@ -79,9 +100,10 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		@param periodInSeconds: desired timer period in seconds
 		@type periodInSeconds: float or int or str
 		"""
-		periodInSeconds = float(periodInSeconds)
+		periodInSeconds = abs(float(periodInSeconds))
+		assert periodInSeconds >= 0.5, "Timer period must be >= 0.5s (2Hz or less)"
 		if periodInSeconds != self.timerPeriod:
-			self.parentFrame.updateStatus("Timer period updated: {}".format(periodInSeconds))
+			self.updateStatus("Timer period updated: {}".format(periodInSeconds))
 			self.toaster.timerPeriod = periodInSeconds
 			if self.timerChangeCallback:
 				self.timerChangeCallback()
@@ -104,15 +126,18 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		"""
 		self.toaster.pid.setConfig(configDict)
 
+		# endregion Properties
+		# region PIDGains
+
 	def updateProportionalGain(self):
 		"""
 		Update PID proportional gain from the text field
 		"""
 		try:
 			self.pidConfig = {'kP': self.pidPTextCtrl.GetValue()}
-			self.parentFrame.updateStatus("kP updated to: {}".format(self.toaster.pid.kP))
+			self.updateStatus("kP updated to: {}".format(self.toaster.pid.kP))
 		except Exception as e:
-			self.parentFrame.errorMessage(str(e), "Invalid P-Gain Value")
+			ErrorMessage(self.parentFrame,  str(e), "Invalid P-Gain Value")
 
 	def updateIntegralGain(self):
 		"""
@@ -120,9 +145,9 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		"""
 		try:
 			self.pidConfig = {'kI': self.pidITextCtrl.GetValue()}
-			self.parentFrame.updateStatus("kI updated to: {}".format(self.toaster.pid.kI))
+			self.updateStatus("kI updated to: {}".format(self.toaster.pid.kI))
 		except Exception as e:
-			self.parentFrame.errorMessage(str(e), "Invalid I-Gain Value")
+			ErrorMessage(self.parentFrame,  str(e), "Invalid I-Gain Value")
 
 	def updateDerivativeGain(self):
 		"""
@@ -130,9 +155,12 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		"""
 		try:
 			self.pidConfig = {'kD': self.pidDTextCtrl.GetValue()}
-			self.parentFrame.updateStatus("kD updated to: {}".format(self.toaster.pid.kD))
+			self.updateStatus("kD updated to: {}".format(self.toaster.pid.kD))
 		except Exception as e:
-			self.parentFrame.errorMessage(str(e), "Invalid D-Gain Value")
+			ErrorMessage(self.parentFrame,  str(e), "Invalid D-Gain Value")
+
+		# endregion PIDGains
+		# region PIDLimits
 
 	def updatePIDMinLimit(self):
 		"""
@@ -140,9 +168,9 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		"""
 		try:
 			self.pidConfig = {'min': self.pidMinOutLimitTextCtrl.GetValue()}
-			self.parentFrame.updateStatus("PID min output limit updated to: {}".format(self.toaster.pid.min))
+			self.updateStatus("PID min output limit updated to: {}".format(self.toaster.pid.min))
 		except Exception as e:
-			self.parentFrame.errorMessage(str(e), "Invalid PID Min Output Limit Value")
+			ErrorMessage(self.parentFrame,  str(e), "Invalid PID Min Output Limit Value")
 
 	def updatePIDMaxLimit(self):
 		"""
@@ -150,9 +178,9 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		"""
 		try:
 			self.pidConfig = {'max': self.pidMaxOutLimitTextCtrl.GetValue()}
-			self.parentFrame.updateStatus("PID max output limit updated to: {}".format(self.toaster.pid.max))
+			self.updateStatus("PID max output limit updated to: {}".format(self.toaster.pid.max))
 		except Exception as e:
-			self.parentFrame.errorMessage(str(e), "Invalid PID Max Output Limit Value")
+			ErrorMessage(self.parentFrame,  str(e), "Invalid PID Max Output Limit Value")
 
 	def updateWindupGuard(self):
 		"""
@@ -160,9 +188,12 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		"""
 		try:
 			self.pidConfig = {'windupGuard': self.pidWindupGuardTextCtrl.GetValue()}
-			self.parentFrame.updateStatus("PID windup guard updated to: {}".format(self.toaster.pid.windupGuard))
+			self.updateStatus("PID windup guard updated to: {}".format(self.toaster.pid.windupGuard))
 		except Exception as e:
-			self.parentFrame.errorMessage(str(e), "Invalid PID Windup Guard Value")
+			ErrorMessage(self.parentFrame,  str(e), "Invalid PID Windup Guard Value")
+
+		# endregion PIDLimits
+		# region GPIOPins
 
 	def updateRelayPin(self):
 		"""
@@ -171,7 +202,7 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		try:
 			self.toaster.relay.pin = self.relayPinTextCtrl.GetValue()
 		except Exception as e:
-			self.parentFrame.errorMessage(str(e), "Invalid Relay Pin #")
+			ErrorMessage(self.parentFrame,  str(e), "Invalid Relay Pin #")
 
 	def updateThermocoupleCSPin(self):
 		"""
@@ -180,7 +211,10 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		try:
 			self.toaster.thermocouple.csPin = self.spiCsPinTextCtrl.GetValue()
 		except Exception as e:
-			self.parentFrame.errorMessage(str(e), "Invalid SPI CS Pin #")
+			ErrorMessage(self.parentFrame,  str(e), "Invalid SPI CS Pin #")
+
+		# endregion GPIOPins
+		# region Timer
 
 	def updateTimerPeriod(self):
 		"""
@@ -189,10 +223,14 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		try:
 			self.timerPeriod = self.timerPeriodTextCtrl.GetValue()
 		except:
-			self.parentFrame.errorMessage(
+			ErrorMessage(
+				self.parentFrame,
 				"Invalid value for clock timer period. Please enter a float >= 0.5 (max of 2Hz refresh)",
 				"Invalid Timer Period"
 			)
+
+		# endregion Timer
+		# region UpdateMethods
 
 	def updateOtherTuningFromFields(self):
 		"""
@@ -202,9 +240,9 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 			self.updateRelayPin()
 			self.updateThermocoupleCSPin()
 			self.updateTimerPeriod()
-			self.parentFrame.updateStatus("Pin & Timing tuning updated")
+			self.updateStatus("Pin & Timing tuning updated")
 		except Exception as e:
-			self.parentFrame.errorMessage(str(e), "Failed to update tuning")
+			ErrorMessage(self.parentFrame,  str(e), "Failed to update tuning")
 			raise
 
 	def updatePIDsFromFields(self):
@@ -220,18 +258,28 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 				'max': self.pidMaxOutLimitTextCtrl.GetValue(),
 				'windupGuard': self.pidWindupGuardTextCtrl.GetValue(),
 			}
-			self.parentFrame.updateStatus("PID tuning updated")
+			self.updateStatus("PID tuning updated")
 		except Exception as e:
-			self.parentFrame.errorMessage(str(e), "Failed to update tuning")
+			ErrorMessage(self.parentFrame,  str(e), "Failed to update tuning")
 			raise
 
 	def updateAllSettings(self):
 		"""
 		Save the values from all fields to the data structures
 		"""
-		self.updatePIDsFromFields()
-		self.updateOtherTuningFromFields()
-		self.parentFrame.updateStatus("All settings updated")
+		try:
+			self.updatePIDsFromFields()
+		except:
+			return
+		try:
+			self.updateOtherTuningFromFields()
+		except:
+			return
+		self.updateStatus("All settings updated")
+
+		# endregion UpdateMethods
+	# endregion Configuration
+	# region EventHandlers
 
 	def pidOnTextEnter(self, event):
 		"""
@@ -255,3 +303,11 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		"""
 		event.Skip()
 		self.updateAllSettings()
+
+	# endregion EventHandlers
+
+	def __dummy(self):
+		"""
+		Workaround for PyCharm custom folding regions bug
+		"""
+		return

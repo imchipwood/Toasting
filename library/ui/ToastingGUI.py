@@ -13,6 +13,7 @@ import wx.grid
 
 # Application imports
 from library.ui.ToastingGUIBase import ToastingBase
+from library.ui.Dialogs import InfoMessage, ErrorMessage
 from library.ui.panels.StateConfigurationPanel import StateConfigurationPanel
 from library.ui.panels.TuningConfigurationPanel import TuningConfigurationPanel
 from library.ui.visualizer_liveGraph import LiveVisualizer
@@ -381,14 +382,17 @@ class ToastingGUI(ToastingBase):
 		Convenience function for updating status bar
 		@param text: text to put on status bar
 		@type text: str
+		@param logLevel: desired logging level. Default: None (no logging)
+		@type logLevel: int
 		"""
 		self.statusBar.SetStatusText(text)
-		if logLevel == logging.INFO:
-			self.logger.info(text)
-		if logLevel in [logging.WARNING, logging.WARN]:
-			self.logger.warning(text)
-		if logLevel == logging.ERROR:
-			self.logger.error(text)
+		if logLevel is not None:
+			if logLevel in [logging.WARNING, logging.WARN]:
+				self.logger.warning(text)
+			elif logLevel == logging.ERROR:
+				self.logger.error(text)
+			else:
+				self.logger.info(text)
 
 	@decorators.BusyReady(MODEL_NAME)
 	def temperatureUnitsChange(self):
@@ -585,7 +589,7 @@ class ToastingGUI(ToastingBase):
 		dialog = wx.MessageDialog(
 			parent=self,
 			message=message,
-			caption=caption if caption else "Toasting needs your input",
+			caption=caption if caption else "Toasting needs your attention!",
 			style=wx.YES_NO | wx.ICON_INFORMATION
 		)
 		result = dialog.ShowModal()
@@ -596,7 +600,7 @@ class ToastingGUI(ToastingBase):
 		dialog = wx.MessageDialog(
 			parent=self,
 			message=message,
-			caption=caption if caption else "Error",
+			caption=caption if caption else "Error!",
 			style=wx.OK | wx.ICON_ERROR
 		)
 		dialog.ShowModal()
@@ -606,7 +610,7 @@ class ToastingGUI(ToastingBase):
 		dialog = wx.MessageDialog(
 			parent=self,
 			message=message,
-			caption=caption if caption else "Warning",
+			caption=caption if caption else "Warning!",
 			style=wx.OK | wx.ICON_WARNING
 		)
 		dialog.ShowModal()
@@ -891,7 +895,7 @@ class ToastingGUI(ToastingBase):
 			caption = "Too Many Thermocouple Errors"
 			errorMessage = "There have been {} errors recently. Please check the Thermocouple connection"
 			errorMessage += "\n and the thermocouple itself for issues."
-			self.errorMessage(errorMessage, caption)
+			ErrorMessage(self, errorMessage, caption)
 
 		# Fire test tick if we're testing the relay
 		if self.testing:
@@ -957,7 +961,7 @@ class ToastingGUI(ToastingBase):
 		Event handler for about menu item
 		"""
 		event.Skip()
-		self.infoMessage(message="See https://www.github.com/imchipwood/Toasting for more info", caption="About")
+		InfoMessage(self, message="See https://www.github.com/imchipwood/Toasting for more info", caption="About")
 
 	def onClose(self, event):
 		"""

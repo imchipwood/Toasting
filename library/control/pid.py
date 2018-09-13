@@ -55,7 +55,10 @@ class PID(object):
 		@param kp: new proportional gain
 		@type kp: str or int or float
 		"""
-		self._kP = float(kp)
+		try:
+			self._kP = float(kp)
+		except ValueError:
+			raise ValueError("Failed to convert PID proportional gain input value '{}' to a float".format(kp))
 
 	@property
 	def kI(self):
@@ -71,7 +74,10 @@ class PID(object):
 		@param ki: new integrated gain
 		@type ki: str or int or float
 		"""
-		self._kI = float(ki)
+		try:
+			self._kI = float(ki)
+		except ValueError:
+			raise ValueError("Failed to convert PID integral gain input value '{}' to a float".format(ki))
 
 	@property
 	def kD(self):
@@ -87,7 +93,10 @@ class PID(object):
 		@param kd: new derivative gain
 		@type kd: str or int or float
 		"""
-		self._kD = float(kd)
+		try:
+			self._kD = float(kd)
+		except ValueError:
+			raise ValueError("Failed to convert PID derivative gain input value '{}' to a float".format(kd))
 
 	# endregion Gains
 	# region States
@@ -185,7 +194,10 @@ class PID(object):
 		@type windupGuard: str or int or float
 		"""
 		if windupGuard is not None:
-			self._windupGuard = abs(float(windupGuard))
+			try:
+				self._windupGuard = abs(float(windupGuard))
+			except ValueError:
+				raise ValueError("Failed to convert PID windup guard input value '{}' to a float".format(windupGuard))
 		else:
 			self._windupGuard = None
 
@@ -210,7 +222,10 @@ class PID(object):
 			return
 
 		# Convert to float
-		minLimit = float(minLimit)
+		try:
+			minLimit = float(minLimit)
+		except ValueError:
+			raise ValueError("Failed to convert PID min limit input value '{}' to a float".format(minLimit))
 
 		# Check validity against max limit
 		if self.max is not None:
@@ -240,7 +255,10 @@ class PID(object):
 			return
 
 		# Convert to float
-		maxLimit = float(maxLimit)
+		try:
+			maxLimit = float(maxLimit)
+		except ValueError:
+			raise ValueError("Failed to convert PID max limit input value '{}' to a float".format(maxLimit))
 
 		# Check validity against max limit
 		if self.min is not None:
