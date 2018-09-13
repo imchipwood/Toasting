@@ -14,6 +14,8 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		@type parent: wx.Notebook
 		@param toaster: State machine
 		@type toaster: library.control.stateMachine.ToastStateMachine
+		@param timerChangeCallback: Callback to tell state machine the timer period changed
+		@type timerChangeCallback: func
 		"""
 		super(TuningConfigurationPanel, self).__init__(parent)
 		self.toaster = toaster
@@ -24,17 +26,7 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 
 		self.timerChangeCallback = timerChangeCallback
 
-		self._textCtrlToNameMap = {
-			self.pidPTextCtrl: 'kP',
-			self.pidITextCtrl: 'kI',
-			self.pidDTextCtrl: 'kD',
-			self.pidMinOutLimitTextCtrl: 'Min Limit',
-			self.pidMaxOutLimitTextCtrl: 'Max Limit',
-			self.pidWindupGuardTextCtrl: 'Windup Guard',
-			self.timerPeriodTextCtrl: 'Timer Clock Period',
-			self.relayPinTextCtrl: 'Relay GPIO Pin',
-			self.spiCsPinTextCtrl: 'SPI CS Pin'
-		}
+		# Map text ctrls to their update methods
 		self._pidTextCtrlToUpdateMethodMap = {
 			self.pidPTextCtrl: self.updateProportionalGain,
 			self.pidITextCtrl: self.updateIntegralGain,
@@ -113,6 +105,9 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		self.toaster.pid.setConfig(configDict)
 
 	def updateProportionalGain(self):
+		"""
+		Update PID proportional gain from the text field
+		"""
 		try:
 			self.pidConfig = {'kP': self.pidPTextCtrl.GetValue()}
 			self.parentFrame.updateStatus("kP updated to: {}".format(self.toaster.pid.kP))
@@ -120,6 +115,9 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 			self.parentFrame.errorMessage(str(e), "Invalid P-Gain Value")
 
 	def updateIntegralGain(self):
+		"""
+		Update PID integral gain from the text field
+		"""
 		try:
 			self.pidConfig = {'kI': self.pidITextCtrl.GetValue()}
 			self.parentFrame.updateStatus("kI updated to: {}".format(self.toaster.pid.kI))
@@ -127,6 +125,9 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 			self.parentFrame.errorMessage(str(e), "Invalid I-Gain Value")
 
 	def updateDerivativeGain(self):
+		"""
+		Update PID derivative gain from the text field
+		"""
 		try:
 			self.pidConfig = {'kD': self.pidDTextCtrl.GetValue()}
 			self.parentFrame.updateStatus("kD updated to: {}".format(self.toaster.pid.kD))
@@ -134,6 +135,9 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 			self.parentFrame.errorMessage(str(e), "Invalid D-Gain Value")
 
 	def updatePIDMinLimit(self):
+		"""
+		Update PID output min limit from the text field
+		"""
 		try:
 			self.pidConfig = {'min': self.pidMinOutLimitTextCtrl.GetValue()}
 			self.parentFrame.updateStatus("PID min output limit updated to: {}".format(self.toaster.pid.min))
@@ -141,6 +145,9 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 			self.parentFrame.errorMessage(str(e), "Invalid PID Min Output Limit Value")
 
 	def updatePIDMaxLimit(self):
+		"""
+		Update PID output max limit from the text field
+		"""
 		try:
 			self.pidConfig = {'max': self.pidMaxOutLimitTextCtrl.GetValue()}
 			self.parentFrame.updateStatus("PID max output limit updated to: {}".format(self.toaster.pid.max))
@@ -148,6 +155,9 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 			self.parentFrame.errorMessage(str(e), "Invalid PID Max Output Limit Value")
 
 	def updateWindupGuard(self):
+		"""
+		Update PID windup-guard value from the text field
+		"""
 		try:
 			self.pidConfig = {'windupGuard': self.pidWindupGuardTextCtrl.GetValue()}
 			self.parentFrame.updateStatus("PID windup guard updated to: {}".format(self.toaster.pid.windupGuard))
@@ -155,18 +165,27 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 			self.parentFrame.errorMessage(str(e), "Invalid PID Windup Guard Value")
 
 	def updateRelayPin(self):
+		"""
+		Update the relay GPIO pin # from the text field
+		"""
 		try:
 			self.toaster.relay.pin = self.relayPinTextCtrl.GetValue()
 		except Exception as e:
 			self.parentFrame.errorMessage(str(e), "Invalid Relay Pin #")
 
 	def updateThermocoupleCSPin(self):
+		"""
+		Update the thermocouple chip-select pin # from the text field
+		"""
 		try:
 			self.toaster.thermocouple.csPin = self.spiCsPinTextCtrl.GetValue()
 		except Exception as e:
 			self.parentFrame.errorMessage(str(e), "Invalid SPI CS Pin #")
 
 	def updateTimerPeriod(self):
+		"""
+		Update the timer period from the text field
+		"""
 		try:
 			self.timerPeriod = self.timerPeriodTextCtrl.GetValue()
 		except:
@@ -207,6 +226,9 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 			raise
 
 	def updateAllSettings(self):
+		"""
+		Save the values from all fields to the data structures
+		"""
 		self.updatePIDsFromFields()
 		self.updateOtherTuningFromFields()
 		self.parentFrame.updateStatus("All settings updated")
@@ -228,6 +250,8 @@ class TuningConfigurationPanel(ControlTuningPanelBase):
 		self._otherTextCtrlToUpdateMethodMap[textCtrl]()
 
 	def updateAllSettingsButtonOnButtonClick(self, event):
+		"""
+		Event handler for update settings button - save all user-entered settings to data structures
+		"""
 		event.Skip()
 		self.updateAllSettings()
-
