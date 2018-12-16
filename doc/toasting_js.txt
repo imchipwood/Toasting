@@ -35,4 +35,14 @@ Goals
 			- Fahrenheit vs Celsius
 		- Loading/saving config
 			- includes reflow profile, tuning, and hardware config
+		- Testing functions
+			- Toggle relay (n times)
 		
+		
+Web Browser Steps
+1. Hardware config entry (thermocouple SPI CS pin, relay GPIO pin)
+2. Live thermocouple reading display
+3. Live relay state display
+4. Tuning config entry
+5. Reflow thermal profile config entry
+6. Graph estimating desired reflow thermal profile
