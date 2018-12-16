@@ -1,0 +1,38 @@
+ToastingJS
+
+Goals
+1. Encapsulate hardware control in simple Python script
+	a. IO
+		- Temperature sensing (thermocouple)
+		- Temperature control (relay)
+	b. Feedback loop - PID
+	c. Data storage
+		- SQL? Pure Python list? 
+2. Move GUI to web browser
+	a. All features of current Python WX GUI supported
+		- Status (constantly monitored)
+			- Current state
+				- relay (on/off)
+				- thermocouple temperature & reference temperature
+				- status (stopped/paused/running/complete)
+				- state (reflow step name (ramp2soak, soak, ramp2reflow, reflow, cooling, etc.)
+		- Tuning
+			- PID values
+				- P, I, D gains, windup guard, output min/max
+			- Timers
+				- Measurement interval
+				- Control interval
+		- Sensor Settings
+			- Relay control pin
+			- Thermocouple SPI CS pin
+		- Reflow profile
+			- configurable name, target temperature, and duration
+			- Shows "preview graph" of expected temperature vs time
+		- Live Graph
+			- Overlay "preview graph" of targeted reflow profile
+			- Live updating of current temperature vs time
+		- Units control
+			- Fahrenheit vs Celsius
+		- Loading/saving config
+			- includes reflow profile, tuning, and hardware config
+		
