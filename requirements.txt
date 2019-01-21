@@ -4,3 +4,4 @@ RPi.GPIO==0.6.3
 spidev==3.2
 pytest>=3.7
 wxpython>=4.0
+websockets>=7.0
