@@ -1,0 +1,21 @@
+.config_grid_outer {
+    display: grid;
+    border: 2px black solid;
+    grid-template-columns: auto auto;
+    grid-gap: 5px
+}
+
+.config_grid {
+    display: grid;
+    border: 2px black dotted;
+    grid-template-columns: auto auto;
+    /*grid-gap: 5px*/
+}
+
+.config_grid_label {
+    text-align: right;
+}
+
+.config_grid_button {
+    grid-column: 1 / span 3;
+}

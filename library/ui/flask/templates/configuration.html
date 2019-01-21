@@ -1,0 +1,96 @@
+<html>
+    <head>
+        <!--<link rel="stylesheet" type="text/css" href="../static/styles/configuration.css">-->
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/configuration.css')}}">
+    </head>
+    <body>
+        <div class="config_grid_outer">
+            <div>
+                <header align="center">PID Settings</header>
+                <div class="config_grid">
+                    <div align="right">Proportional Gain (kP): </div>
+                    <div align="left">
+                        <form>
+                            <label>
+                                <input type="text" />
+                            </label>
+                        </form>
+                    </div>
+                    <div align="right">Integral Gain (kI): </div>
+                    <div align="left">
+                        <form>
+                            <label>
+                                <input type="text" />
+                            </label>
+                        </form>
+                    </div>
+                    <div align="right">Derivative Gain (kD): </div>
+                    <div align="left">
+                        <form>
+                            <label>
+                                <input type="text" />
+                            </label>
+                        </form>
+                    </div>
+                    <div align="right">Output Min: </div>
+                    <div align="left">
+                        <form>
+                            <label>
+                                <input type="text" />
+                            </label>
+                        </form>
+                    </div>
+                    <div align="right">Output Max: </div>
+                    <div align="left">
+                        <form>
+                            <label>
+                                <input type="text" />
+                            </label>
+                        </form>
+                    </div>
+                    <div align="right">Windup Guard: </div>
+                    <div align="left">
+                        <form>
+                            <label>
+                                <input type="text" />
+                            </label>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <header align="center">Pin/Other Settings</header>
+                <div class="config_grid">
+                    <div align="right">Timer Period (seconds): </div>
+                    <div align="left">
+                        <form>
+                            <label>
+                                <input type="text" />
+                            </label>
+                        </form>
+                    </div>
+                    <div align="right">Relay Pin: </div>
+                    <div align="left">
+                        <form>
+                            <label>
+                                <input type="text" />
+                            </label>
+                        </form>
+                    </div>
+                    <div align="right">SPI CS Pin: </div>
+                    <div align="left">
+                        <form>
+                            <label>
+                                <input type="text" />
+                            </label>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="config_grid_button" align="center">
+                <button>Save</button>
+            </div>
+        </div>
+        <!-- end config_grid_outer -->
+    </body>
+</html>
