@@ -4,13 +4,17 @@ oven and working with AC mains power. Be VERY careful and do your testing in a s
 where an accidental fire is containable.
 
 # Toasting - What is it?
-'Toasting' is a reflow soldering toaster oven controller GUI designed for the Raspberry Pi.
+'Toasting' is a reflow soldering toaster oven controller and GUI designed for the Raspberry Pi and ESP8266.
 Reflow soldering is generally used for small, surface mount components that are difficult
 to solder by hand.
 
 A [PID controller](https://en.wikipedia.org/wiki/PID_controller) is used to turn a relay 
 on and off to maintain the target temperatures, which are measured via thermocouple.
 
+`sudo apt install python3.9 python3.9-dev python3.9-venv libpython3.9-dev libpython3.9 libpython3.9-stdlib python3.9-distutils`
+
+
+# OLD
 Toasting works well on a Pi 3, but is very slow on the single-core Pi Zero. 
 The Pi Zero *can* run the GUI but the live graph does not update in real time.
 No other Pi models have been tested.
