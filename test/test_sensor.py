@@ -81,7 +81,7 @@ class TestBinarySensorOutput:
 
     def test_sensor_toggle(self):
         global MOCK_GPIO_STATE
-        sensor = BinarySensorOutput(GPIO_OUTPUT_PIN, True, False, logging.INFO)
+        sensor = BinarySensorOutput(GPIO_OUTPUT_PIN, True, False, 0.1, logging_level=logging.INFO)
 
         try:
             sensor.active_high = True
