@@ -1,17 +1,18 @@
-from random import randint
 HIGH = 1
 LOW = 0
-OUT = 1
-IN = 0
+OUT = 0
+IN = 1
 PUD_UP = 22
 PUD_DOWN = 21
-BCM = 'bcm'
+PUD_OFF = 20
+BCM = 11
+BOARD = 10
 
 STATES = dict()
 DIRECTIONS = dict()
 
 
-def setmode(mode: str):
+def setmode(mode: int):
 	pass
 
 
@@ -28,8 +29,6 @@ def output(pin: int, value: int):
 
 def input(pin: int) -> int:
 	global STATES, DIRECTIONS
-	if DIRECTIONS.get(pin) == OUT:
-		STATES[pin] = randint(0, 1)
 	return STATES[pin]
 
 

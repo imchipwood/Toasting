@@ -7,6 +7,7 @@ from src.controller.sensor.binary_sensor import BinarySensorInput, BinarySensorO
 
 GPIO_OUTPUT_PIN = 17
 GPIO_INPUT_PIN = 22
+GPIO_OUTPUT_SETUP = False
 MOCK_GPIO_STATE = None  # type: int | None
 
 
@@ -30,19 +31,21 @@ def mock_gpio_read(mocker: pytest_mock.MockerFixture):
 
 @pytest.fixture
 def mock_gpio_read_with_write(mocker: pytest_mock.MockerFixture):
-    def mock_read(self) -> int:
+    global GPIO_OUTPUT_SETUP
+
+    def mock_read(pin: int) -> int:
         global MOCK_GPIO_STATE
-        GPIO.output(GPIO_OUTPUT_PIN if IS_RASPBERRY_PI else GPIO_INPUT_PIN, MOCK_GPIO_STATE)
-        return GPIO.input(GPIO_INPUT_PIN)
+        GPIO.output(GPIO_OUTPUT_PIN if IS_RASPBERRY_PI else pin, MOCK_GPIO_STATE)
+        return GPIO.input(pin)
 
+    if IS_RASPBERRY_PI and not GPIO_OUTPUT_SETUP:
+        GPIO_OUTPUT_SETUP = True
+        GPIO.setup(GPIO_OUTPUT_PIN, GPIO.OUT)
     mocker.patch("src.controller.sensor.binary_sensor.BinarySensorInput.read", mock_read)
+    # mocker.patch("Mock.GPIO.input", mock_read)
 
 
-# def write_to_pin(pin: int, value: int):
-#     GPIO.output(pin, value)
-
-
-@pytest.mark.usefixtures("mock_gpio_write")
+# @pytest.mark.usefixtures("mock_gpio_write")
 class TestBinarySensorOutput:
 
     def test_sensor_write(self):
@@ -53,10 +56,10 @@ class TestBinarySensorOutput:
             assert sensor.pin == GPIO_OUTPUT_PIN
 
             sensor.on()
-            assert MOCK_GPIO_STATE == GPIO.HIGH
+            assert GPIO.input(sensor.pin) == GPIO.HIGH
 
             sensor.off()
-            assert MOCK_GPIO_STATE == GPIO.LOW
+            assert GPIO.input(sensor.pin) == GPIO.LOW
         finally:
             sensor.cleanup()
 
@@ -67,15 +70,15 @@ class TestBinarySensorOutput:
         try:
             sensor.active_high = True
             sensor.on()
-            assert MOCK_GPIO_STATE == GPIO.HIGH
+            assert GPIO.input(sensor.pin) == GPIO.HIGH
             sensor.off()
-            assert MOCK_GPIO_STATE == GPIO.LOW
+            assert GPIO.input(sensor.pin) == GPIO.LOW
 
             sensor.active_high = False
             sensor.on()
-            assert MOCK_GPIO_STATE == GPIO.LOW
+            assert GPIO.input(sensor.pin) == GPIO.LOW
             sensor.off()
-            assert MOCK_GPIO_STATE == GPIO.HIGH
+            assert GPIO.input(sensor.pin) == GPIO.HIGH
 
         finally:
             sensor.cleanup()
@@ -87,18 +90,18 @@ class TestBinarySensorOutput:
         try:
             sensor.active_high = True
             sensor.toggle()
-            assert MOCK_GPIO_STATE == GPIO.LOW
+            assert GPIO.input(sensor.pin) == GPIO.LOW
 
             sensor.active_high = False
             sensor.toggle()
-            assert MOCK_GPIO_STATE == GPIO.HIGH
+            assert GPIO.input(sensor.pin) == GPIO.HIGH
 
         finally:
             sensor.cleanup()
 
 
-# @pytest.mark.usefixtures("mock_gpio_read")
-@pytest.mark.usefixtures("mock_gpio_read_with_write")
+@pytest.mark.usefixtures("mock_gpio_read")
+# @pytest.mark.usefixtures("mock_gpio_read_with_write")
 class TestBinarySensorInput:
 
     def test_sensor_read(self):

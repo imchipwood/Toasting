@@ -87,14 +87,14 @@ class BinarySensorOutput(BinarySensor):
         """
         Set the output "on"
         """
-        self.write(self.active_high)
+        self.write(GPIO.HIGH if self.active_high else GPIO.LOW)
         self.state = True
 
     def off(self):
         """
         Set the output "off"
         """
-        self.write(not self.active_high)
+        self.write(GPIO.LOW if self.active_high else GPIO.HIGH)
         self.state = False
 
     def write(self, output: int):
