@@ -3,13 +3,7 @@ import logging
 import time
 
 from src.util import get_class_name, get_logger
-
-try:
-    import RPi.GPIO as GPIO
-except (RuntimeError, ImportError):
-    import src.controller.sensor.mock_gpio as GPIO
-
-    logging.warning("Failed to import RPi.GPIO - using mock spidev library")
+from src.controller.sensor import GPIO
 
 
 class BinarySensor:
@@ -19,7 +13,7 @@ class BinarySensor:
         @param pin: GPIO pin number
         """
         super()
-        self.logger = None  # type: logging.Logger
+        self.logger = None  # type: logging.Logger | None
         self._pin = pin
         self.state = False
 
@@ -45,7 +39,6 @@ class BinarySensor:
     def init(self):
         """
         Initialize GPIO
-        @param starting_state: whether or not to turn GPIO on
         """
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.pin, GPIO.OUT)
@@ -147,29 +140,31 @@ class BinarySensorOutput(BinarySensor):
 
 
 class BinarySensorInput(BinarySensor):
-    def __init__(self, pin: int, logging_level: int = logging.INFO):
+    def __init__(self, pin: int, pull_up_down: int = GPIO.PUD_UP, logging_level: int = logging.INFO):
         """
         Initialize the sensor
         @param pin: GPIO pin number
+        @param pull_up_down: pull-up resistor config - pull UP or DOWN
         @param logging_level: logging level
         """
         super().__init__(pin)
         self.logger = get_logger(get_class_name(str(__class__)), logging_level)
+        self.pull_up_down = pull_up_down
         self.init()
 
     def init(self):
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.pin, GPIO.IN)
+        GPIO.setup(self.pin, GPIO.IN, self.pull_up_down)
         self.read()
         self.logger.debug(f"Initialized {self}")
 
-    def read(self) -> bool:
+    def read(self) -> int:
         """
         Read the GPIO as an input
         @return: value read from GPIO
         """
         self.state = GPIO.input(self.pin)
-        return bool(self.state)
+        return self.state
 
 
 if __name__ == "__main__":

@@ -2,12 +2,7 @@ from abc import abstractmethod
 import logging
 from typing import List
 from src.util import get_logger, get_class_name
-
-try:
-    import spidev
-except (RuntimeError, ImportError):
-    import src.controller.sensor.mock_spidev as spidev
-    logging.warning("Failed to import spidev - using mock spidev library")
+from src.controller.sensor import spidev
 
 
 class Units:
@@ -115,7 +110,7 @@ class Thermocouple(SensorTemperature):
         super().__init__(units)
         self.logger = get_logger(get_class_name(str(__class__)), logging_level)
 
-        self._spi = None  # type: spidev.SpiDev
+        self._spi = None  # type: spidev.SpiDev | None
         self._cs_pin = -1
 
         self._reference_temperature = 0.0
