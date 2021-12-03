@@ -22,9 +22,8 @@ def setup(pin: int, direction: int, pull_up_down: int = PUD_UP):
 
 
 def output(pin: int, value: int):
-	global STATES, DIRECTIONS
-	if DIRECTIONS.get(pin) == OUT:
-		STATES[pin] = value
+	global STATES
+	STATES[pin] = value
 
 
 def input(pin: int) -> int:

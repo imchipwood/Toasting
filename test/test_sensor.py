@@ -2,6 +2,7 @@ import logging
 import pytest
 import pytest_mock
 
+from src import IS_RASPBERRY_PI
 from src.controller.sensor.binary_sensor import BinarySensorInput, BinarySensorOutput, GPIO
 
 GPIO_OUTPUT_PIN = 17
@@ -29,9 +30,9 @@ def mock_gpio_read(mocker: pytest_mock.MockerFixture):
 
 @pytest.fixture
 def mock_gpio_read_with_write(mocker: pytest_mock.MockerFixture):
-    def mock_read() -> int:
+    def mock_read(self) -> int:
         global MOCK_GPIO_STATE
-        GPIO.output(GPIO_OUTPUT_PIN, MOCK_GPIO_STATE)
+        GPIO.output(GPIO_OUTPUT_PIN if IS_RASPBERRY_PI else GPIO_INPUT_PIN, MOCK_GPIO_STATE)
         return GPIO.input(GPIO_INPUT_PIN)
 
     mocker.patch("src.controller.sensor.binary_sensor.BinarySensorInput.read", mock_read)
@@ -96,8 +97,8 @@ class TestBinarySensorOutput:
             sensor.cleanup()
 
 
-@pytest.mark.usefixtures("mock_gpio_read")
-# @pytest.mark.usefixtures("mock_gpio_read_with_write")
+# @pytest.mark.usefixtures("mock_gpio_read")
+@pytest.mark.usefixtures("mock_gpio_read_with_write")
 class TestBinarySensorInput:
 
     def test_sensor_read(self):
