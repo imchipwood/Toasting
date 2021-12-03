@@ -5,7 +5,7 @@ import pytest_mock
 from src.controller.sensor.binary_sensor import BinarySensorInput, BinarySensorOutput, GPIO
 
 GPIO_OUTPUT_PIN = 17
-GPIO_INPUT_PIN = 3
+GPIO_INPUT_PIN = 22
 MOCK_GPIO_STATE = None  # type: int | None
 
 
