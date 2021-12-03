@@ -118,8 +118,8 @@ class BinarySensorOutput(BinarySensor):
         """
         Wait the toggle duration
         """
-        start_time = time.time_ns()
-        while time.time_ns() - start_time < self.toggle_duration:
+        start_time = time.time()
+        while time.time() - start_time < self.toggle_duration:
             time.sleep(0.01)
 
     def init(self, starting_state: bool = False):
