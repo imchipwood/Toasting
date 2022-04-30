@@ -127,7 +127,7 @@ class ToastingBase ( wx.Frame ):
 		self.statusPanel.SetSizer( bSizer261 )
 		self.statusPanel.Layout()
 		bSizer261.Fit( self.statusPanel )
-		bSizer13.Add( self.statusPanel, 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+		bSizer13.Add( self.statusPanel, 1, wx.EXPAND, 5 )
 
 
 		baseSizer.Add( bSizer13, 0, wx.EXPAND, 5 )
