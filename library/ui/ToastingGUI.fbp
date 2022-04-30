@@ -732,7 +732,7 @@
                 </object>
                 <object class="sizeritem" expanded="1">
                     <property name="border">0</property>
-                    <property name="flag">wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALL</property>
+                    <property name="flag">wxALL|wxEXPAND</property>
                     <property name="proportion">1</property>
                     <object class="wxNotebook" expanded="1">
                         <property name="BottomDockable">1</property>

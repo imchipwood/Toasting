@@ -183,7 +183,7 @@ class ToastingBase ( wx.Frame ):
 		executionBaseSizer.Fit( self.executionPanel )
 		self.baseNotebook.AddPage( self.executionPanel, u"Toasting!", False )
 
-		baseSizer.Add( self.baseNotebook, 1, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, 0 )
+		baseSizer.Add( self.baseNotebook, 1, wx.ALL|wx.EXPAND, 0 )
 
 		progressSizer = wx.BoxSizer( wx.VERTICAL )
 
