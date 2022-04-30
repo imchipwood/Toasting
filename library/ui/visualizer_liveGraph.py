@@ -20,6 +20,10 @@ class LiveVisualizer(ConfigurationVisualizer):
 		self.lastState = None
 		self.currentState = None
 
+		# seems newer matplotlib versions can have separate axes tics per subplot
+		# need to update both
+		self.target_state_axes = self.fig.get_axes()
+
 		# Create a new plot
 		self.axes = self.fig.add_subplot(111)  # type: Figure
 		self.axes.grid(True)
@@ -122,6 +126,11 @@ class LiveVisualizer(ConfigurationVisualizer):
 
 		# Is the latest timestamp approaching the end of the X axis?
 		xMin, xMax = self.axes.get_xlim()
+		if maxTimestamp >= (xMax - 50):
+			# Yes - increase x-axis limits
+			self.axes.set_xlim(right=xMax + 50, emit=True)
+			for axis in self.target_state_axes:
+				axis.set_xlim(right=xMax + 50, emit=True)
 
 		# Temperatures
 		allTemperatures = [currentTemperature for timestamp, currentTemperature, targetTemperature, state in self.liveData]
@@ -135,9 +144,7 @@ class LiveVisualizer(ConfigurationVisualizer):
 		if max(allTemperatures) >= (yMax - 20) or max(allTargetTemperatures) >= (yMax - 20):
 			yMax += 50
 
-		# Set the new y-axis limits
-		self.axes.clear()
-		if maxTimestamp >= (xMax - 50):
-			# Yes - increase x-axis limits
-			self.axes.set_xlim(xMin, xMax + 50)
-		self.axes.set_ylim(yMin, yMax)
+		# Set the new axis limits
+		self.axes.set_ylim(yMin, yMax, emit=True)
+		for axis in self.target_state_axes:
+			axis.set_ylim(yMin, yMax, emit=True)

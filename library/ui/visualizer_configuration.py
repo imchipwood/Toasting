@@ -13,7 +13,7 @@ COLORS = {
 }
 
 
-class ConfigurationVisualizer(object):
+class ConfigurationVisualizer:
 	def __init__(self, stateConfiguration, doNotDrawLines=False, units='celsius'):
 		"""
 		Configuration visualizer (line graph) constructor
@@ -24,7 +24,7 @@ class ConfigurationVisualizer(object):
 		@param units: Temperature units to display. Default: celsius
 		@type units: str
 		"""
-		super(ConfigurationVisualizer, self).__init__()
+		super().__init__()
 		self.stateConfiguration = stateConfiguration
 
 		if self.stateConfiguration:
@@ -56,7 +56,7 @@ class ConfigurationVisualizer(object):
 		"""
 		return method([float(stateConfig[configKey]) for stateConfig in self.stateConfiguration.values()])
 
-	def createPlot(self, stateConfiguration=None, doNotDrawLines=False, units='celsius', maxTargetTemp=300, maxTimestamp=500):
+	def createPlot(self, stateConfiguration=None, doNotDrawLines=False, units='celsius', maxTargetTemp=300, maxTimestamp=500) -> Figure:
 		"""
 		Create a plot and return it
 		@param stateConfiguration: state configuration dictionary. Default: None
@@ -121,7 +121,7 @@ class ConfigurationVisualizer(object):
 		yLabel = 'Temperature ({})'.format(units.capitalize())
 		axis.set_ylabel(yLabel)
 
-		# Move bottom graph edge up a bit to ensurex-axis label
+		# Move bottom graph edge up a bit to ensure x-axis label is visible
 		fig.subplots_adjust(bottom=0.15)
 
 		return fig
