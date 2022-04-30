@@ -102,7 +102,7 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 
 			# Set cell alignment to center
 			for rowNum in range(self.configurationGrid.GetNumberRows()):
-				self.configurationGrid.SetCellAlignment(wx.ALIGN_CENTER, rowNum, colNum)
+				self.configurationGrid.SetCellAlignment(rowNum, colNum, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
 
 	def convertConfigGridToStateConfig(self):
 		"""
@@ -178,7 +178,7 @@ class StateConfigurationPanel(StateConfigurationPanelBase):
 		colNum = self.configurationGrid.GetNumberCols() - 1
 		self.configurationGrid.SetColSize(colNum, 100)
 		for rowNum in range(self.configurationGrid.GetNumberRows()):
-			self.configurationGrid.SetCellAlignment(wx.ALIGN_CENTER, rowNum, colNum)
+			self.configurationGrid.SetCellAlignment(rowNum, colNum, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
 
 	def removeStepButtonOnButtonClick(self, event):
 		"""

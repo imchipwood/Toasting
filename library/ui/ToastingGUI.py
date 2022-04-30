@@ -488,31 +488,31 @@ class ToastingGUI(ToastingBase):
 		baseColumnWidth = 50
 
 		# relay state
-		self.statusGrid.SetCellAlignment(wx.ALIGN_CENTER, 0, 0)
+		self.statusGrid.SetCellAlignment(0, 0, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
 		self.statusGrid.SetCellValue(0, 0, "{}".format(self.toaster.relayState))
 		self.setStatusGridCellColour(statusName="relay", red=100, green=250, blue=100)
 		self.statusGrid.SetColSize(0, baseColumnWidth)
 
 		# current temperature
-		self.statusGrid.SetCellAlignment(wx.ALIGN_RIGHT, 0, 1)
+		self.statusGrid.SetCellAlignment(0, 1, wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
 		self.statusGrid.SetCellValue(0, 1, "{}*".format(self.temperature))
 		self.setStatusGridCellColour(statusName="temp", red=200, green=200, blue=200)
 		self.statusGrid.SetColSize(1, baseColumnWidth)
 
 		# reference temperature
-		self.statusGrid.SetCellAlignment(wx.ALIGN_RIGHT, 0, 2)
+		self.statusGrid.SetCellAlignment(0, 2, wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
 		self.statusGrid.SetCellValue(0, 2, "{}*".format(self.refTemperature))
 		self.setStatusGridCellColour(statusName="reftemp", red=150, green=150, blue=150)
 		self.statusGrid.SetColSize(2, baseColumnWidth)
 
 		# ready/running/complete
-		self.statusGrid.SetCellAlignment(wx.ALIGN_CENTER, 0, 3)
+		self.statusGrid.SetCellAlignment(0, 3, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
 		self.statusGrid.SetCellValue(0, 3, "Ready")
 		self.setStatusGridCellColour(statusName="status", red=100, green=255, blue=100)
 		self.statusGrid.SetColSize(3, baseColumnWidth+20)
 
 		# state
-		self.statusGrid.SetCellAlignment(wx.ALIGN_CENTER, 0, 4)
+		self.statusGrid.SetCellAlignment(0, 4, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
 		self.statusGrid.SetCellValue(0, 4, "--")
 		self.setStatusGridCellColour(statusName="state", red=255, green=255, blue=255)
 		self.statusGrid.SetColSize(4, baseColumnWidth+30)
