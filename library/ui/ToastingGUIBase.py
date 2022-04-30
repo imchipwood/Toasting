@@ -68,7 +68,7 @@ class ToastingBase ( wx.Frame ):
 		bSizer261.Add( bSizer39, 1, wx.EXPAND, 5 )
 
 
-		bSizer261.Add( ( 0, 0), 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+		bSizer261.Add( ( 0, 0), 1, wx.EXPAND, 5 )
 
 		bSizer14 = wx.BoxSizer( wx.VERTICAL )
 
