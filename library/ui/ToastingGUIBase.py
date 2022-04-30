@@ -18,9 +18,9 @@ import wx.grid
 class ToastingBase ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Toasting", pos = wx.DefaultPosition, size = wx.Size( 800,700 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Toasting", pos = wx.DefaultPosition, size = wx.Size( 800,800 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
-		self.SetSizeHints( wx.Size( 786,600 ), wx.DefaultSize )
+		self.SetSizeHints( wx.Size( 786,800 ), wx.DefaultSize )
 
 		self.statusBar = self.CreateStatusBar( 1, 0, wx.ID_ANY )
 		self.menuBar = wx.MenuBar( 0 )

@@ -44,10 +44,10 @@
             <property name="hidden">0</property>
             <property name="id">wxID_ANY</property>
             <property name="maximum_size"></property>
-            <property name="minimum_size">786,600</property>
+            <property name="minimum_size">786,800</property>
             <property name="name">ToastingBase</property>
             <property name="pos"></property>
-            <property name="size">800,700</property>
+            <property name="size">800,800</property>
             <property name="style">wxDEFAULT_FRAME_STYLE</property>
             <property name="subclass"></property>
             <property name="title">Toasting</property>
