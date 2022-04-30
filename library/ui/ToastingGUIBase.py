@@ -65,7 +65,7 @@ class ToastingBase ( wx.Frame ):
 		bSizer39.Add( self.executeConfigButton, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 
-		bSizer261.Add( bSizer39, 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+		bSizer261.Add( bSizer39, 1, wx.EXPAND, 5 )
 
 
 		bSizer261.Add( ( 0, 0), 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
@@ -74,13 +74,13 @@ class ToastingBase ( wx.Frame ):
 
 		self.celsiusRadioButton = wx.RadioButton( self.statusPanel, wx.ID_ANY, u"Celsius", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.celsiusRadioButton.SetValue( True )
-		bSizer14.Add( self.celsiusRadioButton, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL|wx.TOP|wx.LEFT, 5 )
+		bSizer14.Add( self.celsiusRadioButton, 0, wx.EXPAND|wx.LEFT|wx.TOP, 5 )
 
 		self.fahrenheitRadioButton = wx.RadioButton( self.statusPanel, wx.ID_ANY, u"Fahrenheit", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer14.Add( self.fahrenheitRadioButton, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM|wx.LEFT, 5 )
+		bSizer14.Add( self.fahrenheitRadioButton, 0, wx.BOTTOM|wx.EXPAND|wx.LEFT, 5 )
 
 
-		bSizer261.Add( bSizer14, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+		bSizer261.Add( bSizer14, 0, wx.EXPAND, 5 )
 
 		bSizer15 = wx.BoxSizer( wx.VERTICAL )
 
@@ -121,7 +121,7 @@ class ToastingBase ( wx.Frame ):
 		bSizer15.Add( self.statusGrid, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, 5 )
 
 
-		bSizer261.Add( bSizer15, 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+		bSizer261.Add( bSizer15, 1, wx.EXPAND, 5 )
 
 
 		self.statusPanel.SetSizer( bSizer261 )
@@ -144,13 +144,13 @@ class ToastingBase ( wx.Frame ):
 		sbSizer3.Add( self.saveDataButton, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 
-		sbSizer3.Add( ( 0, 0), 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+		sbSizer3.Add( ( 0, 0), 1, wx.EXPAND, 5 )
 
 		self.testButton = wx.Button( sbSizer3.GetStaticBox(), wx.ID_ANY, u"Test Relay", wx.DefaultPosition, wx.DefaultSize, 0 )
 		sbSizer3.Add( self.testButton, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 
-		sbSizer3.Add( ( 0, 0), 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 0 )
+		sbSizer3.Add( ( 0, 0), 1, wx.EXPAND, 0 )
 
 		self.startStopReflowButton = wx.Button( sbSizer3.GetStaticBox(), wx.ID_ANY, u"Start Reflow", wx.DefaultPosition, wx.DefaultSize, 0 )
 		sbSizer3.Add( self.startStopReflowButton, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
@@ -161,7 +161,7 @@ class ToastingBase ( wx.Frame ):
 		sbSizer3.Add( self.pauseReflowButton, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.RIGHT, 5 )
 
 
-		executionBaseSizer.Add( sbSizer3, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL|wx.TOP|wx.RIGHT|wx.LEFT, 5 )
+		executionBaseSizer.Add( sbSizer3, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
 
 		executionLiveVisualizationSizer = wx.BoxSizer( wx.VERTICAL )
 
@@ -172,10 +172,10 @@ class ToastingBase ( wx.Frame ):
 		self.liveVisualizationPanel.SetSizer( liveVisualizationSizer )
 		self.liveVisualizationPanel.Layout()
 		liveVisualizationSizer.Fit( self.liveVisualizationPanel )
-		executionLiveVisualizationSizer.Add( self.liveVisualizationPanel, 1, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 0 )
+		executionLiveVisualizationSizer.Add( self.liveVisualizationPanel, 1, wx.EXPAND, 0 )
 
 
-		executionBaseSizer.Add( executionLiveVisualizationSizer, 1, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 0 )
+		executionBaseSizer.Add( executionLiveVisualizationSizer, 1, wx.EXPAND, 0 )
 
 
 		self.executionPanel.SetSizer( executionBaseSizer )
@@ -339,27 +339,27 @@ class StateConfigurationPanelBase ( wx.Panel ):
 
 		# Cell Defaults
 		self.configurationGrid.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
-		bSizer41.Add( self.configurationGrid, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
+		bSizer41.Add( self.configurationGrid, 0, wx.ALL|wx.EXPAND, 5 )
 
 
-		configurationGridStaticBoxSizer.Add( bSizer41, 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+		configurationGridStaticBoxSizer.Add( bSizer41, 1, wx.EXPAND, 5 )
 
 		bSizer40 = wx.BoxSizer( wx.VERTICAL )
 
 		self.addStepButton = wx.Button( configurationGridStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Add Step", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer40.Add( self.addStepButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+		bSizer40.Add( self.addStepButton, 0, wx.ALL|wx.EXPAND, 5 )
 
 		self.removeStepButton = wx.Button( configurationGridStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Remove Step", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer40.Add( self.removeStepButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
+		bSizer40.Add( self.removeStepButton, 0, wx.ALL|wx.EXPAND, 5 )
 
 
-		configurationGridStaticBoxSizer.Add( bSizer40, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+		configurationGridStaticBoxSizer.Add( bSizer40, 0, wx.EXPAND, 5 )
 
 
-		configurationManagementSizer.Add( configurationGridStaticBoxSizer, 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.RIGHT|wx.LEFT, 5 )
+		configurationManagementSizer.Add( configurationGridStaticBoxSizer, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
 
 
-		configurationBaseSizer.Add( configurationManagementSizer, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		configurationBaseSizer.Add( configurationManagementSizer, 0, wx.EXPAND, 5 )
 
 		configurationVisualizerSizer = wx.BoxSizer( wx.VERTICAL )
 
@@ -370,10 +370,10 @@ class StateConfigurationPanelBase ( wx.Panel ):
 		self.configurationVisualizerPanel.SetSizer( configurationVisualizerInnerSizer )
 		self.configurationVisualizerPanel.Layout()
 		configurationVisualizerInnerSizer.Fit( self.configurationVisualizerPanel )
-		configurationVisualizerSizer.Add( self.configurationVisualizerPanel, 1, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 0 )
+		configurationVisualizerSizer.Add( self.configurationVisualizerPanel, 1, wx.EXPAND, 0 )
 
 
-		configurationBaseSizer.Add( configurationVisualizerSizer, 1, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 0 )
+		configurationBaseSizer.Add( configurationVisualizerSizer, 1, wx.EXPAND, 0 )
 
 
 		self.SetSizer( configurationBaseSizer )
@@ -418,56 +418,56 @@ class ControlTuningPanelBase ( wx.Panel ):
 		self.pidPStaticText = wx.StaticText( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Proportional Gain (kP)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
 		self.pidPStaticText.Wrap( -1 )
 
-		pidFlexGridSizer.Add( self.pidPStaticText, 0, wx.EXPAND|wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		pidFlexGridSizer.Add( self.pidPStaticText, 0, wx.ALIGN_RIGHT|wx.ALL|wx.EXPAND, 5 )
 
 		self.pidPTextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
-		pidFlexGridSizer.Add( self.pidPTextCtrl, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+		pidFlexGridSizer.Add( self.pidPTextCtrl, 0, wx.BOTTOM|wx.EXPAND|wx.LEFT|wx.RIGHT, 5 )
 
 		self.pidIStaticText = wx.StaticText( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Integral Gain (kI)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
 		self.pidIStaticText.Wrap( -1 )
 
-		pidFlexGridSizer.Add( self.pidIStaticText, 0, wx.EXPAND|wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		pidFlexGridSizer.Add( self.pidIStaticText, 0, wx.ALIGN_RIGHT|wx.ALL|wx.EXPAND, 5 )
 
 		self.pidITextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
-		pidFlexGridSizer.Add( self.pidITextCtrl, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+		pidFlexGridSizer.Add( self.pidITextCtrl, 0, wx.BOTTOM|wx.EXPAND|wx.LEFT|wx.RIGHT, 5 )
 
 		self.pidDStaticText = wx.StaticText( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Derivative Gain (kD)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
 		self.pidDStaticText.Wrap( -1 )
 
-		pidFlexGridSizer.Add( self.pidDStaticText, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT|wx.ALL, 5 )
+		pidFlexGridSizer.Add( self.pidDStaticText, 0, wx.ALIGN_RIGHT|wx.ALL|wx.EXPAND, 5 )
 
 		self.pidDTextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
-		pidFlexGridSizer.Add( self.pidDTextCtrl, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+		pidFlexGridSizer.Add( self.pidDTextCtrl, 0, wx.BOTTOM|wx.EXPAND|wx.LEFT|wx.RIGHT, 5 )
 
 		self.pidMinStaticText = wx.StaticText( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"PID Output Min Limit", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
 		self.pidMinStaticText.Wrap( -1 )
 
-		pidFlexGridSizer.Add( self.pidMinStaticText, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT|wx.EXPAND|wx.ALL, 5 )
+		pidFlexGridSizer.Add( self.pidMinStaticText, 0, wx.ALIGN_RIGHT|wx.ALL|wx.EXPAND, 5 )
 
 		self.pidMinOutLimitTextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
-		pidFlexGridSizer.Add( self.pidMinOutLimitTextCtrl, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+		pidFlexGridSizer.Add( self.pidMinOutLimitTextCtrl, 0, wx.BOTTOM|wx.EXPAND|wx.LEFT|wx.RIGHT, 5 )
 
 		self.pidMaxOutLimitStaticText = wx.StaticText( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"PID Output Max Limit", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
 		self.pidMaxOutLimitStaticText.Wrap( -1 )
 
-		pidFlexGridSizer.Add( self.pidMaxOutLimitStaticText, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT|wx.ALL, 5 )
+		pidFlexGridSizer.Add( self.pidMaxOutLimitStaticText, 0, wx.ALIGN_RIGHT|wx.ALL|wx.EXPAND, 5 )
 
 		self.pidMaxOutLimitTextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
-		pidFlexGridSizer.Add( self.pidMaxOutLimitTextCtrl, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+		pidFlexGridSizer.Add( self.pidMaxOutLimitTextCtrl, 0, wx.BOTTOM|wx.EXPAND|wx.LEFT|wx.RIGHT, 5 )
 
 		self.pidWindupGuardStaticText = wx.StaticText( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"PID Windup Guard", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
 		self.pidWindupGuardStaticText.Wrap( -1 )
 
-		pidFlexGridSizer.Add( self.pidWindupGuardStaticText, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT|wx.ALL, 5 )
+		pidFlexGridSizer.Add( self.pidWindupGuardStaticText, 0, wx.ALIGN_RIGHT|wx.ALL|wx.EXPAND, 5 )
 
 		self.pidWindupGuardTextCtrl = wx.TextCtrl( pidTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
-		pidFlexGridSizer.Add( self.pidWindupGuardTextCtrl, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.BOTTOM|wx.RIGHT|wx.LEFT|wx.EXPAND, 5 )
+		pidFlexGridSizer.Add( self.pidWindupGuardTextCtrl, 0, wx.BOTTOM|wx.EXPAND|wx.LEFT|wx.RIGHT, 5 )
 
 
-		pidTuningStaticBoxSizer.Add( pidFlexGridSizer, 1, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		pidTuningStaticBoxSizer.Add( pidFlexGridSizer, 1, wx.EXPAND, 5 )
 
 
-		bSizer26.Add( pidTuningStaticBoxSizer, 1, wx.EXPAND|wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		bSizer26.Add( pidTuningStaticBoxSizer, 1, wx.ALL|wx.EXPAND, 5 )
 
 		otherTuningStaticBoxSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Other" ), wx.VERTICAL )
 
@@ -479,38 +479,38 @@ class ControlTuningPanelBase ( wx.Panel ):
 		self.timerPeriodStaticText = wx.StaticText( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Timer Period (s)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
 		self.timerPeriodStaticText.Wrap( -1 )
 
-		otherFlexGridSizer.Add( self.timerPeriodStaticText, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT, 5 )
+		otherFlexGridSizer.Add( self.timerPeriodStaticText, 0, wx.ALIGN_RIGHT|wx.ALL|wx.EXPAND, 5 )
 
 		self.timerPeriodTextCtrl = wx.TextCtrl( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
-		otherFlexGridSizer.Add( self.timerPeriodTextCtrl, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+		otherFlexGridSizer.Add( self.timerPeriodTextCtrl, 0, wx.BOTTOM|wx.EXPAND|wx.LEFT|wx.RIGHT, 5 )
 
 		self.relayPinStaticText = wx.StaticText( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"Relay Pin (BCM)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
 		self.relayPinStaticText.Wrap( -1 )
 
-		otherFlexGridSizer.Add( self.relayPinStaticText, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT, 5 )
+		otherFlexGridSizer.Add( self.relayPinStaticText, 0, wx.ALIGN_RIGHT|wx.ALL|wx.EXPAND, 5 )
 
 		self.relayPinTextCtrl = wx.TextCtrl( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
-		otherFlexGridSizer.Add( self.relayPinTextCtrl, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+		otherFlexGridSizer.Add( self.relayPinTextCtrl, 0, wx.BOTTOM|wx.EXPAND|wx.LEFT|wx.RIGHT, 5 )
 
 		self.spiCsPinStaticText = wx.StaticText( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, u"SPI CS Pin (0, 1)", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
 		self.spiCsPinStaticText.Wrap( -1 )
 
-		otherFlexGridSizer.Add( self.spiCsPinStaticText, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT, 5 )
+		otherFlexGridSizer.Add( self.spiCsPinStaticText, 0, wx.ALIGN_RIGHT|wx.ALL|wx.EXPAND, 5 )
 
 		self.spiCsPinTextCtrl = wx.TextCtrl( otherTuningStaticBoxSizer.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
-		otherFlexGridSizer.Add( self.spiCsPinTextCtrl, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+		otherFlexGridSizer.Add( self.spiCsPinTextCtrl, 0, wx.BOTTOM|wx.EXPAND|wx.LEFT|wx.RIGHT, 5 )
 
 
-		otherTuningStaticBoxSizer.Add( otherFlexGridSizer, 1, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		otherTuningStaticBoxSizer.Add( otherFlexGridSizer, 1, wx.EXPAND, 5 )
 
 
-		bSizer26.Add( otherTuningStaticBoxSizer, 1, wx.EXPAND|wx.TOP|wx.BOTTOM|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 5 )
+		bSizer26.Add( otherTuningStaticBoxSizer, 1, wx.BOTTOM|wx.EXPAND|wx.RIGHT|wx.TOP, 5 )
 
 
 		tuningBaseSizer1.Add( bSizer26, 0, wx.EXPAND, 5 )
 
 		self.updateAllSettingsButton = wx.Button( self, wx.ID_ANY, u"Update All Settings", wx.DefaultPosition, wx.DefaultSize, 0 )
-		tuningBaseSizer1.Add( self.updateAllSettingsButton, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		tuningBaseSizer1.Add( self.updateAllSettingsButton, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, 5 )
 
 
 		self.SetSizer( tuningBaseSizer1 )
@@ -586,7 +586,7 @@ class ExecutionPanelBase ( wx.Panel ):
 		sbSizer3.Add( self.pauseReflowButton, 0, wx.BOTTOM|wx.RIGHT|wx.TOP, 5 )
 
 
-		executionBaseSizer.Add( sbSizer3, 0, wx.EXPAND|wx.TOP|wx.RIGHT|wx.LEFT|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		executionBaseSizer.Add( sbSizer3, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
 
 		executionLiveVisualizationSizer = wx.BoxSizer( wx.VERTICAL )
 
