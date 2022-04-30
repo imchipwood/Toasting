@@ -1,6 +1,6 @@
 numpy>=1.13.3
 matplotlib>=2.0.2
-RPi.GPIO==0.6.3
+RPi.GPIO==0.7.1
 spidev==3.2
 pytest>=3.7
 wxpython>=4.0
