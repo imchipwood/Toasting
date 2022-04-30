@@ -1,4 +1,5 @@
 from library.ui.visualizer_configuration import ConfigurationVisualizer, CONFIG_KEY_TARGET
+from matplotlib.figure import Figure
 
 # this code was pretty helpful in getting live update working without redrawing entire graph
 # https://github.com/eliben/code-for-blog/blob/master/2008/wx_mpl_dynamic_graph.py
@@ -20,7 +21,7 @@ class LiveVisualizer(ConfigurationVisualizer):
 		self.currentState = None
 
 		# Create a new plot
-		self.axes = self.fig.add_subplot(111)
+		self.axes = self.fig.add_subplot(111)  # type: Figure
 		self.axes.grid(True)
 		# self.axes.set_facecolor('black')
 		self.axes.set_title("Live Temperature", size=12)
@@ -121,9 +122,6 @@ class LiveVisualizer(ConfigurationVisualizer):
 
 		# Is the latest timestamp approaching the end of the X axis?
 		xMin, xMax = self.axes.get_xlim()
-		if maxTimestamp >= (xMax - 50):
-			# Yes - increase x-axis limits
-			self.axes.set_xlim(xMin, xMax + 50)
 
 		# Temperatures
 		allTemperatures = [currentTemperature for timestamp, currentTemperature, targetTemperature, state in self.liveData]
@@ -138,4 +136,8 @@ class LiveVisualizer(ConfigurationVisualizer):
 			yMax += 50
 
 		# Set the new y-axis limits
+		self.axes.clear()
+		if maxTimestamp >= (xMax - 50):
+			# Yes - increase x-axis limits
+			self.axes.set_xlim(xMin, xMax + 50)
 		self.axes.set_ylim(yMin, yMax)
