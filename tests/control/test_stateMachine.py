@@ -6,7 +6,7 @@ from collections import OrderedDict
 from threading import Thread
 
 from library.control.stateMachine import STATES, ToastStateMachine
-from definitions import GetConfigurationFilePath, GetBaseConfigurationFilePath, GetDataFilePath
+from definitions import get_configuration_file_path, get_base_configuration_file_path, get_data_file_path
 
 global TOASTER
 TOASTER = None
@@ -32,7 +32,7 @@ def teardown_function(function):
 	return
 
 
-def GetStateMachine(new=True, debugLevel=logging.INFO, configFile=GetBaseConfigurationFilePath()):
+def GetStateMachine(new=True, debugLevel=logging.INFO, configFile=get_base_configuration_file_path()):
 	global TOASTER
 	if new:
 		if TOASTER:
@@ -191,7 +191,7 @@ def test_DumpDataToCsv():
 	Test that dumping data after state machine fully completes works
 	"""
 	sm = GetStateMachine(new=True)
-	sm.stateConfiguration['cooling']['target'] = -5
+	sm.state_configuration['cooling']['target'] = -5
 
 	assert not sm.dumpDataToCsv("somePath")
 	try:
@@ -218,7 +218,7 @@ def test_DumpDataToCsv():
 		thread.stop()
 
 		# Remove dump file if it exists
-		dumpPath = GetDataFilePath("testData.csv")
+		dumpPath = get_data_file_path("testData.csv")
 		if os.path.exists(dumpPath):
 			try:
 				os.remove(dumpPath)
@@ -252,13 +252,13 @@ def test_setAlternateConfig():
 	"""
 	sm = GetStateMachine()
 	try:
-		configFile = GetConfigurationFilePath("dummyConfig.json")
+		configFile = get_configuration_file_path("dummyConfig.json")
 		sm.config = configFile
 		assert sm.relay.pin == 101
 		assert sm.timerPeriod == 1
-		assert sm.pid.kP == 10.6
+		assert sm.pid.k_p == 10.6
 
-		testDump = GetConfigurationFilePath("testConfigDump.json")
+		testDump = get_configuration_file_path("testConfigDump.json")
 		if os.path.exists(testDump):
 			os.remove(testDump)
 
@@ -289,7 +289,7 @@ def test_settersGetters():
 
 		sm.timerPeriod = 10
 		assert sm.timerPeriod == 10
-		assert isinstance(sm.refTemperature, (int, float))
+		assert isinstance(sm.ref_temperature, (int, float))
 	finally:
 		sm.cleanup()
 
@@ -302,13 +302,13 @@ def test_setStateConfiguration():
 	try:
 		assert sm.states == []
 
-		with open(GetConfigurationFilePath("dummyConfig.json"), 'r') as inf:
+		with open(get_configuration_file_path("dummyConfig.json"), 'r') as inf:
 			tmpConfig = json.load(inf, object_pairs_hook=OrderedDict)
 
-		sm.stateConfiguration = tmpConfig['states']
+		sm.state_configuration = tmpConfig['states']
 
 		assert sm.states
 		assert sm.states[0] == 'ramp2soak'
-		assert sm.stateConfiguration['ramp2soak']['target'] == 125
+		assert sm.state_configuration['ramp2soak']['target'] == 125
 	finally:
 		sm.cleanup()

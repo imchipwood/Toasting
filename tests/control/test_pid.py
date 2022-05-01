@@ -20,7 +20,7 @@ def teardown_function(function):
 	return
 
 
-def GetPID():
+def get_pid():
 	settings = {
 		"kP": 1.0,
 		"kI": 0.01,
@@ -36,7 +36,7 @@ def test_compute():
 	"""
 	Test that the PID computation doesn't error out
 	"""
-	pid = GetPID()
+	pid = get_pid()
 
 	# Check computing with no target fails
 	with pytest.raises(Exception):
@@ -50,15 +50,15 @@ def test_compute():
 
 	# Check for negative output
 	pid.target = -100
-	pid.resetClock()
-	pid.zeroierror()
-	pid.compute(0, 0, newState=True)
+	pid.reset_clock()
+	pid.zero_i_error()
+	pid.compute(0, 0, new_state=True)
 	for i in range(1, 11):
 		assert pid.compute(i / 2., -i) <= 0
 
 	del pid
 
-	pid = GetPID()
+	pid = get_pid()
 	pid.target = 100.0
 
 	timeInterval = 0.5
@@ -69,7 +69,7 @@ def test_compute():
 		out = pid.compute(i / (1. / timeInterval), currentState)
 
 		# Confirm windup guard is working
-		assert -pid.windupGuard <= pid.ierror <= pid.windupGuard
+		assert -pid.windup_guard <= pid.i_error <= pid.windup_guard
 
 		# Increment state
 		multiplier = 1 if i % 2 == 0 else -1
@@ -81,13 +81,13 @@ def test_zeroierror():
 	"""
 	Test that IError changes when we compute, and test that zeroing works
 	"""
-	pid = GetPID()
+	pid = get_pid()
 	pid.target = 100.0
 	pid.compute(0, 10.0)
 	pid.compute(1, 10.0)
-	assert pid.ierror != 0
-	pid.zeroierror()
-	assert pid.ierror == 0
+	assert pid.i_error != 0
+	pid.zero_i_error()
+	assert pid.i_error == 0
 
 
 def test_min_max():
@@ -95,7 +95,7 @@ def test_min_max():
 	Test that setting min and max values appropriately works
 	Also test that setting them incorrectly raises exceptions
 	"""
-	pid = GetPID()
+	pid = get_pid()
 	pid.target = 100.0
 	pid.compute(0, 10.0)
 	pid.compute(1, 10.0)
@@ -128,26 +128,26 @@ def test_min_max():
 		currentState += adder
 
 
-def test_windupGettersSetters():
+def test_windup_getters_setters():
 	"""
 	Test that the windup getter & setter work as intended
 	"""
-	pid = GetPID()
-	pid.windupGuard = None
-	assert pid.windupGuard is None
-	pid.windupGuard = "50"
-	assert pid.windupGuard == 50
-	pid.windupGuard = -45
-	assert pid.windupGuard == 45
+	pid = get_pid()
+	pid.windup_guard = None
+	assert pid.windup_guard is None
+	pid.windup_guard = "50"
+	assert pid.windup_guard == 50
+	pid.windup_guard = -45
+	assert pid.windup_guard == 45
 
 
 def test_getConfig():
 	"""
 	Test getting the config works
 	"""
-	pid = GetPID()
-	pid.kP = "50"
-	pidConfig = pid.getConfig()
+	pid = get_pid()
+	pid.k_p = "50"
+	pidConfig = pid.get_config()
 	assert pidConfig['kP'] == 50
 	assert pidConfig['kI'] == 0.01
 	assert pidConfig['min'] == ''
@@ -158,6 +158,6 @@ def test_toString():
 	"""
 	Test the state to string conversion
 	"""
-	pid = GetPID()
+	pid = get_pid()
 
-	print(pid.currentStateToString())
+	print(pid)

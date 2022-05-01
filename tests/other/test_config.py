@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 from library.other.config import ToasterConfig
 from library.control.pid import PID
-from definitions import GetBaseConfigurationFilePath
+from definitions import get_base_configuration_file_path
 
 
 def setup_module(module):
@@ -28,9 +28,9 @@ def test_ToasterConfig():
 	"""
 	Test that loading a config at least stores the proper types
 	"""
-	config = ToasterConfig(GetBaseConfigurationFilePath())
+	config = ToasterConfig(get_base_configuration_file_path())
 	assert isinstance(config.pids, PID)
-	assert isinstance(config.pids.kP, (float, int))
+	assert isinstance(config.pids.k_p, (float, int))
 	assert isinstance(config.pins, dict)
 	assert isinstance(config.spiCsPin, int)
 	assert isinstance(config.relayPin, int)
@@ -55,7 +55,7 @@ def test_NonDefaults(monkeypatch):
 	monkeypatch.setattr(ToasterConfig, 'BASE_CLOCK_PERIOD', fakePeriod)
 	monkeypatch.setattr(ToasterConfig, 'BASE_PID', fakePID)
 
-	config = ToasterConfig(GetBaseConfigurationFilePath())
+	config = ToasterConfig(get_base_configuration_file_path())
 	assert config.units != fakeUnits
 	assert config.pins != fakePins
 	assert config.clockPeriod != fakePeriod
@@ -67,7 +67,7 @@ def test_setters():
 	"""
 	Test all of the setters & getters
 	"""
-	config = ToasterConfig(GetBaseConfigurationFilePath())
+	config = ToasterConfig(get_base_configuration_file_path())
 
 	config.relayPin = 50
 	assert config.relayPin == 50
@@ -87,7 +87,7 @@ def test_setters():
 
 	config.pids = PID()
 	config.pids = {'kP': 1234}
-	assert config.pids.kP == 1234
+	assert config.pids.k_p == 1234
 
 	config.clockPeriod = 0.25
 	assert config.clockPeriod == 0.25
@@ -114,10 +114,10 @@ def test_dumpConfig():
 	"""
 	Test dumping the config to a file works
 	"""
-	config = ToasterConfig(GetBaseConfigurationFilePath())
+	config = ToasterConfig(get_base_configuration_file_path())
 
 	# make a test dump and clean up the old one if it's lying around
-	testDump = GetBaseConfigurationFilePath().replace(".json", "_test.json")
+	testDump = get_base_configuration_file_path().replace(".json", "_test.json")
 	if os.path.exists(testDump):
 		os.remove(testDump)
 

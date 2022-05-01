@@ -8,7 +8,7 @@ from library.sensors.sensor_relay import Relay
 from library.sensors.sensor_thermocouple import Thermocouple
 from library.control.pid import PID
 from library.ui.visualizer_configuration import CONFIG_KEY_TARGET, CONFIG_KEY_DURATION
-from definitions import GetBaseConfigurationFilePath
+from definitions import get_base_configuration_file_path
 
 
 class STATES:
@@ -27,7 +27,7 @@ class ToastStateMachine(object):
 	2. Soaking - state is complete when duration expires, regardless of target temperature
 		Soaking states hold the same temperature reached at the end of the previous state
 	"""
-	def __init__(self, jsonConfigPath=GetBaseConfigurationFilePath(), stateMachineCompleteCallback=None, debugLevel=logging.INFO):
+	def __init__(self, jsonConfigPath=get_base_configuration_file_path(), stateMachineCompleteCallback=None, debugLevel=logging.INFO):
 		"""
 		ToastStateMachine Constructor
 		@param jsonConfigPath: path to JSON configuration file
@@ -85,7 +85,7 @@ class ToastStateMachine(object):
 	# region Properties
 
 	@property
-	def stateConfiguration(self):
+	def state_configuration(self):
 		"""
 		Get the current state configuration
 		@return: current state configuration
@@ -93,8 +93,8 @@ class ToastStateMachine(object):
 		"""
 		return self.config.states
 
-	@stateConfiguration.setter
-	def stateConfiguration(self, configDict):
+	@state_configuration.setter
+	def state_configuration(self, configDict):
 		"""
 		Set a new state configuration
 		@param configDict: new state configuration
@@ -109,8 +109,8 @@ class ToastStateMachine(object):
 		@return: List of state names
 		@rtype: list[str]
 		"""
-		if self.stateConfiguration:
-			return list(self.stateConfiguration.keys())
+		if self.state_configuration:
+			return list(self.state_configuration.keys())
 		else:
 			return []
 
@@ -169,7 +169,7 @@ class ToastStateMachine(object):
 		return self.thermocouple.temperature
 
 	@property
-	def refTemperature(self):
+	def ref_temperature(self):
 		"""
 		Get the current reference temperature
 		@return: current reference temperature
@@ -275,7 +275,7 @@ class ToastStateMachine(object):
 		self.logger.debug("Beginning state machine")
 		self.running = STATES.RUNNING
 		# reset all the state variables
-		self.pid.zeroierror()
+		self.pid.zero_i_error()
 		self.timestamp = 0.0
 		self.lastControlLoopTimestamp = 0.0
 		self.stateIndex = 0
@@ -414,8 +414,8 @@ class ToastStateMachine(object):
 
 		# Get next state info
 		self.lastTarget = self.targetState
-		self.targetState = float(self.stateConfiguration[self.currentState][CONFIG_KEY_TARGET])
-		self.currentStateDuration = float(self.stateConfiguration[self.currentState][CONFIG_KEY_DURATION])
+		self.targetState = float(self.state_configuration[self.currentState][CONFIG_KEY_TARGET])
+		self.currentStateDuration = float(self.state_configuration[self.currentState][CONFIG_KEY_DURATION])
 
 		# Soaking stages simply maintain a steady temperature for a certain duration
 		# Heating/Cooling stages have no duration
@@ -423,7 +423,7 @@ class ToastStateMachine(object):
 		self.currentStateEnd = self.timestamp + self.currentStateDuration
 
 		# Zero out the integrated error so it can build up again for this state
-		self.pid.zeroierror()
+		self.pid.zero_i_error()
 		self.stateChanged = True
 
 		if self.running not in [STATES.STOPPED, STATES.PAUSED]:
@@ -455,7 +455,7 @@ class ToastStateMachine(object):
 			"{:7.2f}, {}, {}".format(
 				self.timestamp,
 				"{:7.2f}".format(self.currentStateEnd) if self.soaking else "    n/a",
-				self.pid.currentStateToString()
+				self.pid
 			)
 		)
 
@@ -472,8 +472,8 @@ class ToastStateMachine(object):
 			'Relay State': self.relay.state,
 			'PID Output': self.pid.output,
 			'PID Error': self.pid.error,
-			'PID IError': self.pid.ierror,
-			'PID DError': self.pid.derror,
+			'PID IError': self.pid.i_error,
+			'PID DError': self.pid.d_error,
 		}
 		self.data.append(data)
 

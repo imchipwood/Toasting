@@ -1,13 +1,13 @@
 from library.other.config import ToasterConfig
 from library.sensors.sensor_relay import Relay
-from definitions import GetBaseConfigurationFilePath
+from definitions import get_base_configuration_file_path
 
 global RELAY_PIN
 
 
 def setup_module(module):
 	global RELAY_PIN
-	config = ToasterConfig(GetBaseConfigurationFilePath())
+	config = ToasterConfig(get_base_configuration_file_path())
 	RELAY_PIN = config.relayPin
 
 

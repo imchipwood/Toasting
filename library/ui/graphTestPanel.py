@@ -135,7 +135,7 @@ class LiveGraphTestPanel(ConfigurationGraphTestPanel):
 
 	def updateGraph(self):
 		"""Update the graph with latest date point"""
-		self.visualizer.addDataPoint(self.timestamp, self.y, self.currentTarget, self.currentState)
+		self.visualizer.add_data_point(self.timestamp, self.y, self.currentTarget, self.currentState)
 		self.canvas.draw()
 
 
@@ -143,8 +143,8 @@ if __name__ == "__main__":
 	app = wx.App()
 
 	# Open a fake config
-	from definitions import GetBaseConfigurationFilePath
-	with open(GetBaseConfigurationFilePath()) as inf:
+	from definitions import get_base_configuration_file_path
+	with open(get_base_configuration_file_path()) as inf:
 		config = json.load(inf, object_pairs_hook=OrderedDict)
 		config = config['states']
 

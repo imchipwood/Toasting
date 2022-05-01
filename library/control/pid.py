@@ -1,100 +1,100 @@
 from collections import OrderedDict
 
 
-class PID(object):
+class PID:
 
-	def __init__(self, configDict=None):
+	def __init__(self, config_dict: dict = None):
 		"""
 		Constructor for PID object
-		@param configDict: Configuration dict of PID parameters
-		@type configDict: dict
+		@param config_dict: Configuration dict of PID parameters
+		@type config_dict: dict
 		"""
-		super(PID, self).__init__()
+		super().__init__()
 
 		# Gains
-		self._kP = 0.0
-		self._kI = 0.0
-		self._kD = 0.0
-		self._windupGuard = 0.0
+		self._k_p = 0.0
+		self._k_i = 0.0
+		self._k_d = 0.0
+		self._windup_guard = 0.0
 
 		# State
-		self._currentState = 0.0
-		self._targetState = 0.0
+		self._current_state = 0.0
+		self._target_state = 0.0
 		self._output = 0.0
 
 		# Error variables
 		self._error = 0.0
-		self._lastError = 0.0
-		self._iError = 0.0
-		self._dError = 0.0
+		self._last_error = 0.0
+		self._i_error = 0.0
+		self._d_error = 0.0
 
 		# Limits
 		self._min = None
 		self._max = None
 
 		# Time
-		self._lastTime = 0.0
+		self._last_time = 0.0
 
 		# Load the config
-		if configDict:
-			self.setConfig(configDict)
+		if config_dict:
+			self.set_config(config_dict)
 
 	# region Gains
 
 	@property
-	def kP(self):
+	def k_p(self):
 		"""
 		@rtype: float
 		"""
-		return self._kP
+		return self._k_p
 
-	@kP.setter
-	def kP(self, kp):
+	@k_p.setter
+	def k_p(self, kp):
 		"""
 		Set the proportional gain
 		@param kp: new proportional gain
 		@type kp: str or int or float
 		"""
 		try:
-			self._kP = float(kp)
+			self._k_p = float(kp)
 		except ValueError:
 			raise ValueError("Failed to convert PID proportional gain input value '{}' to a float".format(kp))
 
 	@property
-	def kI(self):
+	def k_i(self):
 		"""
 		@rtype: float
 		"""
-		return self._kI
+		return self._k_i
 
-	@kI.setter
-	def kI(self, ki):
+	@k_i.setter
+	def k_i(self, ki):
 		"""
 		Set the integrated gain
 		@param ki: new integrated gain
 		@type ki: str or int or float
 		"""
 		try:
-			self._kI = float(ki)
+			self._k_i = float(ki)
 		except ValueError:
 			raise ValueError("Failed to convert PID integral gain input value '{}' to a float".format(ki))
 
 	@property
-	def kD(self):
+	def k_d(self):
 		"""
 		@rtype: float
 		"""
-		return self._kD
+		return self._k_d
 
-	@kD.setter
-	def kD(self, kd):
+	@k_d.setter
+	def k_d(self, kd):
 		"""
 		Set the derivative gain
 		@param kd: new derivative gain
 		@type kd: str or int or float
 		"""
 		try:
-			self._kD = float(kd)
+			self._k_d = float(kd)
 		except ValueError:
 			raise ValueError("Failed to convert PID derivative gain input value '{}' to a float".format(kd))
 
@@ -106,14 +106,14 @@ class PID(object):
 		"""
 		@rtype: float
 		"""
-		return self._currentState
+		return self._current_state
 
 	@property
 	def target(self):
 		"""
 		@rtype: float
 		"""
-		return self._targetState
+		return self._target_state
 
 	@target.setter
 	def target(self, target):
@@ -122,7 +122,7 @@ class PID(object):
 		@param target: new target state
 		@type target: str or int or float
 		"""
-		self._targetState = float(target)
+		self._target_state = float(target)
 
 	@property
 	def output(self):
@@ -152,54 +152,54 @@ class PID(object):
 		return self._error
 
 	@property
-	def ierror(self):
+	def i_error(self):
 		"""
 		@rtype: float
 		"""
-		return self._iError
+		return self._i_error
 
-	@ierror.setter
-	def ierror(self, ierror):
+	@i_error.setter
+	def i_error(self, i_error):
 		"""
 		Setter for integrated error
 		Applies windup guard automatically
-		@param ierror: new integrated error
-		@type ierror: float
+		@param i_error: new integrated error
+		@type i_error: float
 		"""
-		self._iError = ierror
-		self.applyWindup()
+		self._i_error = i_error
+		self.apply_windup()
 
 	@property
-	def derror(self):
+	def d_error(self):
 		"""
 		@rtype: float
 		"""
-		return self._dError
+		return self._d_error
 
 	# endregion States
 	# region Limits
 
 	@property
-	def windupGuard(self):
+	def windup_guard(self):
 		"""
 		@rtype: float
 		"""
-		return self._windupGuard
+		return self._windup_guard
 
-	@windupGuard.setter
-	def windupGuard(self, windupGuard):
+	@windup_guard.setter
+	def windup_guard(self, windup_guard):
 		"""
 		Set the Integrated error windup guard
-		@param windupGuard: new windup guard
-		@type windupGuard: str or int or float
+		@param windup_guard: new windup guard
+		@type windup_guard: str or int or float
 		"""
-		if windupGuard is not None:
+		if windup_guard is not None:
 			try:
-				self._windupGuard = abs(float(windupGuard))
+				self._windup_guard = abs(float(windup_guard))
 			except ValueError:
-				raise ValueError("Failed to convert PID windup guard input value '{}' to a float".format(windupGuard))
+				raise ValueError("Failed to convert PID windup guard input value '{}' to a float".format(windup_guard))
 		else:
-			self._windupGuard = None
+			self._windup_guard = None
 
 	@property
 	def min(self):
@@ -209,30 +209,30 @@ class PID(object):
 		return self._min
 
 	@min.setter
-	def min(self, minLimit):
+	def min(self, min_limit):
 		"""
 		Min Setter - force less than max
 		Raises exception if min is greater than max
-		@param minLimit: new minimum output value
-		@type minLimit: float or int
+		@param min_limit: new minimum output value
+		@type min_limit: float or int
 		"""
 		# Check for valid value
-		if minLimit in ['', None]:
+		if min_limit in ['', None]:
 			self._min = None
 			return
 
 		# Convert to float
 		try:
-			minLimit = float(minLimit)
+			min_limit = float(min_limit)
 		except ValueError:
-			raise ValueError("Failed to convert PID min limit input value '{}' to a float".format(minLimit))
+			raise ValueError("Failed to convert PID min limit input value '{}' to a float".format(min_limit))
 
 		# Check validity against max limit
 		if self.max is not None:
-			assert minLimit < self.max, "Min limit must be lower than max: {}".format(self.max)
+			assert min_limit < self.max, "Min limit must be lower than max: {}".format(self.max)
 
 		# Apply
-		self._min = minLimit
+		self._min = min_limit
 
 	@property
 	def max(self):
@@ -242,73 +242,73 @@ class PID(object):
 		return self._max
 
 	@max.setter
-	def max(self, maxLimit):
+	def max(self, max_limit):
 		"""
 		Max Setter - force greater than min
 		Raises exception if max is lower than min
-		@param maxLimit: new maximum output value
-		@type maxLimit: float or int
+		@param max_limit: new maximum output value
+		@type max_limit: float or int
 		"""
 		# Check for valid value
-		if maxLimit in ['', None]:
+		if max_limit in ['', None]:
 			self._max = None
 			return
 
 		# Convert to float
 		try:
-			maxLimit = float(maxLimit)
+			max_limit = float(max_limit)
 		except ValueError:
-			raise ValueError("Failed to convert PID max limit input value '{}' to a float".format(maxLimit))
+			raise ValueError("Failed to convert PID max limit input value '{}' to a float".format(max_limit))
 
 		# Check validity against max limit
 		if self.min is not None:
-			assert self.min < maxLimit, "Max limit must be higher than min: {}".format(self.min)
+			assert self.min < max_limit, "Max limit must be higher than min: {}".format(self.min)
 
 		# Apply
-		self._max = maxLimit
+		self._max = max_limit
 
 	# endregion Limits
 	# region Config
 
-	def setConfig(self, configDict):
+	def set_config(self, config_dict):
 		"""
 		Set new config for PID controller
-		@param configDict: dict of PID parameters
-		@type configDict: dict[str, float]
+		@param config_dict: dict of PID parameters
+		@type config_dict: dict[str, float]
 		"""
-		self.kP = configDict.get('kP', self.kP)
-		self.kI = configDict.get('kI', self.kI)
-		self.kD = configDict.get('kD', self.kD)
-		self.min = configDict.get('min', self.min)
-		self.max = configDict.get('max', self.max)
-		self.windupGuard = configDict.get('windupGuard', self.windupGuard)
-		self.zeroierror()
+		self.k_p = config_dict.get('kP', self.k_p)
+		self.k_i = config_dict.get('kI', self.k_i)
+		self.k_d = config_dict.get('kD', self.k_d)
+		self.min = config_dict.get('min', self.min)
+		self.max = config_dict.get('max', self.max)
+		self.windup_guard = config_dict.get('windupGuard', self.windup_guard)
+		self.zero_i_error()
 
-	def getConfig(self):
+	def get_config(self):
 		"""
 		Return current PID settings as dict
 		"""
 		config = OrderedDict()
-		config['kP'] = self.kP
-		config['kI'] = self.kI
-		config['kD'] = self.kD
+		config['kP'] = self.k_p
+		config['kI'] = self.k_i
+		config['kD'] = self.k_d
 		config['min'] = "" if self.min is None else self.min
 		config['max'] = "" if self.max is None else self.max
-		config['windupGuard'] = "" if self.windupGuard is None else self.windupGuard
+		config['windupGuard'] = "" if self.windup_guard is None else self.windup_guard
 		return config
 
 	# endregion Config
 	# region Execution
 
-	def compute(self, currenttime, currentstate=None, newState=False):
+	def compute(self, current_time, current_state=None, new_state=False):
 		"""
 		Compute the output of the PID controller based on the elapsed time and the current target
-		@param currenttime: the time at which the latest input was sampled
-		@type currenttime: float
-		@param currentstate: (Optional) current state of device PID controller is controlling. otherwise uses self._currentState
-		@type currentstate: float
-		@param newState: flag to indicate we're moving to a new state (resets derivative error)
-		@type newState: bool
+		@param current_time: the time at which the latest input was sampled
+		@type current_time: float
+		@param current_state: (Optional) current state of device PID controller is controlling. otherwise uses self._currentState
+		@type current_state: float
+		@param new_state: flag to indicate we're moving to a new state (resets derivative error)
+		@type new_state: bool
 		@return: output of PID computation
 		@rtype: float
 		"""
@@ -316,58 +316,58 @@ class PID(object):
 			raise Exception("No target state set, cannot compute PID output")
 
 		# update state if available
-		if currentstate is not None:
-			self._currentState = currentstate
+		if current_state is not None:
+			self._current_state = current_state
 
 		# calculate change in time
-		deltaTime = currenttime - self._lastTime
+		delta_time = current_time - self._last_time
 
 		# proportional error from target
 		self._error = self.target - self.state
 		# integral of error from target
-		self.ierror += self.error * deltaTime
+		self.i_error += self.error * delta_time
 
 		# derivative of error from target
-		if newState or deltaTime == 0:
+		if new_state or delta_time == 0:
 			# force derivative to 0 if we just changed states
-			self._dError = 0.0
+			self._d_error = 0.0
 		else:
 			# derivative is slope of error over time
-			self._dError = (self.error - self._lastError) / deltaTime
+			self._d_error = (self.error - self._last_error) / delta_time
 
 		# apply gains to error values
-		self.output = self.kP * self.error + self.kI * self.ierror + self.kD * self.derror
+		self.output = self.k_p * self.error + self.k_i * self.i_error + self.k_d * self.d_error
 
-		self._lastTime = currenttime
-		self._lastError = self.error
+		self._last_time = current_time
+		self._last_error = self.error
 
 		return self.output
 
-	def resetClock(self, targetTime=0.0):
+	def reset_clock(self, target_time=0.0):
 		"""
 		Reset the time
-		@param targetTime: new time to set (default 0.0)
-		@type targetTime: str or int or float
+		@param target_time: new time to set (default 0.0)
+		@type target_time: str or int or float
 		"""
-		self._lastTime = float(targetTime)
+		self._last_time = float(target_time)
 
-	def applyWindup(self):
+	def apply_windup(self):
 		"""
 		Apply the windup guard to the integrated error
 		"""
-		if self.windupGuard:
-			if self.ierror < -self.windupGuard:
-				self._iError = -self.windupGuard
-			if self.ierror > self.windupGuard:
-				self._iError = self.windupGuard
+		if self.windup_guard:
+			if self.i_error < -self.windup_guard:
+				self._i_error = -self.windup_guard
+			if self.i_error > self.windup_guard:
+				self._i_error = self.windup_guard
 
-	def zeroierror(self):
+	def zero_i_error(self):
 		"""
 		Zero out the integrated error
 		"""
-		self.ierror = 0.0
+		self.i_error = 0.0
 
-	def currentStateToString(self):
+	def __repr__(self):
 		"""
 		Return the current state as a string
 		@return: string with current state, target state, all errors, and current output
@@ -377,8 +377,8 @@ class PID(object):
 			self.state,
 			self.target,
 			self.error,
-			self.ierror,
-			self.derror,
+			self.i_error,
+			self.d_error,
 			self.output
 		)
 

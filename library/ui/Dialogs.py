@@ -1,7 +1,7 @@
 import wx
 
 
-def InfoMessage(parent, message, caption=None):
+def info_message(parent, message, caption=None):
 	"""
 	Display an info message to the user
 	@param parent: parent frame
@@ -21,7 +21,7 @@ def InfoMessage(parent, message, caption=None):
 	dialog.Destroy()
 
 
-def YesNoMessage(parent, message, caption=None):
+def yes_no_message(parent, message, caption=None):
 	"""
 	Prompt user to answer a yes/no question
 	@param parent: parent frame
@@ -44,7 +44,7 @@ def YesNoMessage(parent, message, caption=None):
 	return result == wx.ID_YES
 
 
-def ErrorMessage(parent, message, caption=None):
+def error_message(parent, message, caption=None):
 	"""
 	Display an error message to the user
 	@param parent: parent frame
@@ -64,7 +64,7 @@ def ErrorMessage(parent, message, caption=None):
 	dialog.Destroy()
 
 
-def WarningMessage(parent, message, caption=None):
+def warning_message(parent, message, caption=None):
 	"""
 	Display a warning message to the user
 	@param parent: parent frame

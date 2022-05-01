@@ -1,6 +1,6 @@
 # Generic imports
-import os
 import logging
+import os
 from collections import OrderedDict
 
 import matplotlib
@@ -13,7 +13,7 @@ import wx.grid
 
 # Application imports
 from library.ui.ToastingGUIBase import ToastingBase
-from library.ui.Dialogs import InfoMessage, ErrorMessage
+from library.ui.Dialogs import info_message, error_message
 from library.ui.panels.StateConfigurationPanel import StateConfigurationPanel
 from library.ui.panels.TuningConfigurationPanel import TuningConfigurationPanel
 from library.ui.visualizer_liveGraph import LiveVisualizer
@@ -29,56 +29,56 @@ class ToastingGUI(ToastingBase):
 
 	# region Init
 
-	def __init__(self, baseConfigurationPath):
+	def __init__(self, base_configuration_path):
 		"""
 		Constructor for ToastingGUI
-		@param baseConfigurationPath: path to base configuration file to use
-		@type baseConfigurationPath: str
+		@param base_configuration_path: path to base configuration file to use
+		@type base_configuration_path: str
 		"""
 		super(ToastingGUI, self).__init__(None)
 
 		self.logger = getLogger('ToastingGUI', DEBUG_LEVEL)
 
 		# Busy signal
-		self.isBusy = True
+		self.is_busy = True
 
 		# Create a timer
 		self.timer = wx.Timer(self)
 
 		# Placeholder for visualizers
-		self.configurationVisualizer = None
-		self.liveVisualizer = None
-		self.liveCanvas = None
+		self.configuration_visualizer = None
+		self.live_visualizer = None
+		self.live_canvas = None
 
 		# Create the state machine
 		self.toaster = ToastStateMachine(
-			jsonConfigPath=baseConfigurationPath,
-			stateMachineCompleteCallback=self.toastingComplete,
+			jsonConfigPath=base_configuration_path,
+			stateMachineCompleteCallback=self.toasting_complete,
 			debugLevel=DEBUG_LEVEL
 		)
 
 		# Notebook pages
-		self.stateConfigPanel = StateConfigurationPanel(
-			self.baseNotebook,
+		self.state_config_panel = StateConfigurationPanel(
+			self.base_notebook,
 			self.toaster,
-			executeCallback=self.executeFromConfig,
-			configLoadCallback=self.updateGuiFieldsFromNewConfig
+			execute_callback=self.execute_from_config,
+			config_load_callback=self.update_gui_files_from_new_config
 		)
-		self.tuningConfigPanel = TuningConfigurationPanel(
-			self.baseNotebook,
+		self.tuning_config_panel = TuningConfigurationPanel(
+			self.base_notebook,
 			self.toaster,
-			timerChangeCallback=self.timerChangeCallback
+			timer_change_callback=self.timer_change_callback
 		)
 
-		self.notebookPages = OrderedDict()
-		self.notebookPages['Configuration'] = self.stateConfigPanel
-		self.notebookPages['Tuning'] = self.tuningConfigPanel
-		self.notebookPages['Toasting!'] = None
+		self.notebook_pages = OrderedDict()
+		self.notebook_pages['Configuration'] = self.state_config_panel
+		self.notebook_pages['Tuning'] = self.tuning_config_panel
+		self.notebook_pages['Toasting!'] = None
 
 		self.pageInitFunctions = {
-			'Configuration': self.stateConfigPanel.initializeConfigurationPage,
-			'Tuning': self.tuningConfigPanel.initializeTuningPage,
-			'Toasting!': self.initializeToastingPage
+			'Configuration': self.state_config_panel.initialize_configuration_page,
+			'Tuning': self.tuning_config_panel.initialize_tuning_page,
+			'Toasting!': self.initialize_toasting_page
 		}
 
 		# state machine update
@@ -86,58 +86,58 @@ class ToastingGUI(ToastingBase):
 		self.testTimer = 0.0
 
 		# status bar
-		self.statusGridItems = ['relay', 'temp', 'reftemp', 'status', 'state']
+		self.status_grid_items = ['relay', 'temp', 'reftemp', 'status', 'state']
 
 		# Initialize the GUI fields
-		self.initializeGuiObjects()
+		self.initialize_gui_objects()
 		
 		# Bind events
-		self.bindEvents()
+		self.bind_events()
 
 		# Send the ready signal
 		self.ready()
 
-	def initializeGuiObjects(self):
+	def initialize_gui_objects(self):
 		"""
 		Initialize the base GUI objects
 		"""
 		# Progress bar setup
-		self.progressGauge.SetRange(100)
+		self.progress_gauge.SetRange(100)
 
 		# Status grid
-		self.setupStatusGrid()
+		self.setup_status_grid()
 
 		# Start the timer (period stored in seconds, Start() takes period in mS)
 		self.timer.Start(self.timerPeriod * 1000)
 
-		for i, (panelName, panel) in enumerate(self.notebookPages.items()):
+		for i, (panelName, panel) in enumerate(self.notebook_pages.items()):
 			if not panel:
 				continue
-			self.baseNotebook.InsertPage(i, panel, panelName)
-		self.baseNotebook.SetSelection(0)
+			self.base_notebook.InsertPage(i, panel, panelName)
+		self.base_notebook.SetSelection(0)
 
 		# Initialize all the pages
-		self.updateGuiFieldsFromNewConfig()
+		self.update_gui_files_from_new_config()
 
-	def bindEvents(self):
+	def bind_events(self):
 		"""Bind all events not bound in base GUI class"""
 		# Busy/Ready decorators
 		decorators.subscribeToBusySignal(self.busy, MODEL_NAME)
 		decorators.subscribeToReadySignal(self.ready, MODEL_NAME)
 
 		# Timer
-		self.Bind(wx.EVT_TIMER, self.timerHandler)
+		self.Bind(wx.EVT_TIMER, self.timer_handler)
 
 		# close
-		self.Bind(wx.EVT_CLOSE, self.onClose)
+		self.Bind(wx.EVT_CLOSE, self.on_close)
 
-	def initCurrentPage(self):
+	def init_current_page(self):
 		"""
 		Initialize the currently selected notebook page
 		"""
-		if self.baseNotebook:
-			currentPageName = self.baseNotebook.GetPageText(self.baseNotebook.GetSelection())
-			self.pageInitFunctions[currentPageName]()
+		if self.base_notebook:
+			current_page_name = self.base_notebook.GetPageText(self.base_notebook.GetSelection())
+			self.pageInitFunctions[current_page_name]()
 
 	# endregion Init
 	# region Properties
@@ -155,14 +155,14 @@ class ToastingGUI(ToastingBase):
 		# 	return self.convertTemp(self.toaster.temperature)
 
 	@property
-	def refTemperature(self):
+	def ref_temperature(self):
 		"""
 		Getter for current reference temperature
 		@return: current referencetemperature
 		@rtype: float
 		"""
 		# if self.units == 'celsius':
-		return self.toaster.refTemperature
+		return self.toaster.ref_temperature
 		# else:
 		# 	return self.convertTemp(self.toaster.refTemperature)
 
@@ -185,22 +185,22 @@ class ToastingGUI(ToastingBase):
 		self.toaster.units = units
 
 	@property
-	def stateConfiguration(self):
+	def state_configuration(self):
 		"""
 		Getter for state configuration
 		@return: current state config
 		@rtype: OrderedDict
 		"""
-		return self.toaster.stateConfiguration
+		return self.toaster.state_configuration
 
-	@stateConfiguration.setter
-	def stateConfiguration(self, config):
+	@state_configuration.setter
+	def state_configuration(self, config):
 		"""
 		Setter for state config
 		@param config: state configuration
 		@type config: OrderedDict
 		"""
-		self.toaster.stateConfiguration = config
+		self.toaster.state_configuration = config
 
 	@property
 	def timerPeriod(self):
@@ -221,31 +221,31 @@ class ToastingGUI(ToastingBase):
 		return self.toaster.config
 
 	@config.setter
-	def config(self, filePath):
+	def config(self, file_path):
 		"""
 		Set new config from file on disk
-		@param filePath: path to config file
-		@type filePath: str
+		@param file_path: path to config file
+		@type file_path: str
 		"""
-		self.toaster.config = filePath
+		self.toaster.config = file_path
 
 	@property
-	def pidConfig(self):
+	def pid_config(self):
 		"""
 		Get current PID config
 		@return: pid config dict
 		@rtype: dict[str, float]
 		"""
-		return self.toaster.pid.getConfig()
+		return self.toaster.pid.get_config()
 
-	@pidConfig.setter
-	def pidConfig(self, configDict):
+	@pid_config.setter
+	def pid_config(self, config_dict):
 		"""
 		Set new PID config dict
-		@param configDict: PID configuration dict
-		@type configDict: dict[str, float]
+		@param config_dict: PID configuration dict
+		@type config_dict: dict[str, float]
 		"""
-		self.toaster.pid.setConfig(configDict)
+		self.toaster.pid.set_config(config_dict)
 
 	# endregion Properties
 	# region BusyReady
@@ -254,18 +254,18 @@ class ToastingGUI(ToastingBase):
 		"""
 		Busy signal handler
 		"""
-		self.isBusy = True
+		self.is_busy = True
 		self.Enable(False)
-		self.progressGauge.Pulse()
+		self.progress_gauge.Pulse()
 
 	def ready(self):
 		"""
 		Ready signal handler
 		"""
 		if not self.testing:
-			self.isBusy = False
+			self.is_busy = False
 			self.Enable()
-			self.progressGauge.SetValue(100)
+			self.progress_gauge.SetValue(100)
 
 	def Enable(self, enable=True):
 		"""
@@ -273,27 +273,27 @@ class ToastingGUI(ToastingBase):
 		@param enable: to enable or disable, that is the question
 		@type enable: bool
 		"""
-		super(ToastingGUI, self).Enable(enable)
-		for panel in self.notebookPages.values():
+		super().Enable(enable)
+		for panel in self.notebook_pages.values():
 			if panel:
 				panel.Enable(enable)
 
-		self.enableUnitsRadioBox(enable)
+		self.enable_units_radio_box(enable)
 
-		self.enableControlButtons(enable)
+		self.enable_control_buttons(enable)
 
-	def enableStatusBarButtons(self, enable):
+	def enable_status_bar_buttons(self, enable):
 		"""
 		Enable the buttons in the status bar
 		@param enable: enable/disable flag
 		@type enable: bool
 		"""
-		self.saveConfigButton.Enable(enable)
-		self.loadConfigButton.Enable(enable)
+		self.save_config_button.Enable(enable)
+		self.load_config_button.Enable(enable)
 		canExecute = bool(self.toaster.running not in [STATES.RUNNING, STATES.PAUSED, STATES.TESTING])
-		self.executeConfigButton.Enable(enable & canExecute)
+		self.execute_config_button.Enable(enable & canExecute)
 
-	def enableControlButtons(self, enable):
+	def enable_control_buttons(self, enable):
 		"""
 		Enable/disable the control buttons
 		@param enable: enable/disable flag
@@ -302,31 +302,31 @@ class ToastingGUI(ToastingBase):
 		# Save button
 		try:
 			if self.toaster.running not in [STATES.STOPPED, STATES.COMPLETE] or self.toaster.data == []:
-				self.saveDataButton.Enable(False)
+				self.save_data_button.Enable(False)
 			else:
-				self.saveDataButton.Enable(enable)
+				self.save_data_button.Enable(enable)
 		except:
-			self.saveDataButton.Enable(False)
+			self.save_data_button.Enable(False)
 
 		# Reflow/relay control buttons
 		if self.testing:
-			self.enableStatusBarButtons(False)
-			self.testButton.Enable(False)
-			self.pauseReflowButton.Enable(False)
-			self.startStopReflowButton.Enable(False)
+			self.enable_status_bar_buttons(False)
+			self.test_button.Enable(False)
+			self.pause_reflow_button.Enable(False)
+			self.start_stop_reflow_button.Enable(False)
 		else:
 			if self.toaster.running in [STATES.RUNNING, STATES.PAUSED]:
-				self.enableStatusBarButtons(False)
-				self.testButton.Enable(False)
-				self.pauseReflowButton.Enable(True)
-				self.startStopReflowButton.Enable(True)
+				self.enable_status_bar_buttons(False)
+				self.test_button.Enable(False)
+				self.pause_reflow_button.Enable(True)
+				self.start_stop_reflow_button.Enable(True)
 			else:
-				self.enableStatusBarButtons(True)
-				self.testButton.Enable(enable)
-				self.pauseReflowButton.Enable(False)
-				self.startStopReflowButton.Enable(enable)
+				self.enable_status_bar_buttons(True)
+				self.test_button.Enable(enable)
+				self.pause_reflow_button.Enable(False)
+				self.start_stop_reflow_button.Enable(enable)
 
-	def enableUnitsRadioBox(self, enable):
+	def enable_units_radio_box(self, enable):
 		"""
 		Enable the radio box in the status bar
 		@param enable: enable/disable flag
@@ -334,37 +334,35 @@ class ToastingGUI(ToastingBase):
 		"""
 		# Temperature units radio boxes
 		if self.toaster.running in [STATES.RUNNING, STATES.PAUSED] or self.testing:
-			self.celsiusRadioButton.Enable(False)
-			self.fahrenheitRadioButton.Enable(False)
+			self.celsius_radio_button.Enable(False)
+			self.fahrenheit_radio_button.Enable(False)
 		else:
-			self.celsiusRadioButton.Enable(enable)
-			self.fahrenheitRadioButton.Enable(enable)
+			self.celsius_radio_button.Enable(enable)
+			self.fahrenheit_radio_button.Enable(enable)
 
 	# endregion BusyReady
 	# region Visualization
 
 	@decorators.BusyReady(MODEL_NAME)
-	def redrawLiveVisualization(self):
+	def redraw_live_visualization(self):
 		"""
 		Add a new LiveVisualizer to the execution panel
-		@param visualizer: matplotlib LiveVisualizer for displaying config & live data
-		@type visualizer: LiveVisualizer
 		"""
-		sizer = self.liveVisualizationPanel.GetSizer()
+		sizer = self.live_visualization_panel.GetSizer()
 		sizer.Clear()
 		sizer.Layout()
 
-		self.liveVisualizer = LiveVisualizer(stateConfiguration=self.stateConfiguration, units=self.units)
-		self.liveCanvas = FigureCanvas(self.liveVisualizationPanel, -1, self.liveVisualizer.fig)
-		sizer.Add(self.liveCanvas, 1, wx.EXPAND)
-		self.liveVisualizationPanel.Layout()
+		self.live_visualizer = LiveVisualizer(state_configuration=self.state_configuration, units=self.units)
+		self.live_canvas = FigureCanvas(self.live_visualization_panel, -1, self.live_visualizer.fig)
+		sizer.Add(self.live_canvas, 1, wx.EXPAND)
+		self.live_visualization_panel.Layout()
 
-	def updateLiveVisualization(self):
+	def update_live_visualization(self):
 		"""
 		Add the latest data points to the live visualization
 		"""
 		# Add data to the graph
-		self.liveVisualizer.addDataPoint(
+		self.live_visualizer.add_data_point(
 			self.toaster.timestamp,
 			self.temperature,
 			self.toaster.targetState,
@@ -372,12 +370,12 @@ class ToastingGUI(ToastingBase):
 		)
 		
 		# Force visualizer to redraw itself with the new data
-		self.liveCanvas.draw()
+		self.live_canvas.draw()
 
 	# endregion Visualization
 	# region Helpers
 
-	def updateStatus(self, text, logLevel=None):
+	def update_status(self, text, logLevel=None):
 		"""
 		Convenience function for updating status bar
 		@param text: text to put on status bar
@@ -385,7 +383,7 @@ class ToastingGUI(ToastingBase):
 		@param logLevel: desired logging level. Default: None (no logging)
 		@type logLevel: int
 		"""
-		self.statusBar.SetStatusText(text)
+		self.status_bar.SetStatusText(text)
 		if logLevel is not None:
 			if logLevel in [logging.WARNING, logging.WARN]:
 				self.logger.warning(text)
@@ -395,33 +393,33 @@ class ToastingGUI(ToastingBase):
 				self.logger.info(text)
 
 	@decorators.BusyReady(MODEL_NAME)
-	def temperatureUnitsChange(self):
+	def temperature_units_change(self):
 		"""
 		Update config/graphs/etc. when user changes units
 		"""
 		# Get the current config
-		tempConfiguration = self.stateConfigPanel.convertConfigGridToStateConfig()
+		temp_configuration = self.state_config_panel.convert_config_grid_to_state_config()
 
 		# Create a new config based on the current config, but convert temps
-		newConfiguration = OrderedDict()
-		for state, stateDict in tempConfiguration.items():
+		new_configuration = OrderedDict()
+		for state, stateDict in temp_configuration.items():
 			# start the state config
-			newConfiguration[state] = {}
+			new_configuration[state] = {}
 
 			# Grab values from current config
-			temp = tempConfiguration[state][CONFIG_KEY_TARGET]
-			duration = tempConfiguration[state][CONFIG_KEY_DURATION]
+			temp = temp_configuration[state][CONFIG_KEY_TARGET]
+			duration = temp_configuration[state][CONFIG_KEY_DURATION]
 
 			# Update new config with converted temp
-			newConfiguration[state][CONFIG_KEY_TARGET] = self.convertTemp(temp)
-			newConfiguration[state][CONFIG_KEY_DURATION] = duration
+			new_configuration[state][CONFIG_KEY_TARGET] = self.convert_temperature(temp)
+			new_configuration[state][CONFIG_KEY_DURATION] = duration
 
 		# Store updated config & redraw stuff
-		self.stateConfiguration = newConfiguration
+		self.state_configuration = new_configuration
 
-		self.initCurrentPage()
+		self.init_current_page()
 
-	def convertTemp(self, temp):
+	def convert_temperature(self, temp):
 		"""
 		Convert a temp to the currently set units
 		@param temp: temperature value to convert
@@ -437,13 +435,13 @@ class ToastingGUI(ToastingBase):
 	# endregion Helpers
 	# region StatusGrid
 
-	def updateStatusGrid(self):
+	def update_status_grid(self):
 		"""
 		Update status grid with latest info
 		"""
 		# temps & relay
-		self.updateTemperatureStatus()
-		self.updateRelayStatus()
+		self.update_temperature_status()
+		self.update_relay_status()
 
 		# status
 		status = STATES.TESTING if self.testing else self.toaster.running
@@ -453,74 +451,74 @@ class ToastingGUI(ToastingBase):
 			red, green, blue = 100, 100, 255
 		else:
 			red, green, blue = 100, 255, 100
-		self.setStatusGridCellValue('status', status)
-		self.setStatusGridCellColour('status', red, green, blue)
+		self.set_status_grid_cell_value('status', status)
+		self.set_status_grid_cell_color('status', red, green, blue)
 
 		# state
 		if self.toaster.running in [STATES.RUNNING, STATES.PAUSED]:
-			stateColor = self.liveVisualizer.getColor(
+			state_color = self.live_visualizer.getColor(
 				self.toaster.targetState,
 				self.toaster.lastTarget
 			)
-			if stateColor == 'red':
+			if state_color == 'red':
 				red, green, blue = 255, 100, 100
-			elif stateColor == 'blue':
+			elif state_color == 'blue':
 				red, green, blue = 100, 100, 255
-			elif stateColor == 'yellow':
+			elif state_color == 'yellow':
 				red, green, blue = 255, 255, 0
 
-			self.setStatusGridCellValue('state', self.toaster.currentState)
-			self.setStatusGridCellColour('state', red, green, blue)
+			self.set_status_grid_cell_value('state', self.toaster.currentState)
+			self.set_status_grid_cell_color('state', red, green, blue)
 
 		elif self.toaster.running == STATES.COMPLETE:
 			red, green, blue = 100, 255, 100
-			self.setStatusGridCellValue('state', STATES.COMPLETE)
-			self.setStatusGridCellColour('state', red, green, blue)
+			self.set_status_grid_cell_value('state', STATES.COMPLETE)
+			self.set_status_grid_cell_color('state', red, green, blue)
 		else:
 			red, green, blue = 255, 255, 255
-			self.setStatusGridCellValue('state', '--')
-			self.setStatusGridCellColour('state', red, green, blue)
+			self.set_status_grid_cell_value('state', '--')
+			self.set_status_grid_cell_color('state', red, green, blue)
 
-	def setupStatusGrid(self):
+	def setup_status_grid(self):
 		"""
 		Basic setup of status grid = cell width, color, etc.
 		"""
-		baseColumnWidth = 50
+		base_column_width = 50
 
 		# relay state
-		self.statusGrid.SetCellAlignment(0, 0, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
-		self.statusGrid.SetCellValue(0, 0, "{}".format(self.toaster.relayState))
-		self.setStatusGridCellColour(statusName="relay", red=100, green=250, blue=100)
-		self.statusGrid.SetColSize(0, baseColumnWidth)
+		self.status_grid.SetCellAlignment(0, 0, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
+		self.status_grid.SetCellValue(0, 0, "{}".format(self.toaster.relayState))
+		self.set_status_grid_cell_color(statusName="relay", red=100, green=250, blue=100)
+		self.status_grid.SetColSize(0, base_column_width)
 
 		# current temperature
-		self.statusGrid.SetCellAlignment(0, 1, wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
-		self.statusGrid.SetCellValue(0, 1, "{}*".format(self.temperature))
-		self.setStatusGridCellColour(statusName="temp", red=200, green=200, blue=200)
-		self.statusGrid.SetColSize(1, baseColumnWidth)
+		self.status_grid.SetCellAlignment(0, 1, wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
+		self.status_grid.SetCellValue(0, 1, "{}*".format(self.temperature))
+		self.set_status_grid_cell_color(statusName="temp", red=200, green=200, blue=200)
+		self.status_grid.SetColSize(1, base_column_width)
 
 		# reference temperature
-		self.statusGrid.SetCellAlignment(0, 2, wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
-		self.statusGrid.SetCellValue(0, 2, "{}*".format(self.refTemperature))
-		self.setStatusGridCellColour(statusName="reftemp", red=150, green=150, blue=150)
-		self.statusGrid.SetColSize(2, baseColumnWidth)
+		self.status_grid.SetCellAlignment(0, 2, wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
+		self.status_grid.SetCellValue(0, 2, "{}*".format(self.ref_temperature))
+		self.set_status_grid_cell_color(statusName="reftemp", red=150, green=150, blue=150)
+		self.status_grid.SetColSize(2, base_column_width)
 
 		# ready/running/complete
-		self.statusGrid.SetCellAlignment(0, 3, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
-		self.statusGrid.SetCellValue(0, 3, "Ready")
-		self.setStatusGridCellColour(statusName="status", red=100, green=255, blue=100)
-		self.statusGrid.SetColSize(3, baseColumnWidth+20)
+		self.status_grid.SetCellAlignment(0, 3, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
+		self.status_grid.SetCellValue(0, 3, "Ready")
+		self.set_status_grid_cell_color(statusName="status", red=100, green=255, blue=100)
+		self.status_grid.SetColSize(3, base_column_width+20)
 
 		# state
-		self.statusGrid.SetCellAlignment(0, 4, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
-		self.statusGrid.SetCellValue(0, 4, "--")
-		self.setStatusGridCellColour(statusName="state", red=255, green=255, blue=255)
-		self.statusGrid.SetColSize(4, baseColumnWidth+30)
+		self.status_grid.SetCellAlignment(0, 4, wx.ALIGN_CENTER, wx.ALIGN_CENTER)
+		self.status_grid.SetCellValue(0, 4, "--")
+		self.set_status_grid_cell_color(statusName="state", red=255, green=255, blue=255)
+		self.status_grid.SetColSize(4, base_column_width+30)
 
 		# Force the sizer to adjust the layout - otherwise, grid isn't visible while GUI is initializing
-		self.statusGrid.GetContainingSizer().Layout()
+		self.status_grid.GetContainingSizer().Layout()
 
-	def setStatusGridCellColour(self, statusName, red=0, green=0, blue=0):
+	def set_status_grid_cell_color(self, statusName, red=0, green=0, blue=0):
 		"""
 		Updates the color of the box corresponding to the input statusName
 		@param statusName: name of status grid cell to update
@@ -532,11 +530,11 @@ class ToastingGUI(ToastingBase):
 		@param blue: how much blue
 		@type blue: int
 		"""
-		col = self.statusGridItems.index(statusName)
-		self.statusGrid.SetCellBackgroundColour(0, col, wx.Colour(red=red, green=green, blue=blue))
-		self.statusGrid.Refresh()
+		col = self.status_grid_items.index(statusName)
+		self.status_grid.SetCellBackgroundColour(0, col, wx.Colour(red=red, green=green, blue=blue))
+		self.status_grid.Refresh()
 
-	def setStatusGridCellValue(self, statusName, val):
+	def set_status_grid_cell_value(self, statusName, val):
 		"""
 		Set value of status grid cell
 		@param statusName: name of status grid cell to update
@@ -544,38 +542,38 @@ class ToastingGUI(ToastingBase):
 		@param val: value to set in cell
 		@type val: float or str
 		"""
-		index = self.statusGridItems.index(statusName)
+		index = self.status_grid_items.index(statusName)
 
 		if 'temp' in statusName:
-			self.statusGrid.SetCellValue(0, index, "{:5.1f}*".format(val))
+			self.status_grid.SetCellValue(0, index, "{:5.1f}*".format(val))
 		else:
-			self.statusGrid.SetCellValue(0, index, "{}".format(val))
+			self.status_grid.SetCellValue(0, index, "{}".format(val))
 
-	def updateTemperatureStatus(self):
+	def update_temperature_status(self):
 		"""
 		Update the status grid with the latest temperature values
 		"""
-		self.setStatusGridCellValue('temp', self.temperature)
-		self.setStatusGridCellValue('reftemp', self.refTemperature)
+		self.set_status_grid_cell_value('temp', self.temperature)
+		self.set_status_grid_cell_value('reftemp', self.ref_temperature)
 
-	def updateRelayStatus(self):
+	def update_relay_status(self):
 		"""
 		Update relay status grid cell based on current relay state
 		"""
 		state = self.toaster.relayState
-		self.setStatusGridCellValue('relay', 'ON' if state else 'OFF')
+		self.set_status_grid_cell_value('relay', 'ON' if state else 'OFF')
 		if state:
 			red, green, blue = 255, 100, 100
 		else:
 			red, green, blue = 100, 255, 100
-		self.setStatusGridCellColour('relay', red, green, blue)
+		self.set_status_grid_cell_color('relay', red, green, blue)
 
 	# endregion StatusGrid
 	# region DialogHelpers
 
 	"""Dialog helpers are simple macros for creating various wx dialog windows"""
 
-	def infoMessage(self, message, caption=None):
+	def info_message(self, message, caption=None):
 		dialog = wx.MessageDialog(
 			parent=self,
 			message=message,
@@ -585,7 +583,7 @@ class ToastingGUI(ToastingBase):
 		dialog.ShowModal()
 		dialog.Destroy()
 
-	def yesNoMessage(self, message, caption=None):
+	def yes_no_message(self, message, caption=None):
 		dialog = wx.MessageDialog(
 			parent=self,
 			message=message,
@@ -596,7 +594,7 @@ class ToastingGUI(ToastingBase):
 		dialog.Destroy()
 		return result == wx.ID_YES
 
-	def errorMessage(self, message, caption=None):
+	def error_message(self, message, caption=None):
 		dialog = wx.MessageDialog(
 			parent=self,
 			message=message,
@@ -606,7 +604,7 @@ class ToastingGUI(ToastingBase):
 		dialog.ShowModal()
 		dialog.Destroy()
 
-	def warningMessage(self, message, caption=None):
+	def warning_message(self, message, caption=None):
 		dialog = wx.MessageDialog(
 			parent=self,
 			message=message,
@@ -619,20 +617,20 @@ class ToastingGUI(ToastingBase):
 	# endregion DialogHelpers
 	# region ConfigurationPage
 
-	def executeFromConfig(self):
+	def execute_from_config(self):
 		"""
 		Event handler for execution button
 		"""
-		self.baseNotebook.SetSelection(2)
-		self.startStopReflowButtonOnButtonClick(None)
+		self.base_notebook.SetSelection(2)
+		self.start_stop_reflow_button_on_button_click(None)
 
-	def updateGuiFieldsFromNewConfig(self):
+	def update_gui_files_from_new_config(self):
 		"""
 		Update all GUI fields pertaining to Toaster config
 		"""
 		# Units
-		self.celsiusRadioButton.SetValue(self.units == 'celsius')
-		self.fahrenheitRadioButton.SetValue(self.units == 'fahrenheit')
+		self.celsius_radio_button.SetValue(self.units == 'celsius')
+		self.fahrenheit_radio_button.SetValue(self.units == 'fahrenheit')
 
 		for func in self.pageInitFunctions.values():
 			func()
@@ -640,7 +638,7 @@ class ToastingGUI(ToastingBase):
 	# endregion ConfigurationPage
 	# region TuningPage
 
-	def timerChangeCallback(self):
+	def timer_change_callback(self):
 		"""
 		Callback from tuning page for timer period changed
 		"""
@@ -650,68 +648,68 @@ class ToastingGUI(ToastingBase):
 	# endregion TuningPage
 	# region ToastingPage
 
-	def initializeToastingPage(self):
+	def initialize_toasting_page(self):
 		"""
 		Draw the basic live-graph for the Toasting page
 		"""
-		self.redrawLiveVisualization()
+		self.redraw_live_visualization()
 
 	@decorators.BusyReady(MODEL_NAME)
-	def startStopReflowButtonOnButtonClick(self, event):
+	def start_stop_reflow_button_on_button_click(self, event):
 		"""
 		Event handler for start/stop reflow button
 		"""
 		if event:
 			event.Skip()
-		if self.startStopReflowButton.GetLabel() == 'Start Reflow':
+		if self.start_stop_reflow_button.GetLabel() == 'Start Reflow':
 			# re-init the page to reset the live visualization
-			self.initializeToastingPage()
-			self.startStopReflowButton.SetLabel('Stop Reflow')
-			self.pauseReflowButton.Enable(True)
+			self.initialize_toasting_page()
+			self.start_stop_reflow_button.SetLabel('Stop Reflow')
+			self.pause_reflow_button.Enable(True)
 			# start reflowing
 			self.toaster.start()
-			self.updateStatus("Reflow process started")
+			self.update_status("Reflow process started")
 		else:
 			self.toaster.stop()
-			self.startStopReflowButton.SetLabel('Start Reflow')
-			self.pauseReflowButton.Enable(False)
-			self.updateStatus("Reflow process stopped")
-			self.writeDataAndConfigToDisk()
-		self.pauseReflowButton.SetLabel('Pause Reflow')
+			self.start_stop_reflow_button.SetLabel('Start Reflow')
+			self.pause_reflow_button.Enable(False)
+			self.update_status("Reflow process stopped")
+			self.write_data_and_config_to_disk()
+		self.pause_reflow_button.SetLabel('Pause Reflow')
 
-	def pauseReflowButtonOnButtonClick(self, event):
+	def pause_reflow_button_on_button_click(self, event):
 		"""
 		Event handler for pause/resume reflow button
 		"""
 		event.Skip()
-		if self.pauseReflowButton.GetLabel() == "Pause Reflow":
+		if self.pause_reflow_button.GetLabel() == "Pause Reflow":
 			self.toaster.pause()
-			self.pauseReflowButton.SetLabel("Resume Reflow")
-			self.updateStatus("Reflow process paused")
+			self.pause_reflow_button.SetLabel("Resume Reflow")
+			self.update_status("Reflow process paused")
 		else:
 			self.toaster.resume()
-			self.pauseReflowButton.SetLabel("Pause Reflow")
-			self.updateStatus("Reflow process resumed")
+			self.pause_reflow_button.SetLabel("Pause Reflow")
+			self.update_status("Reflow process resumed")
 
-	def testButtonOnButtonClick(self, event):
+	def test_button_on_button_click(self, event):
 		"""
 		Event handler for test button
 		"""
 		event.Skip()
 		self.Enable(False)
-		self.updateStatus("Testing relay")
+		self.update_status("Testing relay")
 		self.testTimer = 0.0
 		self.testing = True
 
 	@decorators.BusyReady(MODEL_NAME)
-	def toastingComplete(self):
+	def toasting_complete(self):
 		"""
 		Do some stuff once reflow is complete
 		"""
-		self.startStopReflowButton.SetLabel("Start Reflow")
-		self.writeDataAndConfigToDisk()
+		self.start_stop_reflow_button.SetLabel("Start Reflow")
+		self.write_data_and_config_to_disk()
 
-	def writeDataAndConfigToDisk(self):
+	def write_data_and_config_to_disk(self):
 		"""
 		Dump collected data to CSV
 		"""
@@ -724,7 +722,7 @@ class ToastingGUI(ToastingBase):
 		)
 		# exit if user cancelled operation
 		if dialog.ShowModal() == wx.ID_CANCEL:
-			self.updateStatus("Save data/config operation cancelled", logLevel=logging.WARN)
+			self.update_status("Save data/config operation cancelled", logLevel=logging.WARN)
 			return
 
 		csvPath = dialog.GetPath()
@@ -734,7 +732,7 @@ class ToastingGUI(ToastingBase):
 		else:
 			status = "No data to dump"
 			logLevel = logging.WARN
-		self.updateStatus(status, logLevel)
+		self.update_status(status, logLevel)
 
 		# Dump config, too
 		directory = os.path.dirname(csvPath)
@@ -742,23 +740,23 @@ class ToastingGUI(ToastingBase):
 		configPath = os.path.join(directory, filename)
 		self.toaster.dumpConfig(configPath)
 		status = "Config stored @ {}".format(configPath)
-		self.updateStatus(status, logLevel=logging.INFO)
+		self.update_status(status, logLevel=logging.INFO)
 
 	# endregion ToastingPage
 	# region Testing
 
 	# @decorators.BusyReady(MODEL_NAME)
-	def testTick(self):
+	def test_tick(self):
 		"""
 		Fire this event to test relay
 		"""
-		self.setStatusGridCellValue('status', STATES.TESTING)
+		self.set_status_grid_cell_value('status', STATES.TESTING)
 
 		# enable/disable relay at 1Hz
 		if self.testTimer % 1 == 0:
 			self.toaster.relay.toggle()
 			remainingTime = self.RELAY_TEST_DURATION - self.testTimer
-			self.updateStatus("Remaining relay test time: {} seconds".format(remainingTime))
+			self.update_status("Remaining relay test time: {} seconds".format(remainingTime))
 
 		# increment test timer
 		self.testTimer += self.timerPeriod
@@ -767,13 +765,13 @@ class ToastingGUI(ToastingBase):
 		if self.testTimer >= self.RELAY_TEST_DURATION:
 			self.testing = False
 			self.toaster.relay.disable()
-			self.updateStatus("Relay test complete")
+			self.update_status("Relay test complete")
 			self.Enable(True)
 
 	# endregion Testing
 	# region SaveAndLoadConfig
 
-	def loadConfigFromFile(self, filePath):
+	def load_config_from_file(self, filePath):
 		"""
 		Load in a new config from a JSON file path
 		@param filePath: path to new JSON config file
@@ -782,9 +780,9 @@ class ToastingGUI(ToastingBase):
 		self.toaster.config = filePath
 
 		# Update the GUI
-		self.updateGuiFieldsFromNewConfig()
+		self.update_gui_files_from_new_config()
 
-	def loadConfigDialog(self):
+	def load_config_dialog(self):
 		"""
 		Show user a load file dialog and update configuration accordingly
 		"""
@@ -801,73 +799,73 @@ class ToastingGUI(ToastingBase):
 			return
 
 		# Extract file path from dialog and load it
-		self.loadConfigFromFile(dialog.GetPath())
+		self.load_config_from_file(dialog.GetPath())
 
 	@decorators.BusyReady(MODEL_NAME)
-	def saveConfigDialog(self):
+	def save_config_dialog(self):
 		"""
 		Save current config to JSON file
 		"""
 		try:
-			self.stateConfiguration = self.stateConfigPanel.convertConfigGridToStateConfig()
-			self.tuningConfigPanel.updateAllSettings()
+			self.state_configuration = self.state_config_panel.convert_config_grid_to_state_config()
+			self.tuning_config_panel.update_all()
 		except:
 			return
 
 		# Get the current config and use it as the target path
-		currentConfigPath = self.toaster.configPath
-		if currentConfigPath:
-			defaultDir = os.path.dirname(currentConfigPath)
-			defaultFile = os.path.basename(currentConfigPath)
+		current_config_path = self.toaster.configPath
+		if current_config_path:
+			default_dir = os.path.dirname(current_config_path)
+			default_file = os.path.basename(current_config_path)
 		else:
-			defaultDir = CONFIG_DIR
-			defaultFile = "toast_config.json"
+			default_dir = CONFIG_DIR
+			default_file = "toast_config.json"
 
 		# Create file save dialog
 		dialog = wx.FileDialog(
 			parent=self,
 			message="Save Config to JSON File",
-			defaultDir=defaultDir,
-			defaultFile=defaultFile,
+			defaultDir=default_dir,
+			defaultFile=default_file,
 			style=wx.FD_SAVE
 		)
 
 		# Show dialog and return if user didn't actually choose a file
 		if dialog.ShowModal() == wx.ID_CANCEL:
-			self.updateStatus("Save config operation cancelled", logLevel=logging.WARN)
+			self.update_status("Save config operation cancelled", logLevel=logging.WARN)
 			return
 
 		# Extract file path from dialog and dump config
-		filePath = dialog.GetPath()
-		self.toaster.dumpConfig(filePath)
-		self.toaster.config = filePath
-		self.updateStatus("Config saved to {}".format(self.toaster.configPath))
+		file_path = dialog.GetPath()
+		self.toaster.dumpConfig(file_path)
+		self.toaster.config = file_path
+		self.update_status("Config saved to {}".format(self.toaster.configPath))
 
 	# endregion SaveAndLoadConfig
 	# region GeneralEventHandlers
 
-	def saveConfigButtonOnButtonClick(self, event):
+	def save_config_button_on_button_click(self, event):
 		"""
 		Open the save config dialog
 		"""
 		event.Skip()
-		self.saveConfigDialog()
+		self.save_config_dialog()
 
-	def loadConfigButtonOnButtonClick(self, event):
+	def load_config_button_on_button_click(self, event):
 		"""
 		Open the load config dialog
 		"""
 		event.Skip()
-		self.loadConfigDialog()
+		self.load_config_dialog()
 
-	def executeConfigButtonOnButtonClick(self, event):
+	def execute_config_button_on_button_click(self, event):
 		"""
 		Event handler for execution button
 		"""
 		event.Skip()
-		self.executeFromConfig()
+		self.execute_from_config()
 
-	def timerHandler(self, event):
+	def timer_handler(self, event):
 		"""
 		Event handler for wx.Timer
 		"""
@@ -875,95 +873,95 @@ class ToastingGUI(ToastingBase):
 
 		# handle progress gauge
 		if self.testing or self.toaster.running == STATES.RUNNING:
-			self.progressGauge.Pulse()
+			self.progress_gauge.Pulse()
 			# disable other panels while running
-			self.stateConfigPanel.Enable(False)
-			self.tuningConfigPanel.Enable(False)
+			self.state_config_panel.Enable(False)
+			self.tuning_config_panel.Enable(False)
 		else:
-			self.progressGauge.SetValue(100)
-			self.stateConfigPanel.Enable(True)
-			self.tuningConfigPanel.Enable(True)
+			self.progress_gauge.SetValue(100)
+			self.state_config_panel.Enable(True)
+			self.tuning_config_panel.Enable(True)
 
 		# tell control to read thermocouple, etc.
 		self.toaster.tick(self.testing)
 
 		# check errors
-		recentErrorCount = self.toaster.getRecentErrorCount()
-		if recentErrorCount >= 5:
+		recent_error_count = self.toaster.getRecentErrorCount()
+		if recent_error_count >= 5:
 			self.toaster.stop()
 
 			caption = "Too Many Thermocouple Errors"
-			errorMessage = "There have been {} errors recently. Please check the Thermocouple connection"
-			errorMessage += "\n and the thermocouple itself for issues."
-			ErrorMessage(self, errorMessage, caption)
+			error = "There have been {} errors recently. Please check the Thermocouple connection"
+			error += "\n and the thermocouple itself for issues."
+			error_message(self, error, caption)
 
 		# Fire test tick if we're testing the relay
 		if self.testing:
-			self.testTick()
+			self.test_tick()
 
 		# Update live visualization if we're running
 		if self.toaster.running == STATES.RUNNING:
-			self.updateLiveVisualization()
+			self.update_live_visualization()
 
 		# update status grid
-		self.updateStatusGrid()
+		self.update_status_grid()
 
-	def baseNotebookOnNotebookPageChanged(self, event):
+	def base_notebook_on_notebook_page_changed(self, event):
 		"""
 		Event handler for notebook page change
 		"""
 		event.Skip()
-		self.initCurrentPage()
+		self.init_current_page()
 
-	def temperatureOnRadioButton(self, event):
+	def temperature_on_radio_button(self, event):
 		"""
 		Event handler for temperature radio buttons
 		"""
 		radioBox = event.GetEventObject()
-		if radioBox == self.celsiusRadioButton and self.units == 'celsius':
+		if radioBox == self.celsius_radio_button and self.units == 'celsius':
 			return
-		elif radioBox == self.fahrenheitRadioButton and self.units == 'fahrenheit':
+		elif radioBox == self.fahrenheit_radio_button and self.units == 'fahrenheit':
 			return
 
-		if radioBox == self.celsiusRadioButton:
-			self.fahrenheitRadioButton.SetValue(False)
+		if radioBox == self.celsius_radio_button:
+			self.fahrenheit_radio_button.SetValue(False)
 			self.units = 'celsius'
-		elif radioBox == self.fahrenheitRadioButton:
-			self.celsiusRadioButton.SetValue(False)
+		elif radioBox == self.fahrenheit_radio_button:
+			self.celsius_radio_button.SetValue(False)
 			self.units = 'fahrenheit'
 
-		self.temperatureUnitsChange()
-		self.updateTemperatureStatus()
+		self.temperature_units_change()
+		self.update_temperature_status()
 
-	def saveDataButtonOnButtonClick(self, event):
+	def save_data_button_on_button_click(self, event):
 		"""
 		Event handler for save to CSV button
 		"""
 		event.Skip()
-		self.writeDataAndConfigToDisk()
+		self.write_data_and_config_to_disk()
 
-	def saveConfigMenuItemOnMenuSelection(self, event):
+	def save_config_menu_item_on_menu_selection(self, event):
 		"""
 		Event handler for save config menu item
 		"""
 		event.Skip()
-		self.saveConfigDialog()
+		self.save_config_dialog()
 
-	def loadConfigMenuItemOnMenuSelection(self, event):
+	def load_config_menu_item_on_menu_selection(self, event):
 		"""
 		Event handler for load config menu item
 		"""
 		event.Skip()
-		self.loadConfigDialog()
+		self.load_config_dialog()
 
-	def aboutMenuItemOnMenuSelection(self, event):
+	def about_menu_item_on_menu_selection(self, event):
 		"""
 		Event handler for about menu item
 		"""
 		event.Skip()
-		InfoMessage(self, message="See https://www.github.com/imchipwood/Toasting for more info", caption="About")
+		info_message(self, message="See https://www.github.com/imchipwood/Toasting for more info", caption="About")
 
-	def onClose(self, event):
+	def on_close(self, event):
 		"""
 		Event handler for exit
 		"""

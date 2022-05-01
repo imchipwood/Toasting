@@ -127,9 +127,9 @@ class ToasterConfig(object):
 		elif isinstance(pids, dict):
 			self._pids = PID(pids)
 		if 'tuning' not in self.config:
-			self.config['tuning'] = {'pid': self.pids.getConfig()}
+			self.config['tuning'] = {'pid': self.pids.get_config()}
 		else:
-			self.config['tuning']['pid'] = self.pids.getConfig()
+			self.config['tuning']['pid'] = self.pids.get_config()
 
 	@property
 	def clockPeriod(self):

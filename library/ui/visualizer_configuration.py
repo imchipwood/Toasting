@@ -14,34 +14,34 @@ COLORS = {
 
 
 class ConfigurationVisualizer:
-	def __init__(self, stateConfiguration, doNotDrawLines=False, units='celsius'):
+	def __init__(self, state_configuration, draw_lines=True, units='celsius'):
 		"""
 		Configuration visualizer (line graph) constructor
-		@param stateConfiguration: State config dict for reflow profile
-		@type stateConfiguration: collections.OrderedDict
-		@param doNotDrawLines: flag to disable drawing the lines of the configuration. Default: False
-		@type doNotDrawLines: bool
+		@param state_configuration: State config dict for reflow profile
+		@type state_configuration: collections.OrderedDict
+		@param draw_lines: flag to disable drawing the lines of the configuration. Default: False
+		@type draw_lines: bool
 		@param units: Temperature units to display. Default: celsius
 		@type units: str
 		"""
 		super().__init__()
-		self.stateConfiguration = stateConfiguration
+		self.state_configuration = state_configuration
 
-		if self.stateConfiguration:
+		if self.state_configuration:
 			# Get the maximum temps & timestamps from the config and increase them by 50 to use as axes limits
-			maxTargetTemp = self.getMaxValueFromStateConfig(CONFIG_KEY_TARGET, method=max) + 50
-			maxTimestamp = self.getMaxValueFromStateConfig(CONFIG_KEY_TARGET, method=sum) + 50
+			max_target_temp = self.getMaxValueFromStateConfig(CONFIG_KEY_TARGET, method=max) + 50
+			max_timestamp = self.getMaxValueFromStateConfig(CONFIG_KEY_TARGET, method=sum) + 50
 		else:
-			maxTargetTemp = 300
-			maxTimestamp = 300
+			max_target_temp = 300
+			max_timestamp = 300
 
 		# Create a plot and save it for use later
 		self.fig = self.createPlot(
-			self.stateConfiguration,
-			doNotDrawLines=doNotDrawLines,
+			self.state_configuration,
+			doNotDrawLines=draw_lines,
 			units=units,
-			maxTargetTemp=maxTargetTemp,
-			maxTimestamp=maxTimestamp
+			maxTargetTemp=max_target_temp,
+			maxTimestamp=max_timestamp
 		)
 
 	def getMaxValueFromStateConfig(self, configKey, method=max):
@@ -54,7 +54,7 @@ class ConfigurationVisualizer:
 		@return: Max value based on given configKey & method
 		@rtype: float
 		"""
-		return method([float(stateConfig[configKey]) for stateConfig in self.stateConfiguration.values()])
+		return method([float(stateConfig[configKey]) for stateConfig in self.state_configuration.values()])
 
 	def createPlot(self, stateConfiguration=None, doNotDrawLines=False, units='celsius', maxTargetTemp=300, maxTimestamp=500) -> Figure:
 		"""
@@ -73,7 +73,7 @@ class ConfigurationVisualizer:
 		@rtype: matplotlib.figure.Figure
 		"""
 		# State config may not have been passed in - if not, use the one passed to the constructor
-		stateConfiguration = stateConfiguration or self.stateConfiguration
+		stateConfiguration = stateConfiguration or self.state_configuration
 
 		# Base figure & axes
 		fig = Figure()
