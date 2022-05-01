@@ -1,12 +1,14 @@
 # USE THIS PROGRAM AT YOUR OWN RISK
+
 This tool is designed to turn a toaster oven on and off - this involves rewiring a toaster
 oven and working with AC mains power. Be VERY careful and do your testing in a safe place
 where an accidental fire is containable.
 
 # Toasting - What is it?
+
 'Toasting' is a reflow soldering toaster oven controller GUI designed for the Raspberry Pi.
 Reflow soldering is generally used for small, surface mount components that are difficult
-to solder by hand.
+(or at least tedious) to solder by hand
 
 A [PID controller](https://en.wikipedia.org/wiki/PID_controller) is used to turn a relay 
 on and off to maintain the target temperatures, which are measured via thermocouple.
@@ -16,12 +18,12 @@ The Pi Zero *can* run the GUI but the live graph does not update in real time.
 No other Pi models have been tested.
 
 # Setup
-Python3.5.3 was used to develop Toasting, it should work on newer versions as well. 
 
-__Note:__ Toasting uses wxpython-4.0.0b2, which is not available thru pip. 
-Continue reading for instructions on building from source
+Originally developed for Python 3.5.3, but known to work on versions up to 3.9. 
+Should work on anything >= 3.5, really.
 
 ## Create & activate Python virtual environment (Optional)
+
 Using a virtual environment is not necessary but is recommended.
 
 ```
@@ -30,12 +32,19 @@ source toasting_venv/bin/activate
 ```
 
 ## Install Python packages available via pip
+
 ```
 pip3 install -r requirements.txt
 ```
 
-## wxpython-4.0.0b2
-Follow these instructions: https://wiki.wxpython.org/BuildWxPythonOnRaspberryPi
+### wxpython
+
+Toasting's GUI is designed using wxPython. [wxFormBuilder](https://github.com/wxFormBuilder/wxFormBuilder) 
+was used to design the layout - open [ToastingGUI.fbp](/library/ui/ToastingGUI.fbp) to view/edit the layout. 
+After editing, make sure to hit the "generate code" button to rebuild [ToastingGUIBase.py](/library/ui/ToastingGUIBase.py).
+
+The current design uses `wxPython==4.1.1` - there is a wheel of this version available for armv7 devices, 
+so there is no longer a need to compile wxPython manually!
 
 # Control & Sensors
 
@@ -104,13 +113,11 @@ To test the relay, go to the "Toasting" page and click the "Test Relay" button. 
 
 ## Running the reflow profile
 If you are satisfied with your profile & tuning, go to the "Toasting" page and click "Start Reflow". The graph will 
-update in real time. The colors are as follows:
+update in real time.
 
-The graph plots two temperatures in real time. 
-
-The target temperature is always plotted __orange__.
-
-The current temperature color depends on whether the temperature is increasing, decreasing, or static in that stage:  
-  - Increasing temperature: __red__
-  - Static temperature: __green__
-  - Decreasing temperature: __blue__
+| Line Color | Description                                                                |
+|------------|----------------------------------------------------------------------------|
+| Orange | Target temperature (only changes when transitioning between reflow states) |
+| Red | Live temperature - temperature is increasing                              | 
+| Green | Live temperature - temperature is holding steady                           |
+| Blue | Live temperature - temperature is decreasing                               |
