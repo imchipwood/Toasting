@@ -39,7 +39,8 @@ def test_compute():
 	pid = GetPID()
 
 	# Check computing with no target fails
-	with pytest.raises(Exception, message="Expected exception for no target set"):
+	with pytest.raises(Exception):
+		# "Expected exception for no target set"
 		pid.compute(0.5)
 
 	# Check for positive output
@@ -100,12 +101,14 @@ def test_min_max():
 	pid.compute(1, 10.0)
 
 	pid.min = 0
-	with pytest.raises(Exception, message="expected assertion error for max < min value"):
+	with pytest.raises(Exception):
+		# "expected assertion error for max < min value"
 		pid.max = -10
 
 	pid.max = 10
 
-	with pytest.raises(Exception, message="expected assertion error for min > max value"):
+	with pytest.raises(Exception):
+		# "expected assertion error for min > max value"
 		pid.min = 11
 
 	timeInterval = 0.5

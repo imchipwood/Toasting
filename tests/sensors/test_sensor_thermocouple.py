@@ -133,5 +133,6 @@ def test_csPin():
 	tc.csPin = 1
 	tc.csPin = 1
 	assert tc.csPin == 1
-	with pytest.raises(Exception, message="Expected exception for invalid CS pin"):
+	with pytest.raises(Exception):
+		# "Expected exception for invalid CS pin"
 		tc.csPin = 10

@@ -81,7 +81,8 @@ def test_setters():
 	assert config.units == 'fahrenheit'
 	config.units = 'celsius'
 	assert config.units == 'celsius'
-	with pytest.raises(Exception, message="Expected exception for invalid units"):
+	with pytest.raises(Exception):
+		# "Expected exception for invalid units"
 		config.units = "FAKEUNITS"
 
 	config.pids = PID()
@@ -99,7 +100,8 @@ def test_setters():
 	config.states = testStates
 	assert config.states['firstState']['target'] == 999
 
-	with pytest.raises(Exception, message="Expected exception for invalid states type"):
+	with pytest.raises(Exception):
+		# "Expected exception for invalid states type"
 		config.states = ['bob', 'was', 'here']
 
 	# Test setting the config
