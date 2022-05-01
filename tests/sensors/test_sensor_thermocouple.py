@@ -19,57 +19,64 @@ def teardown_function(function):
 	return
 
 
-def test_ByteListToInteger():
+@pytest.mark.parametrize("bytes_list, expected", [
+	([0, 0, 0, 0], 0),
+	([0, 0, 0, 16], 16),
+	([0, 0, 1, 255], 511),
+	([15, 15, 15, 15], 252645135),
+])
+def test_ByteListToInteger(bytes_list, expected):
 	"""
 	Test conversion of a list of bytes to a full integer
 	"""
-	tests = {
-		0: [0, 0, 0, 0],
-		16: [0, 0, 0, 16],
-		511: [0, 0, 1, 255],
-		252645135: [15, 15, 15, 15]
-	}
-	for expected, bytes in tests.items():
-		assert Thermocouple.ByteListToInteger(bytes) == expected
+	assert Thermocouple.ByteListToInteger(bytes_list) == expected
 
 
-def test_ConvertCelsiusToFahrenheit():
+@pytest.mark.parametrize("celsius, fahrenheit", [
+	(0, 32),
+	(50, 122),
+	(75.5, 167.9),
+	(100, 212)
+])
+def test_ConvertCelsiusToFahrenheit(celsius, fahrenheit):
 	"""
 	Test the simple Celsius to Fahrenheit conversion
 	"""
-	tests = {
-		0: 32,
-		50: 122,
-		75.5: 167.9,
-		100: 212
-	}
-	for celsius, fahrenheit in tests.items():
-		assert Thermocouple.ConvertCelsiusToFahrenheit(celsius) == fahrenheit
+	assert Thermocouple.ConvertCelsiusToFahrenheit(celsius) == fahrenheit
 
 
-def test_CheckSPIReadForErrors():
+@pytest.mark.parametrize("code, expectedException", [
+	(0x10001, TCNoTCError),
+	(0x31113, TCNoTCError),
+	(0x10006, TCGndShortError),
+	(0x50004, TCVccShortError),
+	(0x60008, TCError),
+	(0x30009, TCNoTCError),
+])
+def test_CheckSPIReadForErrors(code, expectedException):
 	"""
 	Test that errors in the values raise exceptions properly
 	Test inputs derived from MAX31855 datasheet
 	"""
-	tests = {
-		0x10001: TCNoTCError,
-		0x31113: TCNoTCError,
-		0x10006: TCGndShortError,
-		0x50004: TCVccShortError,
-		0x60008: TCError,
-		0x30009: TCNoTCError,
-	}
-	for val, expectedException in tests.items():
-		try:
-			Thermocouple.CheckSPIReadForErrors(val)
-		except expectedException:
-			assert True
-		except Exception as e:
-			assert False, "{}: Expected {}, got {}".format(hex(val), str(expectedException), str(e))
+	try:
+		Thermocouple.CheckSPIReadForErrors(code)
+	except expectedException:
+		assert True
+	except Exception as e:
+		assert False, "{}: Expected {}, got {}".format(hex(code), str(expectedException), str(e))
 
 
-def test_CalculateReferenceTemperature():
+@pytest.mark.parametrize("spi_read_value, expected_celsius", [
+	(0x7F0 << 4, 127),
+	(0x649 << 4, 100.5625),
+	(0x190 << 4, 25),
+	(0x000 << 4, 0),
+	(0xFFF << 4, -0.0625),
+	(0xFF0 << 4, -1),
+	(0xEC0 << 4, -20),
+	(0xC90 << 4, -55),
+])
+def test_CalculateReferenceTemperature(spi_read_value, expected_celsius):
 	"""
 	Test calculation of reference temperature
 	Test inputs derived from MAX31855 datasheet
@@ -84,31 +91,25 @@ def test_CalculateReferenceTemperature():
 		0xEC0 << 4: -20,
 		0xC90 << 4: -55,
 	}
-	for spiReadValue, expectedCelsius in tests.items():
-		print("Checking {} converts to {}".format(hex(spiReadValue), expectedCelsius))
-		assert expectedCelsius == Thermocouple.CalculateReferenceTemperature(spiReadValue)
-	print("\n")
+	assert expected_celsius == Thermocouple.CalculateReferenceTemperature(spi_read_value)
 
 
-def test_CalculateThermocoupleTemperature():
+@pytest.mark.parametrize("spi_read_value, expected_celsius", [
+	(0x1900 << 18, 1600),
+	(0x0FA0 << 18, 1000),
+	(0x0193 << 18, 100.75),
+	(0x0064 << 18, 25),
+	(0x0000 << 18, 0),
+	(0x3FFF << 18, -0.25),
+	(0x3FFC << 18, -1),
+	(0x3C18 << 18, -250),
+])
+def test_CalculateThermocoupleTemperature(spi_read_value, expected_celsius):
 	"""
 	Test calculation of thermocouple temperature
 	Test inputs derived from MAX31855 datasheet
 	"""
-	tests = {
-		0x1900 << 18: 1600,
-		0x0FA0 << 18: 1000,
-		0x0193 << 18: 100.75,
-		0x0064 << 18: 25,
-		0x0000 << 18: 0,
-		0x3FFF << 18: -0.25,
-		0x3FFC << 18: -1,
-		0x3C18 << 18: -250,
-	}
-	for spiReadValue, expectedCelsius in tests.items():
-		print("Checking {} converts to {}".format(hex(spiReadValue), expectedCelsius))
-		assert expectedCelsius == Thermocouple.CalculateThermocoupleTemperature(spiReadValue)
-	print("\n")
+	assert expected_celsius == Thermocouple.CalculateThermocoupleTemperature(spi_read_value)
 
 
 def test_Thermocouple():
@@ -128,9 +129,6 @@ def test_csPin():
 	"""
 	tc = Thermocouple()
 	assert tc.csPin == 0
-	tc.csPin = 1
-	tc.csPin = 1
-	tc.csPin = 1
 	tc.csPin = 1
 	assert tc.csPin == 1
 	with pytest.raises(Exception):
