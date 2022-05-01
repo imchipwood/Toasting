@@ -10,6 +10,8 @@ where an accidental fire is containable.
 Reflow soldering is generally used for small, surface mount components that are difficult
 (or at least tedious) to solder by hand
 
+![Live Graph Screenshot](https://raw.githubusercontent.com/imchipwood/Toasting/master/doc/panel_toasting.png)
+
 A [PID controller](https://en.wikipedia.org/wiki/PID_controller) is used to turn a relay 
 on and off to maintain the target temperatures, which are measured via thermocouple.
 
